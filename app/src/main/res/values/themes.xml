@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.AcadenceApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#0066FF</item>   <!-- Blue -->
+        <item name="colorPrimaryVariant">#004C99</item> <!-- Darker blue -->
+        <item name="colorOnPrimary">#FFFFFF</item> <!-- White text -->
+    </style>
+
+    <style name="Theme.AcadenceApp" parent="Base.Theme.AcadenceApp" />
+</resources>
