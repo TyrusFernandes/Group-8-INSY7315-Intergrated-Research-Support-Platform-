@@ -30,13 +30,16 @@ class NavbarFragment : Fragment() {
                     true
                 }
                 R.id.navigation_for_you -> {
-                    // TODO: navigate to ForYou when ready
+                    startActivity(Intent(requireContext(), ForYouPageActivity::class.java))
+                    true
                 }
                 R.id.navigation_add -> {
-                    // TODO: open Add screen when ready
+                    startActivity(Intent(requireContext(), DocumentActivity::class.java))
+                    true
                 }
                 R.id.navigation_messages -> {
-                    // TODO: navigate to Messages when ready
+                    startActivity(Intent(requireContext(), MessageActivity::class.java))
+                    true
                 }
                 R.id.navigation_profile -> {
                     startActivity(Intent(requireContext(), ProfileActivity::class.java))
