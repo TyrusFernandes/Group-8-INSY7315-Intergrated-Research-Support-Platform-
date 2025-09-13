@@ -13,6 +13,12 @@
         android:theme="@style/Theme.AcadenceApp"
         tools:targetApi="31">
         <activity
+            android:name=".JobActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ForYouPageActivity"
             android:exported="false" />
         <activity
