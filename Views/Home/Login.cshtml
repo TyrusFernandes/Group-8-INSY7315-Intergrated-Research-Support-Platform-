@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Login to Acadence";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; background: linear-gradient(to right, #e9ecf3, #f2f6ff); color: #1b1f3b;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Login</h1>
+    <p style="margin-bottom: 30px; color: #555;">Choose your role to continue</p>
+
+    <div style="display: flex; gap: 30px;">
+        <a href="/Admin/Dashboard" class="btn-role" style="
+            padding: 20px 40px;
+            background-color: #fc8e51;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: background 0.3s ease;
+        ">Login as Admin</a>
+
+        <a href="/Consultant/Dashboard" class="btn-role" style="
+            padding: 20px 40px;
+            background-color: #5e72eb;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: background 0.3s ease;
+        ">Login as Consultant</a>
+    </div>
+</div>
