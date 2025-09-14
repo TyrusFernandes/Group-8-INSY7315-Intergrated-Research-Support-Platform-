@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="blue">#1E88E5</color>         <!-- used in your profile header in examples -->
+    <color name="blue_primary">#0066FF</color>  <!-- used in dashboard examples -->
+    <color name="gray_light">#EDEDED</color>
+    <color name="gray_medium">#BDBDBD</color>
 </resources>
