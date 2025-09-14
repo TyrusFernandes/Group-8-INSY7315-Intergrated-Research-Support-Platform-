@@ -3,4 +3,61 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 style="margin-top: 40px; text-align: center;">Consultant Dashboard (Demo)</h2>
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold" style="color: #5e72eb;">Welcome, Consultant!</h1>
+        <p class="lead" style="color: #333;">Here's an overview of your current activities and tools available to assist your clients.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🗂 Assigned Tasks</h5>
+                    <p class="card-text">View and manage all your current client tasks and progress updates.</p>
+                    <a href="/Consultant/Tasks" class="btn btn-primary">Go to Tasks</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📄 Resource Library</h5>
+                    <p class="card-text">Browse and upload useful documents, templates, and guides for student support.</p>
+                    <a href="/Consultant/Resources" class="btn btn-primary">Open Library</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📆 Meeting Calendar</h5>
+                    <p class="card-text">Check your upcoming meetings and book consultation sessions.</p>
+                    <a href="/Consultant/Calendar" class="btn btn-primary">View Calendar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📬 Messages</h5>
+                    <p class="card-text">Read and reply to student or admin queries in your inbox.</p>
+                    <a href="/Consultant/Messages" class="btn btn-primary">Check Messages</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📈 Progress Reports</h5>
+                    <p class="card-text">Track student performance and log evaluation details.</p>
+                    <a href="/Consultant/Reports" class="btn btn-primary">View Reports</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
