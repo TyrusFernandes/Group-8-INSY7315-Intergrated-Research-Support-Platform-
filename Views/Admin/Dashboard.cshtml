@@ -3,4 +3,122 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 style="margin-top: 40px; text-align: center;">Admin Dashboard (Demo)</h2>
+<div class="container-fluid">
+    <h2 class="fw-bold text-center mb-4">Admin Dashboard</h2>
+
+    <div class="row g-4">
+        <!-- Student Satisfaction Overview -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">📊 Student Satisfaction Overview</h5>
+                    <canvas id="satisfactionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consultant Workload -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">📈 Consultant Workload</h5>
+                    <canvas id="workloadChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consultant Assignment Panel -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">👤 Consultant Assignment Panel</h5>
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Select Service Request:</label>
+                            <select class="form-select">
+                                <option>Student C - Coaching</option>
+                                <option>Student D - Editing</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Assign Consultant:</label>
+                            <select class="form-select">
+                                <option>Ms. Luthuli</option>
+                                <option>Prof. Zwide</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-warning w-100">Assign</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Broadcast Message -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">📢 Broadcast Message</h5>
+                    <textarea class="form-control mb-3" rows="3" placeholder="Enter announcement..."></textarea>
+                    <button class="btn btn-warning w-100">Send Broadcast</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Academic Resource -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">📎 Upload Academic Resource</h5>
+                    <input type="file" class="form-control mb-2">
+                    <input type="text" class="form-control mb-3" placeholder="Resource Title">
+                    <button class="btn btn-warning w-100">Upload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Escalation Management Console -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">🚩 Escalation Management Console</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">⚠️ Student A - Clarification delay <button class="btn btn-sm btn-outline-primary ms-2">View</button></li>
+                        <li>⚠️ Student D - Missed Deadline <button class="btn btn-sm btn-outline-primary ms-2">View</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx1 = document.getElementById('satisfactionChart');
+        new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels: ['Satisfied', 'Neutral', 'Unsatisfied'],
+                datasets: [{
+                    data: [70, 20, 10],
+                    backgroundColor: ['#5e72eb', '#ffa726', '#ef5350']
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        const ctx2 = document.getElementById('workloadChart');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Dr. Smith', 'Ms. Luthuli', 'Prof. Zwide'],
+                datasets: [{
+                    label: 'Active Projects',
+                    data: [4, 7, 3],
+                    backgroundColor: '#5e72eb'
+                }]
+            },
+            options: { responsive: true }
+        });
+    </script>
+}

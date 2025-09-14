@@ -1,5 +1,9 @@
-﻿<!DOCTYPE html>
-<html lang="en" data-theme="light">
+﻿@{
+    var hideLayout = ViewData["HideLayoutElements"] as bool? ?? false;
+}
+
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,107 +22,188 @@
             --primary: #5e72eb;
         }
 
-        .dark-mode {
-            --bg: #121212;
-            --text: #f0f0f0;
-            --card: #1e1e1e;
-            --accent: #fc8e51;
-            --primary: #5e72eb;
-        }
-
         body {
             background-color: var(--bg);
             color: var(--text);
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .navbar,
-        .footer,
-        .card,
-        .container {
-            background-color: var(--card) !important;
-            color: var(--text);
-        }
-
-        .btn-toggle-theme {
-            border: none;
-            background: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: var(--text);
-        }
-
-        .navbar-brand {
-            font-weight: bold;
-            text-transform: uppercase;
-            color: var(--accent) !important;
-        }
-
-        .navbar-nav .nav-link {
-            font-weight: 500;
-            color: var(--text) !important;
-        }
-
-        .navbar-inner-wrapper {
-            margin-left: 16%;
-            width: 100%;
+        .wrapper {
             display: flex;
-            justify-content: space-between;
+        }
+
+        .sidebar {
+            width: 60px;
+            background-color: var(--text);
+            transition: width 0.3s;
+            height: 100vh;
+            color: white;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow-x: hidden;
+            z-index: 999;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .sidebar-logo {
+            max-width: 100%;
+            height: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-logo {
+            transform: scale(0.8);
+        }
+
+        .sidebar:hover {
+            width: 200px;
+        }
+
+        .sidebar .nav-link {
+            display: flex;
             align-items: center;
+            color: white;
+            padding: 1rem;
+            white-space: nowrap;
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }
+
+            .sidebar .nav-link .icon {
+                margin-right: 12px;
+                font-size: 18px;
+                min-width: 24px;
+                text-align: center;
+            }
+
+        /* Initially hide the text label */
+        .sidebar .link-text {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            overflow: hidden;
+        }
+
+        /* On hover, show the text */
+        .sidebar:hover .link-text {
+            opacity: 1;
+        }
+
+            .sidebar .nav-link:hover {
+                background-color: var(--primary);
+            }
+
+        .main {
+            margin-left: 60px;
+            transition: margin-left 0.3s;
+            padding: 1rem;
+            width: 100%;
+        }
+
+        .sidebar:hover ~ .main {
+            margin-left: 200px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem 0;
+            color: #888;
         }
     </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <div class="navbar-inner-wrapper">
-                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">AcadenceWebApp</a>
-                    <div class="collapse navbar-collapse" id="navbarContent">
-                        <ul class="navbar-nav me-auto mb-2 mb-sm-0">
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Dashboard">Admin Dashboard</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Consultant" asp-action="Dashboard">Consultant Dashboard</a>
-                            </li>
-                        </ul>
+    @if (!hideLayout)
+    {
+        <div class="wrapper">
+            <div class="sidebar d-flex flex-column justify-content-between">
+                <!-- Top section: logo + main nav -->
+                <div>
+                    <div class="sidebar-header">
+                        <a asp-controller="Home" asp-action="Index">
+                            <img src="~/images/acadence-logo.png" alt="Acadence Logo" class="sidebar-logo" />
+                        </a>
                     </div>
-                    <div class="d-flex">
-                        <button class="btn-toggle-theme" onclick="toggleTheme()" title="Toggle dark mode">🌙</button>
+
+                    <div class="nav-section">
+
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <span class="icon">🏠</span>
+                            <span class="link-text">Dashboard</span>
+                        </a>
+
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <span class="icon">📋</span>
+                            <span class="link-text">Task List</span>
+                        </a>
+
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <span class="icon">📁</span>
+                            <span class="link-text">Document Manager</span>
+                        </a>
+
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <span class="icon">💬</span>
+                            <span class="link-text">Message</span>
+                        </a>
+
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <span class="icon">📄</span>
+                            <span class="link-text">Quotation Panel</span>
+                        </a>
+
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <span class="icon">📆</span>
+                            <span class="link-text">Calendar</span>
+                        </a>
                     </div>
                 </div>
-            </div>
-        </nav>
-    </header>
 
-    <div class="container">
+                <!-- Bottom section: pinned to bottom -->
+                <div class="nav-section mb-4">
+
+                    <a class="nav-link" asp-controller="Profile" asp-action="Index">
+                        <span class="icon">👤</span>
+                        <span class="link-text">Profile</span>
+                    </a>
+
+                    <a class="nav-link" asp-controller="Profile" asp-action="Index">
+                        <span class="icon">⚙️</span>
+                        <span class="link-text">Settings</span>
+                    </a>
+
+                    <a class="nav-link" asp-controller="Profile" asp-action="Index">
+                        <span class="icon">❓</span>
+                        <span class="link-text">Help Centre</span>
+                    </a>
+                </div>
+            </div>
+
+
+
+            <div class="main">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+
+
+                
+            </div>
+        </div>
+    }
+    else
+    {
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
-    </div>
-
-    <footer class="border-top footer text-muted py-3">
-        <div class="container text-center">
-            &copy; 2025 - AcadenceWebApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-
-    <script>
-        function toggleTheme() {
-            const html = document.documentElement;
-            html.classList.toggle('dark-mode');
-            const theme = html.classList.contains('dark-mode') ? 'dark' : 'light';
-            localStorage.setItem('theme', theme);
-        }
-
-        window.onload = function () {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
-                document.documentElement.classList.add('dark-mode');
-            }
-        }
-    </script>
-
+    }
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
