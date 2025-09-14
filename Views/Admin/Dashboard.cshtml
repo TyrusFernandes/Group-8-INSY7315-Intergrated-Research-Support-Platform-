@@ -69,12 +69,63 @@
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body">
                     <h5 class="card-title fw-bold">📎 Upload Academic Resource</h5>
-                    <input type="file" class="form-control mb-2">
-                    <input type="text" class="form-control mb-3" placeholder="Resource Title">
-                    <button class="btn btn-warning w-100">Upload</button>
+
+                    <input type="file" id="resourceFile" class="form-control mb-2">
+                    <input type="text" id="resourceTitle" class="form-control mb-3" placeholder="Resource Title">
+
+                    <button class="btn btn-warning w-100" onclick="saveResource()">Upload</button>
+
+                    <hr />
+                    <div id="uploadedResources">
+                        <p class="text-muted">No resources uploaded yet.</p>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <script>
+            const uploads = [];
+
+            function saveResource() {
+                const fileInput = document.getElementById("resourceFile");
+                const titleInput = document.getElementById("resourceTitle");
+                const list = document.getElementById("uploadedResources");
+
+                const file = fileInput.files[0];
+                const title = titleInput.value || "Untitled Resource";
+
+                if (!file) {
+                    alert("Please choose a file.");
+                    return;
+                }
+
+                const timestamp = new Date().toLocaleString();
+
+                uploads.push({
+                    title: title,
+                    fileName: file.name,
+                    date: timestamp
+                });
+
+                // Clear input fields
+                fileInput.value = "";
+                titleInput.value = "";
+
+                // Update list
+                list.innerHTML = "";
+                uploads.forEach((item, index) => {
+                    const div = document.createElement("div");
+                    div.className = "p-2 bg-light mb-2 rounded";
+                    div.innerHTML = `
+                        <strong>${item.title}</strong><br>
+                        <small>${item.fileName}</small><br>
+                        <small class="text-muted">Submitted: ${item.date}</small>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        </script>
+
 
         <!-- Escalation Management Console -->
         <div class="col-md-4">
