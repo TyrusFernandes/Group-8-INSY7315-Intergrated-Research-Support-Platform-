@@ -1,29 +1,20 @@
 package com.example.acadenceapp
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
-class DocumentActivity : AppCompatActivity() {
+class RequestActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_document)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.Documentroot)) { v, insets ->
+        setContentView(R.layout.activity_request)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
-        }
-        val btnRequest: Button = findViewById(R.id.requestButton)
-
-        btnRequest.setOnClickListener {
-            val intent = Intent(this, RequestActivity::class.java)
-            startActivity(intent)
         }
     }
 }
