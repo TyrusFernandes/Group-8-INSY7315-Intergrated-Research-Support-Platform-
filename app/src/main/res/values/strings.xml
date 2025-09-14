@@ -1,5 +1,18 @@
 <resources>
     <string name="app_name">AcadenceApp</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string-array name="document_list">
+        <item>Data Analytics Research</item>
+        <item>The effects of AI in Banking</item>
+        <item>Software Engineering Study</item>
+        <item>Cybersecurity Report</item>
+    </string-array>
+
+    <!-- Review Type Spinner Items -->
+    <string-array name="review_types">
+        <item>Technical Review</item>
+        <item>Peer Review</item>
+        <item>Supervisor Review</item>
+        <item>Final Approval</item>
+    </string-array>
 </resources>
