@@ -129,7 +129,7 @@
                 <ImageView
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:src="@android:drawable/ic_menu_report_image"
+                    android:src="@drawable/ic_document"
                     android:contentDescription="doc" />
 
                 <TextView
@@ -166,6 +166,16 @@
             android:background="@drawable/rounded_card"
             android:layout_marginBottom="8dp" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Document 2 - 29 AUG 2025 - Serena Beckham"
+            android:padding="12dp"
+            android:background="@drawable/rounded_card"
+            android:layout_marginBottom="8dp" />
+
     </LinearLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
