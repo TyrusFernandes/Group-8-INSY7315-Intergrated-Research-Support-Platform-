@@ -8,7 +8,7 @@
     android:background="#F5F5F5"
     tools:context=".ForYouPageActivity">
 
-    <!-- Bottom Nav container declared FIRST so other views can reference its id safely -->
+    <!-- Bottom Nav -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/navbar_container"
         android:name="com.example.acadenceapp.NavbarFragment"
@@ -18,37 +18,29 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Top Blue Bar -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/topBar"
+    <!-- Top Bar (same style as Files page) -->
+    <TextView
+        android:id="@+id/titleText"
         android:layout_width="0dp"
-        android:layout_height="70dp"
-        android:background="#1E88E5"
+        android:layout_height="56dp"
+        android:background="#0066FF"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:text="For You"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="For You"
-            android:textSize="20sp"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Scrollable content placed BETWEEN topBar and navbar_container -->
+    <!-- Scrollable content between top bar & navbar -->
     <ScrollView
         android:id="@+id/forYouScroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintTop_toBottomOf="@id/titleText"
         app:layout_constraintBottom_toTopOf="@id/navbar_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -62,7 +54,7 @@
             android:paddingTop="12dp"
             android:paddingBottom="12dp">
 
-            <!-- Search bar (declared before chips so chips can reference it if needed) -->
+            <!-- Search bar -->
             <EditText
                 android:id="@+id/searchBar"
                 android:layout_width="match_parent"
@@ -131,7 +123,7 @@
                 </LinearLayout>
             </HorizontalScrollView>
 
-            <!-- Horizontal Article Cards placeholder -->
+            <!-- Horizontal Article Cards -->
             <HorizontalScrollView
                 android:id="@+id/articleScroll"
                 android:layout_width="match_parent"
@@ -151,7 +143,6 @@
                         app:cardCornerRadius="12dp"
                         app:cardElevation="6dp">
 
-                        <!-- leave inner content empty for now -->
                         <FrameLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent" />
@@ -168,8 +159,6 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent" />
                     </androidx.cardview.widget.CardView>
-
-                    <!-- add more placeholders as needed -->
                 </LinearLayout>
             </HorizontalScrollView>
 
@@ -199,7 +188,7 @@
                     android:textColor="#888888" />
             </LinearLayout>
 
-            <!-- Vertical placeholder news items -->
+            <!-- Latest News List -->
             <LinearLayout
                 android:id="@+id/latestNewsList"
                 android:layout_width="match_parent"
@@ -229,15 +218,12 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
                 </androidx.cardview.widget.CardView>
-
             </LinearLayout>
 
-            <!-- bottom spacing so content doesn't butt right up to nav -->
+            <!-- Bottom spacing -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="12dp" />
-
         </LinearLayout>
     </ScrollView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
