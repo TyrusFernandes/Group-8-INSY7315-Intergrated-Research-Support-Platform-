@@ -46,7 +46,7 @@
                     android:id="@+id/profile_image"
                     android:layout_width="60dp"
                     android:layout_height="60dp"
-                    android:src="@drawable/settings"
+                    android:src="@drawable/user"
                     android:scaleType="centerCrop"
                     android:background="@drawable/circle_background"
                     android:contentDescription="Profile picture" />
@@ -104,7 +104,8 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@android:drawable/ic_dialog_email"
+                    android:drawableStart="@drawable/ic_notfication"
+                    android:drawablePadding="8dp"
                     android:text="Notifications and sounds"
                     android:padding="12dp" />
 
@@ -112,7 +113,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@android:drawable/ic_menu_manage"
+                    android:drawableStart="@drawable/ic_globe"
                     android:text="Language - English"
                     android:padding="12dp" />
 
@@ -120,7 +121,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@android:drawable/ic_menu_day"
+                    android:drawableStart="@drawable/ic_star"
                     android:text="Theme - Light"
                     android:padding="12dp" />
             </LinearLayout>
