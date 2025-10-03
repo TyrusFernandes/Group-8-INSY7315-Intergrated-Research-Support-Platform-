@@ -1,45 +1,60 @@
 package com.example.acadenceapp
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import android.app.DatePickerDialog
-import android.widget.EditText
-import java.util.Calendar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.util.*
 
 class RequestActivity : AppCompatActivity() {
+
+    private val db = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_request)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+
+        // Match IDs from XML
+        val docSpinner: Spinner = findViewById(R.id.documentSpinner)
+        val reviewTypeSpinner: Spinner = findViewById(R.id.reviewTypeSpinner)
+        val reviewDetails: EditText = findViewById(R.id.reviewDetails)
         val reviewDueDate: EditText = findViewById(R.id.reviewDueDate)
+        val btnSubmit: Button = findViewById(R.id.submitRequestButton)
+        val progressBar: ProgressBar = findViewById(R.id.progressBar)
 
-        reviewDueDate.setOnClickListener {
-            // Get current date
-            val calendar = Calendar.getInstance()
-            val year = calendar.get(Calendar.YEAR)
-            val month = calendar.get(Calendar.MONTH)
-            val day = calendar.get(Calendar.DAY_OF_MONTH)
+        // Example dropdowns
+        val docOptions = arrayOf("Data Analytics Research", "Machine Learning Paper", "Other")
+        docSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, docOptions)
 
-            // Show DatePickerDialog
-            val datePicker = DatePickerDialog(
-                this,
-                { _, selectedYear, selectedMonth, selectedDay ->
-                    // Format selected date (DD/MM/YYYY)
-                    val date = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear)
-                    reviewDueDate.setText(date)
-                },
-                year, month, day
+        val reviewTypes = arrayOf("Technical Review", "Supervisor Feedback", "Peer Review")
+        reviewTypeSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, reviewTypes)
+
+        btnSubmit.setOnClickListener {
+            progressBar.visibility = ProgressBar.VISIBLE
+
+            val request = hashMapOf(
+                "docTitle" to docSpinner.selectedItem.toString(),
+                "reviewType" to reviewTypeSpinner.selectedItem.toString(),
+                "reviewDetails" to reviewDetails.text.toString(),
+                "dueDate" to reviewDueDate.text.toString(),
+                "requestedBy" to (auth.currentUser?.uid ?: "anonymous"),
+                "status" to "Pending",
+                "createdAt" to Date()
             )
 
-            datePicker.show()
+            db.collection("requests")
+                .add(request)
+                .addOnSuccessListener {
+                    progressBar.visibility = ProgressBar.GONE
+                    Toast.makeText(this, "Request submitted!", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                .addOnFailureListener {
+                    progressBar.visibility = ProgressBar.GONE
+                    Toast.makeText(this, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                }
         }
     }
 }

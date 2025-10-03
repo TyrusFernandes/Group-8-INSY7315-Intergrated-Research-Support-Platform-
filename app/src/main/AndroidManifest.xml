@@ -16,6 +16,8 @@
             android:name=".RequestActivity"
             android:exported="false" />
         <activity
+            android:name=".UploadActivity" />
+        <activity
             android:name=".JobActivity"
             android:exported="false" />
         <activity

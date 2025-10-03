@@ -1,20 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".RequestActivity">
+    android:layout_height="match_parent">
 
-    <!-- Top Bar -->
+    <!-- Top bar -->
     <TextView
         android:id="@+id/titleText"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:background="#0066FF"
         android:gravity="center"
-        android:padding="16dp"
         android:text="Requests"
         android:textColor="@android:color/white"
         android:textSize="18sp"
@@ -23,17 +20,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Document dropdown -->
     <Spinner
         android:id="@+id/documentSpinner"
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:layout_margin="16dp"
         android:background="@drawable/rounded_edittext"
-        android:entries="@array/document_list"
         app:layout_constraintTop_toBottomOf="@id/titleText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Review type dropdown -->
     <Spinner
         android:id="@+id/reviewTypeSpinner"
         android:layout_width="0dp"
@@ -41,43 +39,55 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="12dp"
         android:background="@drawable/rounded_edittext"
-        android:entries="@array/review_types"
         app:layout_constraintTop_toBottomOf="@id/documentSpinner"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Review Details -->
+    <!-- Review details -->
     <EditText
         android:id="@+id/reviewDetails"
         android:layout_width="0dp"
         android:layout_height="120dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="12dp"
+        android:layout_margin="16dp"
         android:background="@drawable/rounded_edittext"
         android:gravity="top|start"
-        android:hint="Review Details"
-        android:padding="12dp"
+        android:hint="Enter review details"
         android:inputType="textMultiLine"
+        android:padding="12dp"
         app:layout_constraintTop_toBottomOf="@id/reviewTypeSpinner"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Review Due Date -->
-    <EditText
-        android:id="@+id/reviewDueDate"
+    <!-- Due date picker -->
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:background="@drawable/rounded_edittext"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="12dp"
-        android:background="@drawable/rounded_edittext"
-        android:hint="Select Due Date"
-        android:focusable="false"
-        android:clickable="true"
         app:layout_constraintTop_toBottomOf="@id/reviewDetails"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Submit Button -->
+        <EditText
+            android:id="@+id/reviewDueDate"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:hint="Select Due Date"
+            android:focusable="false"
+            android:padding="12dp"/>
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_menu_my_calendar"
+            android:contentDescription="Pick Date"
+            android:padding="8dp"/>
+    </LinearLayout>
+
+    <!-- Submit -->
     <Button
         android:id="@+id/submitRequestButton"
         android:layout_width="0dp"
@@ -86,10 +96,19 @@
         android:backgroundTint="#0066FF"
         android:text="Submit Request"
         android:textColor="@android:color/white"
-        android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/reviewDueDate"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Progress indicator -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/submitRequestButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- Navbar -->
     <androidx.fragment.app.FragmentContainerView
