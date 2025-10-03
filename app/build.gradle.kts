@@ -45,13 +45,13 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
 
     // Firestore (optional, you already have it)
-    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-firestore")
 
     // Storage (optional, for profile images, etc.)
-    implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("com.google.firebase:firebase-storage")
 
     // Messaging (optional, for push notifications)
-    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-messaging")
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.2.0")
