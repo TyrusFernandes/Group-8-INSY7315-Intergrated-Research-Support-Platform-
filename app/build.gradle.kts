@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("com.google.gms.google-services")
+    id("com.google.gms.google-services") // Firebase
 }
 
 android {
@@ -27,30 +27,43 @@ android {
             )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 
 dependencies {
-
+    // Firebase BOM - controls versions of all Firebase dependencies
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
 
-    // Firebase SDKs
+    // Firebase Authentication (needed for email+password, Google, GitHub, etc.)
     implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-storage")
-    implementation("com.google.firebase:firebase-messaging")
 
+    // Firestore (optional, you already have it)
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    // Storage (optional, for profile images, etc.)
+    implementation("com.google.firebase:firebase-storage-ktx")
+
+    // Messaging (optional, for push notifications)
+    implementation("com.google.firebase:firebase-messaging-ktx")
+
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+    // AndroidX + Material
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

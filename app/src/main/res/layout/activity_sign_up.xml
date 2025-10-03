@@ -66,6 +66,7 @@
             android:padding="16dp"
             android:layout_marginBottom="25dp"/>
 
+        <!-- Normal Sign Up Button -->
         <Button
             android:id="@+id/btnSignUpSubmit"
             android:layout_width="match_parent"
@@ -77,6 +78,31 @@
             android:textStyle="bold"
             android:layout_marginBottom="15dp"/>
 
+        <!-- Google Sign Up Button -->
+        <Button
+            android:id="@+id/btnGoogleSignUp"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Continue with Google"
+            android:background="@drawable/rounded_button"
+            android:backgroundTint="@null"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"/>
+
+        <!-- GitHub Sign Up Button -->
+        <Button
+            android:id="@+id/btnGitHubSignUp"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Continue with GitHub"
+            android:background="@drawable/rounded_button"
+            android:backgroundTint="@null"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginBottom="15dp"/>
+
+        <!-- Already have account? -->
         <TextView
             android:id="@+id/linkLogIn"
             android:layout_width="wrap_content"
