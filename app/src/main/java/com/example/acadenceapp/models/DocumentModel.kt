@@ -1,10 +1,12 @@
 package com.example.acadenceapp.models
 
-import java.util.*
+import com.google.firebase.Timestamp
 
 data class DocumentModel(
     val title: String = "",
-    val owner: String = "",
-    val url: String = "",
-    val createdAt: Date? = null
+    val fileUrl: String = "",
+    val uploadedBy: String? = null,      // <- show this in UI
+    val uploadedByUid: String? = null,   // <- used for filtering
+    val createdAt: Timestamp? = null
 )
+

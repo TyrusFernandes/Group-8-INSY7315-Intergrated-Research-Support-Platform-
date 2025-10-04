@@ -3,23 +3,28 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="12dp"
-    android:background="@drawable/rounded_card"
+    android:background="@drawable/rounded_edittext"
     android:layout_margin="8dp">
 
     <TextView
-        android:id="@+id/docTitle"
-        android:layout_width="wrap_content"
+        android:id="@+id/titleText"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Document Title"
         android:textStyle="bold"
-        android:textSize="16sp" />
+        android:textSize="16sp"/>
 
     <TextView
-        android:id="@+id/docOwner"
-        android:layout_width="wrap_content"
+        android:id="@+id/subtitleText"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Uploaded by User"
-        android:textSize="12sp"
-        android:textColor="@android:color/darker_gray" />
+        android:text="By: Unknown"
+        android:textSize="13sp"
+        android:layout_marginTop="4dp"/>
 
+    <TextView
+        android:id="@+id/dateText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:layout_marginTop="2dp"/>
 </LinearLayout>

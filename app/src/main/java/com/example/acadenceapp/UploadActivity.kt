@@ -51,32 +51,39 @@ class UploadActivity : AppCompatActivity() {
             progressBar.visibility = ProgressBar.VISIBLE
             val fileRef = storage.child("documents/${UUID.randomUUID()}")
 
+            Toast.makeText(this, "Starting upload...", Toast.LENGTH_SHORT).show()
+
             fileRef.putFile(fileUri!!)
                 .addOnSuccessListener {
                     fileRef.downloadUrl.addOnSuccessListener { uri ->
+                        val user = auth.currentUser
                         val doc = hashMapOf(
                             "title" to title,
                             "fileUrl" to uri.toString(),
-                            "uploadedBy" to (auth.currentUser?.uid ?: "anonymous"),
+                            "uploadedBy" to (user?.displayName ?: user?.email ?: "Unknown"),
+                            "uploadedByUid" to (user?.uid ?: "anonymous"),
                             "createdAt" to Date()
                         )
                         db.collection("documents").add(doc)
                             .addOnSuccessListener {
                                 progressBar.visibility = ProgressBar.GONE
-                                Toast.makeText(this, "File uploaded successfully", Toast.LENGTH_SHORT).show()
-                                finish()
+                                Toast.makeText(this, "Document saved to Firestore ✅", Toast.LENGTH_LONG).show()
                             }
                             .addOnFailureListener { e ->
                                 progressBar.visibility = ProgressBar.GONE
-                                Toast.makeText(this, "Firestore error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, "Firestore error: ${e.message}", Toast.LENGTH_LONG).show()
                             }
+                    }.addOnFailureListener { e ->
+                        progressBar.visibility = ProgressBar.GONE
+                        Toast.makeText(this, "Failed to get download URL: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 }
                 .addOnFailureListener { e ->
                     progressBar.visibility = ProgressBar.GONE
-                    Toast.makeText(this, "Upload error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Upload failed: ${e.message}", Toast.LENGTH_LONG).show()
                 }
         }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
