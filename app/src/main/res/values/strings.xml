@@ -15,4 +15,10 @@
         <item>Supervisor Review</item>
         <item>Final Approval</item>
     </string-array>
+
+    <!-- Language Spinner Items -->
+    <string-array name="languages">
+        <item>English</item>
+        <item>Afrikaans</item>
+    </string-array>
 </resources>

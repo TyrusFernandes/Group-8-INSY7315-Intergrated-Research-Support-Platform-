@@ -100,29 +100,50 @@
                 android:orientation="vertical"
                 android:background="@drawable/rounded_card">
 
-                <!-- Notifications -->
-                <TextView
+                <!-- Notifications Switch -->
+                <Switch
+                    android:id="@+id/switch_notifications"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_notfication"
                     android:drawablePadding="8dp"
-                    android:text="Notifications and sounds"
+                    android:text="Notifications"
+                    android:checked="true"
                     android:padding="12dp" />
 
-                <!-- Language -->
-                <TextView
+                <!-- Language Dropdown -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_globe"
-                    android:text="Language - English"
-                    android:padding="12dp" />
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:gravity="center_vertical">
 
-                <!-- Theme -->
-                <TextView
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_globe"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="Language Icon" />
+
+                    <Spinner
+                        android:id="@+id/spinner_language"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/spinner_outline"
+                        android:entries="@array/languages"
+                        android:padding="8dp" />
+                </LinearLayout>
+
+                <!-- Theme Switch -->
+                <Switch
+                    android:id="@+id/switch_theme"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_star"
-                    android:text="Theme - Light"
+                    android:drawablePadding="8dp"
+                    android:text="Dark Mode"
+                    android:checked="false"
                     android:padding="12dp" />
             </LinearLayout>
 
@@ -139,43 +160,50 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@drawable/rounded_card">
+                android:background="@drawable/rounded_card"
+                android:padding="12dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:drawableStart="@android:drawable/ic_lock_lock"
-                    android:text="Password"
-                    android:padding="12dp" />
-
+                <!-- Login with Biometrics -->
                 <Switch
+                    android:id="@+id/switch_biometrics"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Login with Biometrics"
                     android:checked="true"
                     android:padding="12dp" />
 
-                <TextView
+                <!-- Support Button -->
+                <Button
+                    android:id="@+id/btn_support"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@android:drawable/ic_menu_help"
                     android:text="Support"
-                    android:padding="12dp" />
+                    android:textAllCaps="false"
+                    android:backgroundTint="@color/blue"
+                    android:textColor="@android:color/white"
+                    android:layout_marginTop="8dp" />
 
-                <TextView
+                <!-- Terms Button -->
+                <Button
+                    android:id="@+id/btn_terms"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@android:drawable/ic_menu_info_details"
                     android:text="Terms and Privacy Policy"
-                    android:padding="12dp" />
+                    android:textAllCaps="false"
+                    android:backgroundTint="@color/blue"
+                    android:textColor="@android:color/white"
+                    android:layout_marginTop="8dp" />
 
-                <TextView
+                <!-- Logout Button -->
+                <Button
+                    android:id="@+id/btn_logout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@android:drawable/ic_menu_close_clear_cancel"
                     android:text="Logout"
-                    android:textColor="@android:color/holo_red_dark"
-                    android:padding="12dp" />
+                    android:textAllCaps="false"
+                    android:backgroundTint="@android:color/holo_red_dark"
+                    android:textColor="@android:color/white"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
 
         </LinearLayout>
