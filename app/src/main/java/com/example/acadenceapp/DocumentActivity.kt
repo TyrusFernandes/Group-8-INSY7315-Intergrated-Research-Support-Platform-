@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.acadenceapp.adapters.DocumentAdapter
 import com.example.acadenceapp.models.DocumentModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
@@ -31,15 +32,14 @@ class DocumentActivity : AppCompatActivity() {
         recentFilesRecycler = findViewById(R.id.recentFilesRecycler)
         documentListRecycler = findViewById(R.id.documentListRecycler)
 
-        // Adapters
-        recentAdapter = DocumentAdapter(this, emptyList())
-        allAdapter = DocumentAdapter(this, emptyList())
+        // Setup adapters
+        recentAdapter = DocumentAdapter(this, mutableListOf())
+        allAdapter = DocumentAdapter(this, mutableListOf())
 
         // Layout managers
         recentFilesRecycler.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        documentListRecycler.layoutManager =
-            LinearLayoutManager(this)
+        documentListRecycler.layoutManager = LinearLayoutManager(this)
 
         // Attach adapters
         recentFilesRecycler.adapter = recentAdapter
@@ -47,13 +47,11 @@ class DocumentActivity : AppCompatActivity() {
 
         // Buttons
         btnUpload.setOnClickListener {
-            val intent = Intent(this, UploadActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, UploadActivity::class.java))
         }
 
         btnRequest.setOnClickListener {
-            val intent = Intent(this, RequestActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, RequestActivity::class.java))
         }
     }
 
@@ -63,7 +61,10 @@ class DocumentActivity : AppCompatActivity() {
     }
 
     private fun loadDocuments() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
         db.collection("documents")
+            .whereEqualTo("uploadedByUid", uid)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { snapshot ->
@@ -71,6 +72,8 @@ class DocumentActivity : AppCompatActivity() {
                 if (docs.isNotEmpty()) {
                     recentAdapter.updateData(docs.take(5)) // first 5 → Recent Files
                     allAdapter.updateData(docs)           // all → All Files
+                } else {
+                    Toast.makeText(this, "No documents found", Toast.LENGTH_SHORT).show()
                 }
             }
             .addOnFailureListener {

@@ -8,32 +8,40 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.acadenceapp.R
 import com.example.acadenceapp.models.DocumentModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 class DocumentAdapter(
-    private val context: Context,
-    private var docs: List<DocumentModel>
-) : RecyclerView.Adapter<DocumentAdapter.DocViewHolder>() {
+    private val ctx: Context,
+    private val items: MutableList<DocumentModel>
+) : RecyclerView.Adapter<DocumentAdapter.VH>() {
 
-    class DocViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val docTitle: TextView = itemView.findViewById(R.id.docTitle)
-        val docOwner: TextView = itemView.findViewById(R.id.docOwner)
+    private val df = SimpleDateFormat("EEE dd MMM yyyy HH:mm", Locale.getDefault())
+
+    inner class VH(v: View) : RecyclerView.ViewHolder(v) {
+        val title: TextView = v.findViewById(R.id.titleText)
+        val subtitle: TextView = v.findViewById(R.id.subtitleText)
+        val date: TextView = v.findViewById(R.id.dateText)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DocViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.item_document, parent, false)
-        return DocViewHolder(view)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val v = LayoutInflater.from(ctx).inflate(R.layout.item_document, parent, false)
+        return VH(v)
     }
 
-    override fun onBindViewHolder(holder: DocViewHolder, position: Int) {
-        val doc = docs[position]
-        holder.docTitle.text = doc.title
-        holder.docOwner.text = "Uploaded by ${doc.owner}"
+    override fun onBindViewHolder(h: VH, position: Int) {
+        val doc = items[position]
+        h.title.text = doc.title
+        h.subtitle.text = "By: " + (doc.uploadedBy ?: "Unknown")
+        val d = doc.createdAt?.toDate() ?: Date()
+        h.date.text = df.format(d)
     }
 
-    override fun getItemCount() = docs.size
+    override fun getItemCount(): Int = items.size
 
-    fun updateData(newDocs: List<DocumentModel>) {
-        docs = newDocs
+    fun updateData(newData: List<DocumentModel>) {
+        items.clear()
+        items.addAll(newData)
         notifyDataSetChanged()
     }
 }
