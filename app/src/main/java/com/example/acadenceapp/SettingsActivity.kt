@@ -34,6 +34,7 @@ class SettingsActivity : AppCompatActivity() {
         val switchBiometrics = findViewById<Switch>(R.id.switch_biometrics)
         val spinnerLanguage = findViewById<Spinner>(R.id.spinner_language)
         val logoutButton = findViewById<Button>(R.id.btn_logout)
+        val editProfileButton =findViewById<Button>(R.id.edit_profile_button)
 
         // --- Load saved preferences ---
         switchNotifications.isChecked = sharedPrefs.getBoolean("notifications_enabled", true)
@@ -85,6 +86,10 @@ class SettingsActivity : AppCompatActivity() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
+        }
+        editProfileButton.setOnClickListener {
+            val intent = Intent(this, ProfileActivity::class.java)
+            startActivity(intent)
         }
         }
     }
