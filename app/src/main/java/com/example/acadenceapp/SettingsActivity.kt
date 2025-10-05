@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.auth.FirebaseAuth
+import android.widget.TextView
 
 class SettingsActivity : AppCompatActivity() {
     //saves the settings details to the device
@@ -29,12 +30,30 @@ class SettingsActivity : AppCompatActivity() {
         editor = sharedPrefs.edit()
 
         // Find your views
+        val profileName = findViewById<TextView>(R.id.profile_name)
+        val profileEmail = findViewById<TextView>(R.id.profile_email)
         val switchNotifications = findViewById<Switch>(R.id.switch_notifications)
         val switchTheme = findViewById<Switch>(R.id.switch_theme)
         val switchBiometrics = findViewById<Switch>(R.id.switch_biometrics)
         val spinnerLanguage = findViewById<Spinner>(R.id.spinner_language)
         val logoutButton = findViewById<Button>(R.id.btn_logout)
         val editProfileButton =findViewById<Button>(R.id.edit_profile_button)
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+       //displays current user details
+        if (currentUser != null) {
+
+            val displayName = currentUser.displayName ?: "User"
+            val email = currentUser.email ?: "No email found"
+
+            // Set the text views
+            profileName.text = displayName
+            profileEmail.text = email
+        } else {
+            // If no user is signed in
+            profileName.text = "Guest"
+            profileEmail.text = "Not signed in"
+        }
 
         // --- Load saved preferences ---
         switchNotifications.isChecked = sharedPrefs.getBoolean("notifications_enabled", true)
