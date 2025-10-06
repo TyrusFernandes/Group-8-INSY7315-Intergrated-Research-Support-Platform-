@@ -9,7 +9,7 @@
     android:background="#F5F5F5"
     tools:context=".ProfileActivity">
 
-    <!-- Top Bar (Files-style) -->
+    <!-- Top Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/topBar"
         android:layout_width="0dp"
@@ -19,7 +19,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Title -->
         <TextView
             android:id="@+id/titleText"
             android:layout_width="0dp"
@@ -35,7 +34,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Edit Icon -->
         <ImageView
             android:id="@+id/editIcon"
             android:layout_width="24dp"
@@ -106,9 +104,10 @@
                 android:layout_marginHorizontal="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputFullName"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Serena Beckham"/>
+                    android:paddingStart="36dp"
+                    android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Username -->
@@ -127,9 +126,10 @@
                 android:layout_marginHorizontal="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputUsername"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Beckham_04"/>
+                    android:paddingStart="36dp"
+                    android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Email -->
@@ -148,9 +148,13 @@
                 android:layout_marginHorizontal="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="serena.beckham@icloud.com"/>
+                    android:paddingStart="36dp"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:textColor="@android:color/darker_gray"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Phone Number -->
@@ -169,9 +173,10 @@
                 android:layout_marginHorizontal="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputPhone"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="083 456 7890"/>
+                    android:paddingStart="36dp"
+                    android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Field -->
@@ -190,9 +195,10 @@
                 android:layout_marginHorizontal="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputField"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Information Technology"/>
+                    android:paddingStart="36dp"
+                    android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Save Button -->
