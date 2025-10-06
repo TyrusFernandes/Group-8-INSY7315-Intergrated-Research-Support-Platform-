@@ -11,6 +11,7 @@
         android:orientation="vertical"
         android:gravity="center_horizontal">
 
+        <!-- App Logo -->
         <ImageView
             android:id="@+id/logoImage"
             android:layout_width="120dp"
@@ -18,25 +19,29 @@
             android:layout_gravity="center_horizontal"
             android:src="@drawable/logo"
             android:contentDescription="App Logo"
-            android:layout_marginTop="40dp"/>
+            android:layout_marginTop="40dp" />
 
+        <!-- Welcome Text -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Welcome Back!"
             android:textColor="#444444"
             android:textSize="16sp"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="20dp" />
 
+        <!-- Email -->
         <EditText
             android:id="@+id/etUsernameLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Username"
+            android:hint="Email"
             android:background="@drawable/rounded_edittext"
             android:padding="12dp"
-            android:layout_marginBottom="10dp"/>
+            android:layout_marginBottom="10dp"
+            android:inputType="textEmailAddress" />
 
+        <!-- Password -->
         <EditText
             android:id="@+id/etPasswordLogin"
             android:layout_width="match_parent"
@@ -45,16 +50,25 @@
             android:inputType="textPassword"
             android:background="@drawable/rounded_edittext"
             android:padding="12dp"
-            android:layout_marginBottom="10dp"/>
+            android:layout_marginBottom="10dp" />
 
+        <!-- Forgot Password -->
         <TextView
+            android:id="@+id/tvForgotPassword"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Forgot your Password?"
             android:textColor="#0066FF"
+            android:clickable="true"
+            android:focusable="true"
             android:layout_gravity="end"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="20dp"
+            android:textSize="14sp"
+            android:minHeight="48dp"
+            android:paddingVertical="8dp"
+            android:gravity="center_vertical" />
 
+        <!-- Login Button -->
         <Button
             android:id="@+id/btnLoginSubmit"
             android:layout_width="match_parent"
@@ -62,14 +76,16 @@
             android:text="Log In"
             android:background="@drawable/rounded_button"
             android:textColor="#FFFFFF"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
+        <!-- Sign Up Link -->
         <TextView
             android:id="@+id/linkSignUp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Don’t have an account? Sign Up"
             android:textColor="#0066FF"
-            android:layout_marginTop="15dp"/>
+            android:layout_marginTop="15dp"
+            android:textStyle="bold" />
     </LinearLayout>
 </ScrollView>
