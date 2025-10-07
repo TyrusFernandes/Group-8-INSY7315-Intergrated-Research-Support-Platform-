@@ -42,6 +42,7 @@ This prototype showcases the essential functionalities required for Part 2 of th
 - Consultant feedback and messaging  
 - Offline mode with Room DB
 - Biometrics
+- Github sign up with SSO
 
 
 ## 4. Setup
