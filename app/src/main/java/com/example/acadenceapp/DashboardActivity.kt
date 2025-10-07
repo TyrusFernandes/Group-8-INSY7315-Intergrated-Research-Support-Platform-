@@ -73,7 +73,7 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         btnForYou.setOnClickListener {
-            val intent = Intent(this, ForYouPageActivity::class.java)
+            val intent = Intent(this, ForYouActivity::class.java)
             startActivity(intent)
         }
 

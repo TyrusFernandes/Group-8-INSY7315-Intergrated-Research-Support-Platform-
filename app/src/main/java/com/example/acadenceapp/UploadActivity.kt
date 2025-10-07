@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.util.*
@@ -14,6 +15,7 @@ import java.util.*
 class UploadActivity : AppCompatActivity() {
 
     private lateinit var fileTitle: EditText
+    private lateinit var tagsInput: EditText
     private lateinit var pickFileButton: Button
     private lateinit var uploadButton: Button
     private lateinit var filePathText: TextView
@@ -29,6 +31,7 @@ class UploadActivity : AppCompatActivity() {
         setContentView(R.layout.activity_upload)
 
         fileTitle = findViewById(R.id.fileTitle)
+        tagsInput = findViewById(R.id.tagsInput)
         pickFileButton = findViewById(R.id.pickFileButton)
         uploadButton = findViewById(R.id.uploadButton)
         filePathText = findViewById(R.id.filePathText)
@@ -36,7 +39,8 @@ class UploadActivity : AppCompatActivity() {
 
         pickFileButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                type = "*/*" // all file types; restrict to "application/pdf" if needed
+                type = "*/*" // keep generic; you can change to "application/pdf"
+                addCategory(Intent.CATEGORY_OPENABLE)
             }
             startActivityForResult(intent, 100)
         }
@@ -47,6 +51,15 @@ class UploadActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please enter a title and select a file", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
+            // Parse tags → lowercase, trimmed, unique
+            val rawTags = tagsInput.text?.toString().orEmpty()
+            val tags = rawTags
+                .split(',', ';', '#')                     // separators the user might try
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .map { it.lowercase(Locale.getDefault()) }
+                .distinct()
 
             progressBar.visibility = ProgressBar.VISIBLE
             val fileRef = storage.child("documents/${UUID.randomUUID()}")
@@ -59,15 +72,22 @@ class UploadActivity : AppCompatActivity() {
                         val user = auth.currentUser
                         val doc = hashMapOf(
                             "title" to title,
+                            "titleLower" to title.lowercase(Locale.getDefault()), // helper for search
                             "fileUrl" to uri.toString(),
                             "uploadedBy" to (user?.displayName ?: user?.email ?: "Unknown"),
                             "uploadedByUid" to (user?.uid ?: "anonymous"),
-                            "createdAt" to Date()
+                            "tags" to tags,                                        // NEW
+                            "createdAt" to FieldValue.serverTimestamp()
                         )
                         db.collection("documents").add(doc)
                             .addOnSuccessListener {
                                 progressBar.visibility = ProgressBar.GONE
                                 Toast.makeText(this, "Document saved to Firestore ✅", Toast.LENGTH_LONG).show()
+                                // Optional: clear inputs
+                                fileTitle.setText("")
+                                tagsInput.setText("")
+                                filePathText.text = "No file selected"
+                                fileUri = null
                             }
                             .addOnFailureListener { e ->
                                 progressBar.visibility = ProgressBar.GONE
@@ -83,7 +103,6 @@ class UploadActivity : AppCompatActivity() {
                     Toast.makeText(this, "Upload failed: ${e.message}", Toast.LENGTH_LONG).show()
                 }
         }
-
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

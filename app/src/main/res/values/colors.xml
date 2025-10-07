@@ -6,4 +6,6 @@
     <color name="blue_primary">#0066FF</color>  <!-- used in dashboard examples -->
     <color name="gray_light">#EDEDED</color>
     <color name="gray_medium">#BDBDBD</color>
+    <color name="chip_ripple">#330066FF</color>
+
 </resources>

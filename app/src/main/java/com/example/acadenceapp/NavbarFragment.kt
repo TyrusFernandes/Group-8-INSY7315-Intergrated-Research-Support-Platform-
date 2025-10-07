@@ -30,7 +30,7 @@ class NavbarFragment : Fragment() {
                     true
                 }
                 R.id.navigation_for_you -> {
-                    startActivity(Intent(requireContext(), ForYouPageActivity::class.java))
+                    startActivity(Intent(requireContext(), ForYouActivity::class.java))
                     true
                 }
                 R.id.navigation_add -> {

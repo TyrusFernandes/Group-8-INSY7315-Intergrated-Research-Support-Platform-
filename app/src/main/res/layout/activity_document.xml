@@ -25,11 +25,11 @@
             android:id="@+id/titleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
             android:text="Files"
             android:textColor="@android:color/white"
             android:textSize="22sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-medium"/>
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
