@@ -13,8 +13,8 @@
 
         <ImageView
             android:id="@+id/logoImage"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+            android:layout_width="170dp"
+            android:layout_height="170dp"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/logo"
             android:contentDescription="App Logo"
@@ -32,7 +32,7 @@
             android:id="@+id/etUsernameLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Username"
+            android:hint="Email"
             android:background="@drawable/rounded_edittext"
             android:padding="12dp"
             android:layout_marginBottom="10dp"/>

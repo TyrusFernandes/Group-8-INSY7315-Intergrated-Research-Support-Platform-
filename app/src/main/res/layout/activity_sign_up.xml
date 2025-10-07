@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="#F9F8F7"
     android:padding="24dp">
 
     <LinearLayout
@@ -11,103 +11,169 @@
         android:orientation="vertical"
         android:gravity="center_horizontal">
 
+        <!-- Logo -->
         <ImageView
             android:id="@+id/logoImage"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_gravity="center_horizontal"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_marginTop="40dp"
             android:src="@drawable/logo"
             android:contentDescription="App Logo"
-            android:layout_marginTop="40dp"/>
+            android:adjustViewBounds="true" />
 
+        <!-- Subtitle -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Please enter your details"
-            android:textColor="#444444"
-            android:textSize="18sp"
-            android:layout_marginBottom="20dp"/>
+            android:textColor="#7A7A7A"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif"
+            android:layout_marginBottom="24dp" />
 
+        <!-- Email -->
         <EditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:hint="Email"
+            android:layout_height="55dp"
+            android:hint="email"
             android:background="@drawable/rounded_edittext"
-            android:padding="16dp"
-            android:layout_marginBottom="15dp"/>
+            android:paddingHorizontal="16dp"
+            android:inputType="textEmailAddress"
+            android:textColorHint="#9E9E9E"
+            android:textSize="16sp"
+            android:layout_marginBottom="14dp" />
 
+        <!-- Username -->
         <EditText
             android:id="@+id/etUsername"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:hint="Username"
+            android:layout_height="55dp"
+            android:hint="username"
             android:background="@drawable/rounded_edittext"
-            android:padding="16dp"
-            android:layout_marginBottom="15dp"/>
+            android:paddingHorizontal="16dp"
+            android:textColorHint="#9E9E9E"
+            android:textSize="16sp"
+            android:layout_marginBottom="14dp" />
 
+        <!-- Password -->
         <EditText
             android:id="@+id/etPassword"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:hint="Password"
+            android:layout_height="55dp"
+            android:hint="password"
             android:inputType="textPassword"
             android:background="@drawable/rounded_edittext"
-            android:padding="16dp"
-            android:layout_marginBottom="15dp"/>
+            android:paddingHorizontal="16dp"
+            android:textColorHint="#9E9E9E"
+            android:textSize="16sp"
+            android:layout_marginBottom="14dp" />
 
+        <!-- Confirm Password -->
         <EditText
             android:id="@+id/etConfirmPassword"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:hint="Confirm Password"
+            android:layout_height="55dp"
+            android:hint="confirm password"
             android:inputType="textPassword"
             android:background="@drawable/rounded_edittext"
-            android:padding="16dp"
-            android:layout_marginBottom="25dp"/>
+            android:paddingHorizontal="16dp"
+            android:textColorHint="#9E9E9E"
+            android:textSize="16sp"
+            android:layout_marginBottom="28dp" />
 
-        <!-- Normal Sign Up Button -->
+        <!-- Divider OR -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="#BDBDBD" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="  OR  "
+                android:textColor="#757575"
+                android:textSize="14sp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="#BDBDBD" />
+        </LinearLayout>
+
+        <!-- Google & Github buttons side by side -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="28dp">
+
+            <Button
+                android:id="@+id/btnGoogleSignUp"
+                android:layout_width="0dp"
+                android:layout_height="55dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_edittext"
+                android:text="Sign up with Google"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/btnGitHubSignUp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="55dp"
+                android:text="Sign up with Github"
+                android:background="@drawable/rounded_edittext"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- Sign Up Button -->
         <Button
             android:id="@+id/btnSignUpSubmit"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_width="180dp"
+            android:layout_height="55dp"
             android:text="Sign Up"
-            android:background="@drawable/rounded_button"
-            android:backgroundTint="@null"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
-            android:layout_marginBottom="15dp"/>
-
-        <!-- Google Sign Up Button -->
-        <Button
-            android:id="@+id/btnGoogleSignUp"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Continue with Google"
-            android:background="@drawable/rounded_button"
+            android:textSize="17sp"
             android:backgroundTint="@null"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:layout_marginBottom="10dp"/>
-
-        <!-- GitHub Sign Up Button -->
-        <Button
-            android:id="@+id/btnGitHubSignUp"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Continue with GitHub"
             android:background="@drawable/rounded_button"
-            android:backgroundTint="@null"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:layout_marginBottom="15dp"/>
+            android:layout_marginBottom="12dp" />
 
-        <!-- Already have account? -->
+        <!-- Already have account -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Already have an account? "
+            android:textColor="#7A7A7A"
+            android:textSize="14sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp" />
+
         <TextView
             android:id="@+id/linkLogIn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Already have an account? Log In"
-            android:textColor="#0066FF"/>
+            android:text="Log In"
+            android:textColor="#0066FF"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="40dp" />
+
     </LinearLayout>
 </ScrollView>
