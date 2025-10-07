@@ -1,3 +1,7 @@
+Git-hub repository: https://github.com/VCSTDN2024/prog7314-part2-group-10  
+
+Youtube Video link: https://youtu.be/k1M06qgM22Q 
+
 # Acadence
 ## Integrated Research Support Platform
 
