@@ -15,3 +15,8 @@ obj/
 # Others
 *.log
 *.DS_Store
+
+firebase-adminsdk.json
+acadence-40662-firebase-adminsdk-fbsvc-bd170ba90c.json
+# Prevent tracking Firebase keys anywhere under the project
+**/firebase-adminsdk*.json
