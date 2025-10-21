@@ -1,5 +1,6 @@
 ﻿@{
     var hideLayout = ViewData["HideLayoutElements"] as bool? ?? false;
+    var userRole = Context.Session.GetString("UserRole");
 }
 
 <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
@@ -142,7 +143,6 @@
     {
         <div class="wrapper">
             <div class="sidebar d-flex flex-column justify-content-between">
-                <!-- Top section: logo + main nav -->
                 <div>
                     <div class="sidebar-header">
                         <a asp-controller="Home" asp-action="Index">
@@ -151,63 +151,72 @@
                     </div>
 
                     <div class="nav-section">
+                        @if (userRole == "Admin")
+                        {
+                            <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">
+                                <span class="icon">🏠</span><span class="link-text">Dashboard</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Admin" asp-action="StudentSatisfaction">
+                                <span class="icon">📊</span><span class="link-text">Student Satisfaction</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Admin" asp-action="ConsultantWorkload">
+                                <span class="icon">📈</span><span class="link-text">Consultant Workload</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Admin" asp-action="ConsultantAssignment">
+                                <span class="icon">👥</span><span class="link-text">Assign Consultant</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Admin" asp-action="Notifications">
+                                <span class="icon">📢</span><span class="link-text">Broadcast Message</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Admin" asp-action="UploadResource">
+                                <span class="icon">📎</span><span class="link-text">Upload Resource</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Admin" asp-action="EscalationManagement">
+                                <span class="icon">🚨</span><span class="link-text">Escalation Console</span>
+                            </a>
+                        }
+                        else if (userRole == "Consultant")
+                        {
+                            <a class="nav-link" asp-controller="Consultant" asp-action="Dashboard">
+                                <span class="icon">🏠</span><span class="link-text">Dashboard</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Consultant" asp-action="AssignedTasks">
+                                <span class="icon">🗂️</span><span class="link-text">Assigned Tasks</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Consultant" asp-action="ResourceLibrary">
+                                <span class="icon">📚</span><span class="link-text">Resource Library</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Consultant" asp-action="Messages">
+                                <span class="icon">💬</span><span class="link-text">Messages</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Consultant" asp-action="MeetingCalendar">
+                                <span class="icon">🗓️</span><span class="link-text">Meeting Calendar</span>
+                            </a>
+                            <a class="nav-link" asp-controller="Consultant" asp-action="ProgressReport">
+                                <span class="icon">📑</span><span class="link-text">Progress Reports</span>
+                            </a>
+                        }
 
-                        <a class="nav-link" asp-controller="Home" asp-action="Index">
-                            <span class="icon">🏠</span>
-                            <span class="link-text">Dashboard</span>
-                        </a>
-
-                        <a class="nav-link" asp-controller="Home" asp-action="Index">
-                            <span class="icon">📋</span>
-                            <span class="link-text">Tasks</span>
-                        </a>
-
-                        <a class="nav-link" asp-controller="Home" asp-action="Index">
-                            <span class="icon">📁</span>
-                            <span class="link-text">Documents</span>
-                        </a>
-
-                        <a class="nav-link" asp-controller="Home" asp-action="Index">
-                            <span class="icon">💬</span>
-                            <span class="link-text">Messages</span>
-                        </a>
-
-                        <a class="nav-link" asp-controller="Home" asp-action="Index">
-                            <span class="icon">📆</span>
-                            <span class="link-text">Calendar</span>
-                        </a>
                     </div>
                 </div>
 
-                <!-- Bottom section: pinned to bottom -->
                 <div class="nav-section mb-4">
-
                     <a class="nav-link" asp-controller="Profile" asp-action="Index">
-                        <span class="icon">👤</span>
-                        <span class="link-text">Profile</span>
+                        <span class="icon">👤</span><span class="link-text">Profile</span>
                     </a>
-
-                    <a class="nav-link" asp-controller="Profile" asp-action="Index">
-                        <span class="icon">⚙️</span>
-                        <span class="link-text">Settings</span>
+                    <a class="nav-link" asp-controller="Settings" asp-action="Index">
+                        <span class="icon">⚙️</span><span class="link-text">Settings</span>
                     </a>
-
-                    <a class="nav-link" asp-controller="Profile" asp-action="Index">
-                        <span class="icon">❓</span>
-                        <span class="link-text">Help Centre</span>
+                    <a class="nav-link" asp-controller="Help" asp-action="Index">
+                        <span class="icon">❓</span><span class="link-text">Help Centre</span>
                     </a>
                 </div>
             </div>
-
-
 
             <div class="main">
                 <main role="main" class="pb-3">
                     @RenderBody()
                 </main>
-
-
-                
             </div>
         </div>
     }
@@ -217,6 +226,7 @@
             @RenderBody()
         </main>
     }
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

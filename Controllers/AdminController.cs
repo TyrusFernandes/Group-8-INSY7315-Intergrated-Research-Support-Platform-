@@ -9,7 +9,34 @@ namespace AcadenceWebApp.Controllers
             return View();
         }
 
-        // You can add more views later, like:
-        // public IActionResult TaskList() { return View(); }
+        public IActionResult StudentSatisfaction()
+        {
+            return View();
+        }
+
+        public IActionResult ConsultantWorkload()
+        {
+            return View();
+        }
+
+        public IActionResult ConsultantAssignment()
+        {
+            return View();
+        }
+
+        public IActionResult Notifications()
+        {
+            return View();
+        }
+
+        public IActionResult UploadResource()
+        {
+            return View();
+        }
+
+        public IActionResult EscalationManagement()
+        {
+            return View();
+        }
     }
 }
