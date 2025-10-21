@@ -3,6 +3,16 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<!-- Notification Sidebar -->
+<div id="notificationSidebar" style="position: fixed; top: 0; right: -400px; width: 400px; height: 100vh; background: white; box-shadow: -2px 0 10px rgba(0,0,0,0.2); overflow-y: auto; transition: right 0.3s; z-index: 1050; padding: 20px;">
+    <h4>Notifications</h4>
+    <div id="notificationsList">Loading...</div>
+</div>
+
+<!-- Overlay (click outside to close sidebar) -->
+<div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.2); z-index:1040;"></div>
+
+<!-- Main Page Content -->
 <div class="container py-5">
     <div class="text-center mb-5">
         <h1 class="display-5 fw-bold" style="color: #5e72eb;">Welcome, Consultant!</h1>
@@ -15,49 +25,139 @@
                 <div class="card-body">
                     <h5 class="card-title">🗂 Assigned Tasks</h5>
                     <p class="card-text">View and manage all your current client tasks and progress updates.</p>
-                    <a href="/Consultant/Tasks" class="btn btn-primary">Go to Tasks</a>
+                    <a href="/Consultant/AssignedTasks" class="btn btn-primary">Go to Tasks</a>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <h5 class="card-title">📄 Resource Library</h5>
-                    <p class="card-text">Browse and upload useful documents, templates, and guides for student support.</p>
-                    <a href="/Consultant/Resources" class="btn btn-primary">Open Library</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <h5 class="card-title">📆 Meeting Calendar</h5>
-                    <p class="card-text">Check your upcoming meetings and book consultation sessions.</p>
-                    <a href="/Consultant/Calendar" class="btn btn-primary">View Calendar</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <h5 class="card-title">📬 Messages</h5>
-                    <p class="card-text">Read and reply to student or admin queries in your inbox.</p>
-                    <a href="/Consultant/Messages" class="btn btn-primary">Check Messages</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <h5 class="card-title">📈 Progress Reports</h5>
-                    <p class="card-text">Track student performance and log evaluation details.</p>
-                    <a href="/Consultant/Reports" class="btn btn-primary">View Reports</a>
-                </div>
-            </div>
-        </div>
+        <!-- Add other cards here as needed -->
     </div>
 </div>
+
+<!-- Top Right Bell Button -->
+<button id="notificationBtn" class="btn btn-light position-fixed" style="top: 20px; right: 30px; z-index: 1100;">
+    🔔
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="unreadCount">0</span>
+</button>
+
+<!-- Centered Notification Modal -->
+<div id="notificationModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center;">
+    <div id="modalContent" style="background:white; padding:30px; border-radius:8px; max-width:500px; width:90%;">
+        <h4 id="modalTitle"></h4>
+        <p id="modalMessage"></p>
+        <small id="modalTimestamp" class="text-muted"></small>
+    </div>
+</div>
+
+<!-- Firebase Notification Logic -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import {
+        getFirestore, collection, getDocs, query, orderBy, updateDoc, doc
+    } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY",
+      authDomain: "acadence-40662.firebaseapp.com",
+      projectId: "acadence-40662",
+      storageBucket: "acadence-40662.firebasestorage.app",
+      messagingSenderId: "907171020913",
+      appId: "1:907171020913:web:46cb92eea7b9ed0d28dbd0"
+    };
+
+    const CURRENT_USER_ID = "vqC6mM3zMIbmCcjF5MNdm0lFJgj2";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const notificationBtn = document.getElementById("notificationBtn");
+    const sidebar = document.getElementById("notificationSidebar");
+    const overlay = document.getElementById("overlay");
+    const notificationsList = document.getElementById("notificationsList");
+    const unreadCount = document.getElementById("unreadCount");
+
+    const modal = document.getElementById("notificationModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalMessage = document.getElementById("modalMessage");
+    const modalTimestamp = document.getElementById("modalTimestamp");
+
+    let unread = 0;
+
+    function toggleSidebar(show) {
+        sidebar.style.right = show ? "0px" : "-400px";
+        overlay.style.display = show ? "block" : "none";
+    }
+
+    notificationBtn.addEventListener("click", () => toggleSidebar(true));
+    overlay.addEventListener("click", () => toggleSidebar(false));
+
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+
+    async function markAsRead(docId, alreadyRead) {
+        if (!alreadyRead) {
+            const notifRef = doc(db, "notifications", docId);
+            await updateDoc(notifRef, {
+                readBy: CURRENT_USER_ID
+            });
+            unread--;
+            unreadCount.innerText = unread > 0 ? unread : "0";
+        }
+    }
+
+    async function loadNotifications() {
+        const snapshot = await getDocs(query(collection(db, "notifications"), orderBy("priority", "desc")));
+        unread = 0;
+        notificationsList.innerHTML = "";
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const recipients = data.recipientIds || [];
+            const readBy = data.readBy || [];
+
+            if (recipients.includes(CURRENT_USER_ID) || recipients.includes("all")) {
+                const card = document.createElement("div");
+                card.className = "card mb-2";
+                card.style.cursor = "pointer";
+                card.style.borderLeft = data.priority === "High" ? "5px solid red" : "5px solid gray";
+
+                const body = document.createElement("div");
+                body.className = "card-body";
+
+                const date = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : "Unknown Date";
+
+                body.innerHTML = `
+                    <h5>${data.title || "Untitled"}</h5>
+                    <p class="mb-1">${data.message || ""}</p>
+                    <small class="text-muted">${date}</small>
+                `;
+
+                card.appendChild(body);
+
+                // If unread, highlight it
+                const isRead = readBy.includes(CURRENT_USER_ID);
+                if (!isRead) {
+                    card.style.background = "#fef8e7";
+                    unread++;
+                }
+
+                // When clicked, show modal and mark as read
+                card.addEventListener("click", async () => {
+                    modalTitle.innerText = data.title || "Untitled";
+                    modalMessage.innerText = data.message || "";
+                    modalTimestamp.innerText = date;
+                    modal.style.display = "flex";
+                    await markAsRead(docSnap.id, isRead);
+                });
+
+                notificationsList.appendChild(card);
+            }
+        });
+
+        unreadCount.innerText = unread;
+    }
+
+    loadNotifications();
+</script>

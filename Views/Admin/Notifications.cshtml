@@ -1,5 +1,122 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Send Notification";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <h2 class="mb-4">📢 Send Notification</h2>
+
+        <form id="notificationForm">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" id="title" class="form-control" placeholder="Enter notification title" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="message" class="form-label">Message</label>
+                <textarea id="message" class="form-control" rows="3" placeholder="Enter notification message" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="priority" class="form-label">Priority</label>
+                <select id="priority" class="form-select">
+                    <option value="High">🔴 High</option>
+                    <option value="Medium">🟠 Medium</option>
+                    <option value="Low">🟢 Low</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Recipient Type</label>
+                <select id="recipientType" class="form-select">
+                    <option value="all-students">All Students</option>
+                    <option value="all-consultants">All Consultants</option>
+                    <option value="custom">Select Specific Users</option>
+                </select>
+            </div>
+
+            <div class="mb-3" id="userListContainer" style="display: none;">
+                <label class="form-label">Select Users</label>
+                <select multiple id="userList" class="form-select">
+                    <!-- Populated via JavaScript -->
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 mt-3">Send Notification</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+                const firebaseConfig = {
+          apiKey: "AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY",
+          authDomain: "acadence-40662.firebaseapp.com",
+          projectId: "acadence-40662",
+          storageBucket: "acadence-40662.firebasestorage.app",
+          messagingSenderId: "907171020913",
+          appId: "1:907171020913:web:46cb92eea7b9ed0d28dbd0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const recipientTypeEl = document.getElementById('recipientType');
+        const userListContainer = document.getElementById('userListContainer');
+        const userListEl = document.getElementById('userList');
+
+        recipientTypeEl.addEventListener('change', async () => {
+            if (recipientTypeEl.value === 'custom') {
+                userListContainer.style.display = 'block';
+
+                const usersSnapshot = await getDocs(collection(db, "users"));
+                userListEl.innerHTML = "";
+                usersSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const option = document.createElement("option");
+                    option.value = doc.id;
+                    option.textContent = `${data.fullName} (${data.field})`;
+                    userListEl.appendChild(option);
+                });
+            } else {
+                userListContainer.style.display = 'none';
+            }
+        });
+
+        document.getElementById('notificationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value;
+            const message = document.getElementById('message').value;
+            const priority = document.getElementById('priority').value;
+            const type = document.getElementById('recipientType').value;
+            const recipientIds = [];
+
+            if (type === 'custom') {
+                const selectedOptions = userListEl.selectedOptions;
+                for (let option of selectedOptions) {
+                    recipientIds.push(option.value);
+                }
+            } else {
+                recipientIds.push(type); // Will be interpreted on client side
+            }
+
+            await addDoc(collection(db, "notifications"), {
+                title,
+                message,
+                priority,
+                timestamp: Timestamp.now(),
+                recipientIds,
+                sentBy: "admin@acadence.com"
+            });
+
+            alert("Notification sent successfully!");
+            document.getElementById('notificationForm').reset();
+            userListContainer.style.display = 'none';
+        });
+    </script>
 }
