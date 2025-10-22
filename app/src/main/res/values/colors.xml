@@ -7,5 +7,9 @@
     <color name="gray_light">#EDEDED</color>
     <color name="gray_medium">#BDBDBD</color>
     <color name="chip_ripple">#330066FF</color>
+    <color name="gray">#CCCCCC</color>
+    <color name="dark_gray">#888888</color>
+    <color name="red">#FF4C4C</color>
+    <color name="light_yellow">#FFF8DC</color>
 
 </resources>
