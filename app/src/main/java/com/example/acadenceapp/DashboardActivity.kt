@@ -39,6 +39,7 @@ class DashboardActivity : AppCompatActivity() {
         drawerLayout = findViewById(R.id.drawer_layout)
         unreadCountBadge = findViewById(R.id.unreadCountBadge)
 
+        val btnSettings: ImageButton = findViewById(R.id.btnSettings)
         val btnNotifications: ImageButton = findViewById(R.id.btnNotifications)
         val btnCloseNotifications: ImageButton = findViewById(R.id.btn_close_notifications)
         val rvNotifications: RecyclerView = findViewById(R.id.rvNotifications)
@@ -46,6 +47,11 @@ class DashboardActivity : AppCompatActivity() {
         adapter = NotificationAdapter(notificationList)
         rvNotifications.layoutManager = LinearLayoutManager(this)
         rvNotifications.adapter = adapter
+
+        btnSettings.setOnClickListener {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+        }
 
         btnNotifications.setOnClickListener { drawerLayout.openDrawer(GravityCompat.END) }
         btnCloseNotifications.setOnClickListener { drawerLayout.closeDrawer(GravityCompat.END) }

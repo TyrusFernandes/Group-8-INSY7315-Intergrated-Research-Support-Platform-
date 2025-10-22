@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,13 +14,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AcadenceApp"
         tools:targetApi="35">
-
-
+        <activity
+            android:name=".YourChatActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AcadenceApp" />
         <activity
             android:name=".RequestActivity"
             android:exported="false" />
-        <activity
-            android:name=".UploadActivity" />
+        <activity android:name=".UploadActivity" />
         <activity
             android:name=".JobActivity"
             android:exported="false" />
