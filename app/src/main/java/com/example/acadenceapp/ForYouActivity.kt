@@ -163,6 +163,7 @@ class ForYouActivity : AppCompatActivity() {
                 progress.visibility = View.GONE
                 val docs = snap.documents.map { d ->
                     DocumentModel(
+                        id = d.id, // ✅ Include document ID
                         title = d.getString("title") ?: "Untitled",
                         fileUrl = d.getString("fileUrl") ?: "",
                         uploadedBy = d.getString("uploadedBy"),
@@ -171,6 +172,7 @@ class ForYouActivity : AppCompatActivity() {
                         tags = (d.get("tags") as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList()
                     )
                 }
+
                 allCurrent.clear()
                 allCurrent.addAll(docs)
                 // apply current search, if any

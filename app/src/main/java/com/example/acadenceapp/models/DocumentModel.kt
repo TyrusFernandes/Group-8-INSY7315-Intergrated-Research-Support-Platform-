@@ -3,6 +3,7 @@ package com.example.acadenceapp.models
 import com.google.firebase.Timestamp
 
 data class DocumentModel(
+    val id: String = "",  // <--- ADD THIS
     val title: String = "",
     val fileUrl: String = "",
     val uploadedBy: String? = null,

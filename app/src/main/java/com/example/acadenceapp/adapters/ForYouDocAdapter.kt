@@ -2,6 +2,7 @@ package com.example.acadenceapp.adapters
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +10,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.acadenceapp.R
 import com.example.acadenceapp.models.DocumentModel
+import com.example.acadenceapp.DocumentDetailActivity
 import com.google.android.material.card.MaterialCardView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -18,12 +22,14 @@ class ForYouDocAdapter(
 ) : RecyclerView.Adapter<ForYouDocAdapter.VH>() {
 
     private val df = SimpleDateFormat("EEE, dd MMM yyyy", Locale.getDefault())
+    private val firestore = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
 
     inner class VH(v: View) : RecyclerView.ViewHolder(v) {
         val card: MaterialCardView = v.findViewById(R.id.docCard)
-        val title: TextView       = v.findViewById(R.id.docTitle)
-        val meta: TextView        = v.findViewById(R.id.docMeta)
-        val tags: TextView        = v.findViewById(R.id.docTags)
+        val title: TextView = v.findViewById(R.id.docTitle)
+        val meta: TextView = v.findViewById(R.id.docMeta)
+        val tags: TextView = v.findViewById(R.id.docTags)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -39,7 +45,7 @@ class ForYouDocAdapter(
 
         holder.title.text = it.title
 
-        val who  = it.uploadedBy ?: "Unknown"
+        val who = it.uploadedBy ?: "Unknown"
         val whenTxt = it.createdAt?.toDate()?.let(df::format) ?: ""
         holder.meta.text = if (whenTxt.isNotEmpty()) "By: $who • $whenTxt" else "By: $who"
 
@@ -48,11 +54,31 @@ class ForYouDocAdapter(
         holder.tags.text = tagLine ?: ""
 
         holder.card.setOnClickListener { v ->
-            val url = it.fileUrl
-            if (!url.isNullOrBlank()) {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                v.context.startActivity(intent)
-            }
+            val context = v.context
+            val intent = Intent(context, DocumentDetailActivity::class.java)
+            intent.putExtra("docId", it.id) // This must be the Firestore document ID
+            intent.putExtra("title", it.title)
+            intent.putExtra("meta", holder.meta.text.toString())
+            intent.putExtra("tags", holder.tags.text.toString())
+            intent.putExtra("url", it.fileUrl)
+            context.startActivity(intent)
+        }
+
+
+    }
+
+    private fun incrementDocumentsRead() {
+        val currentUser = auth.currentUser ?: return
+        val userRef = firestore.collection("users").document(currentUser.uid)
+
+        firestore.runTransaction { transaction ->
+            val snapshot = transaction.get(userRef)
+            val currentCount = snapshot.getLong("documentsRead") ?: 0
+            transaction.update(userRef, "documentsRead", currentCount + 1)
+        }.addOnSuccessListener {
+            Log.d("ForYouDocAdapter", "documentsRead successfully incremented.")
+        }.addOnFailureListener { e ->
+            Log.e("ForYouDocAdapter", "Failed to increment documentsRead", e)
         }
     }
 
