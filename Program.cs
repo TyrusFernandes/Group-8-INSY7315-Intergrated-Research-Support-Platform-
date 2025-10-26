@@ -1,13 +1,27 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-using Microsoft.AspNetCore.Builder.Extensions;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container
 builder.Services.AddControllersWithViews();
-builder.Services.AddSession();
+
+// Add session support
 builder.Services.AddDistributedMemoryCache(); // required for session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(1);
+});
+
+// Add authentication with cookies
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Login/Login";      // redirect here if not authenticated
+        options.AccessDeniedPath = "/Login/Login"; // optional
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    });
 
 var app = builder.Build();
 
@@ -20,20 +34,22 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseSession();
 
 app.UseRouting();
-app.UseAuthorization();
 
-// Initialize Firebase Admin SDK here (C# version)
+app.UseSession();           // session must come before auth
+app.UseAuthentication();    // enable authentication middleware
+app.UseAuthorization();     // enable authorization middleware
+
+// Initialize Firebase Admin SDK
 FirebaseApp.Create(new AppOptions()
 {
     Credential = GoogleCredential.FromFile("firebase-adminsdk.json") // <-- path to your JSON key
 });
 
-// Example: verify initialization
 Console.WriteLine("Firebase initialized successfully!");
 
+// Default route: start at Home/Index
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
