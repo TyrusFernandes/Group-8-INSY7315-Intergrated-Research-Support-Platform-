@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import androidx.core.content.ContextCompat
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -57,6 +58,7 @@ class DashboardActivity : AppCompatActivity() {
         btnCloseNotifications.setOnClickListener { drawerLayout.closeDrawer(GravityCompat.END) }
 
         setupFirestoreListener()
+        fetchTopLikedDocuments()
     }
 
     private fun setupFirestoreListener() {
@@ -102,6 +104,77 @@ class DashboardActivity : AppCompatActivity() {
                 unreadCountBadge.text = unread.toString()
             }
     }
+    private fun fetchTopLikedDocuments() {
+        val documentsLayout: LinearLayout = findViewById(R.id.yourProjectsContainer)
+        val context = this
+
+        firestore.collection("documents")
+            .whereEqualTo("uploadedByUid", currentUserId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val documents = querySnapshot.documents.mapNotNull { doc ->
+                    val likesList = doc.get("likes") as? List<*>
+                    val likeCount = likesList?.size ?: 0
+                    val title = doc.getString("title") ?: return@mapNotNull null
+                    val documentId = doc.id
+                    Triple(documentId, title, likeCount)
+                }.sortedByDescending { it.third }
+
+                val top3 = documents.take(3)
+                documentsLayout.removeAllViews()
+
+                for ((index, doc) in top3.withIndex()) {
+                    val (docId, title, _) = doc
+
+                    val itemLayout = LinearLayout(context).apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            bottomMargin = 16
+                        }
+                        orientation = LinearLayout.HORIZONTAL
+                        setPadding(24, 24, 24, 24)
+                        setBackgroundResource(R.drawable.rounded_white_bg)
+                        elevation = 8f
+                    }
+
+                    val icon = ImageView(context).apply {
+                        layoutParams = LinearLayout.LayoutParams(64, 64).apply {
+                            marginEnd = 16
+                        }
+                        setImageResource(R.drawable.ic_document)
+                        val colorRes = when (index) {
+                            0 -> R.color.blue
+                            1 -> R.color.green
+                            else -> R.color.orange
+                        }
+                        setColorFilter(ContextCompat.getColor(context, colorRes))
+                    }
+
+                    val titleText = TextView(context).apply {
+                        text = title
+                        textSize = 16f
+                        setTextColor(ContextCompat.getColor(context, android.R.color.black))
+                    }
+
+                    itemLayout.addView(icon)
+                    itemLayout.addView(titleText)
+                    documentsLayout.addView(itemLayout)
+
+                    itemLayout.setOnClickListener {
+                        val intent = Intent(context, DocumentDetailActivity::class.java)
+                        intent.putExtra("documentId", docId)
+                        startActivity(intent)
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Failed to fetch documents", e)
+            }
+    }
+
+
 
     override fun onDestroy() {
         firestoreListener?.remove()

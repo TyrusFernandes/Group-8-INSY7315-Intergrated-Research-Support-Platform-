@@ -214,7 +214,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:backgroundTint="#003366"
-                        android:text="Search Job Opportunities"
+                        android:text="View Consultants Uploads"
                         android:textColor="@android:color/white"
                         android:layout_marginEnd="8dp"/>
 
@@ -232,81 +232,18 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Your Projects"
+                    android:text="Your Most Liked Projects"
                     android:textSize="18sp"
                     android:textColor="@android:color/white"
                     android:layout_marginBottom="8dp"/>
 
                 <LinearLayout
+                    android:id="@+id/yourProjectsContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@android:color/white"
-                        android:padding="12dp"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
 
-                        <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:src="@drawable/ic_document"
-                            android:layout_marginEnd="8dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Data Analytics Research"
-                            android:textColor="#000000"
-                            android:textSize="16sp"/>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@android:color/white"
-                        android:padding="12dp"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-
-                        <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:src="@drawable/ic_document"
-                            android:layout_marginEnd="8dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="The effects of AI in the Banking Sector"
-                            android:textColor="#000000"
-                            android:textSize="16sp"/>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@android:color/white"
-                        android:padding="12dp"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-
-                        <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:src="@drawable/ic_document"
-                            android:layout_marginEnd="8dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="The long term effects of ADHD medication"
-                            android:textColor="#000000"
-                            android:textSize="16sp"/>
-                    </LinearLayout>
 
                 </LinearLayout>
 

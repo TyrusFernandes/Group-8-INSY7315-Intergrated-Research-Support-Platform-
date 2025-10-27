@@ -80,6 +80,7 @@ class DocumentDetailActivity : AppCompatActivity() {
         setupCommentsRecycler()
         loadComments()
         loadReactions()
+        incrementViewCount()
     }
 
     // === Load Like/Dislike Counts ===
@@ -91,6 +92,11 @@ class DocumentDetailActivity : AppCompatActivity() {
                 val dislikes = snapshot.get("dislikes") as? List<String> ?: emptyList()
                 updateLikeUI(likes, dislikes)
             }
+        }
+        val viewCountText: TextView = findViewById(R.id.viewCount)
+        docRef.get().addOnSuccessListener { snapshot ->
+            val views = snapshot.getLong("views") ?: 0
+            viewCountText.text = "$views views"
         }
     }
 
@@ -205,4 +211,18 @@ class DocumentDetailActivity : AppCompatActivity() {
                 adapter.notifyDataSetChanged()
             }
     }
+    private fun incrementViewCount() {
+        val docRef = db.collection("documents").document(documentId)
+
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(docRef)
+            val currentViews = snapshot.getLong("views") ?: 0
+            transaction.update(docRef, "views", currentViews + 1)
+        }.addOnSuccessListener {
+            Log.d("DocumentDetailActivity", "View count incremented.")
+        }.addOnFailureListener { e ->
+            Log.e("DocumentDetailActivity", "Failed to increment view count", e)
+        }
+    }
+
 }
