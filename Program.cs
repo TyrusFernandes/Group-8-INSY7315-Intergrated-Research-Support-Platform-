@@ -25,7 +25,7 @@ app.UseSession();
 app.UseRouting();
 app.UseAuthorization();
 
-// Initialize Firebase Admin SDK here (C# version)
+// Initialize Firebase Admin SDK here (C# version)    
 FirebaseApp.Create(new AppOptions()
 {
     Credential = GoogleCredential.FromFile("firebase-adminsdk.json") // <-- path to your JSON key
@@ -39,3 +39,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+    

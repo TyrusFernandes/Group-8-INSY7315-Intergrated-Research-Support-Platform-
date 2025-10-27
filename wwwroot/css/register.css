@@ -1,0 +1,154 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f2f2f2 !important;
+}
+
+.reg-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.reg-card {
+    display: flex;
+    background: #ffffff;
+    border-radius: 20px;
+    width: 900px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+/* LEFT FORM */
+.reg-left {
+    width: 50%;
+    padding: 35px 45px;
+}
+
+.social-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+.btn-social.google {
+    background: #ffffff;
+    color: #444;
+    border: 1px solid #ccc;
+    width: 100%;
+    max-width: 370px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 25px;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: .95rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: 0.3s ease;
+}
+
+    .btn-social.google:hover {
+        background: #f0f0f0;
+        transform: scale(1.03);
+    }
+
+.social-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.or-divider {
+    text-align: center;
+    margin: 15px 0;
+    color: #888;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.input-wrap {
+    margin-bottom: 14px;
+}
+
+.input-control {
+    width: 100%;
+    padding: 13px 15px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+    .input-control:focus {
+        border-color: #0047ff;
+    }
+
+/* Submit Button */
+.btn-primary-large {
+    width: 100%;
+    padding: 14px 0;
+    background: #0047ff;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+
+    .btn-primary-large:hover {
+        background: #0036cc;
+    }
+
+/* Login Link */
+.have-account {
+    margin-top: 18px;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.login-link {
+    color: #0047ff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+    .login-link:hover {
+        text-decoration: underline;
+    }
+
+/* RIGHT SIDE */
+.reg-right {
+    width: 50%;
+    background: #e9eeff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 45px;
+    text-align: center;
+}
+
+.brand-logo {
+    width: 230px;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+.brand-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0047ff;
+    margin-bottom: 5px;
+}
+
+.brand-tag {
+    font-size: 1rem;
+    color: #666;
+}

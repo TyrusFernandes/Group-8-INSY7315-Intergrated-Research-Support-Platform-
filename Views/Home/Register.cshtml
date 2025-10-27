@@ -1,7 +1,101 @@
-﻿@{
+﻿@model AcadenceWebApp.Models.RegisterViewModel
+@{
     ViewData["Title"] = "Register";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["HideLayoutElements"] = true;
 }
 
-<h2 style="margin-top: 40px; text-align: center;">Register Page (Coming Soon)</h2>
+<link rel="stylesheet" href="~/css/register.css" />
+
+<div class="reg-page">
+    <div class="reg-card">
+
+        <!-- LEFT SIDE -->
+        <div class="reg-left">
+            <div class="social-row">
+                <button id="firebase-google-btn" class="btn-social google">
+                    <img src="~/images/google-icon.png" alt="Google" class="social-icon" />
+                    Sign up with Google
+                </button>
+            </div>
+
+            <div class="or-divider"><span>OR</span></div>
+
+            <h3 class="reg-heading">Please enter your details</h3>
+
+            <form asp-action="Register" method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="input-wrap">
+                    <input asp-for="Email" class="input-control" placeholder="Email" />
+                    <span asp-validation-for="Email" class="field-error"></span>
+                </div>
+
+                <div class="input-wrap">
+                    <input asp-for="Username" class="input-control" placeholder="Username" />
+                    <span asp-validation-for="Username" class="field-error"></span>
+                </div>
+
+                <div class="input-wrap">
+                    <input asp-for="Password" type="password" class="input-control" placeholder="Password" />
+                    <span asp-validation-for="Password" class="field-error"></span>
+                </div>
+
+                <div class="input-wrap">
+                    <input asp-for="ConfirmPassword" type="password" class="input-control" placeholder="Confirm Password" />
+                    <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                </div>
+
+                <div class="cta-wrap">
+                    <button type="submit" class="btn-primary-large">Sign Up</button>
+                </div>
+            </form>
+
+            <div class="have-account">
+                Already have an account?
+                <a asp-controller="Account" asp-action="Login" class="login-link">Log in</a>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="reg-right">
+            <div class="logo-holder">
+                <img src="~/images/Acadence.Logo.png.jpg" alt="Acadence Logo" class="brand-logo" />
+            </div>
+
+            <h1 class="brand-title">ACADENCE</h1>
+            <p class="brand-tag">Where Excellence Meets Guidance</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ✅ Firebase SDK (Compat for Popup Auth) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY",
+        authDomain: "acadence-40662.firebaseapp.com",
+        projectId: "acadence-40662",
+        storageBucket: "acadence-40662.firebasestorage.app",
+        messagingSenderId: "907171020913",
+        appId: "1:907171020913:web:46cb92eea7b9ed0d28dbd0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    document.getElementById("firebase-google-btn").addEventListener("click", function () {
+        firebase.auth().signInWithPopup(provider)
+            .then((result) => {
+                alert("Signed in: " + result.user.email);
+                window.location.href = "/Home/Index";
+            })
+            .catch((error) => {
+                alert("Google Sign-In failed: " + error.message);
+                console.error(error);
+            });
+    });
+</script>
