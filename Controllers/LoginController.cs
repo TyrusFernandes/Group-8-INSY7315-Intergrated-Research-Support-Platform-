@@ -1,8 +1,9 @@
-﻿using System.Security.Claims;
-using AcadenceWebApp.Models;
+﻿using AcadenceWebApp.Models;
+using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AcadenceWebApp.Controllers
 {
@@ -92,6 +93,33 @@ namespace AcadenceWebApp.Controllers
         public IActionResult Register()
         {
             return View("~/Views/Home/Register.cshtml");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View("~/Views/Home/Register.cshtml", model);
+
+            var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, model.Username),
+                    new Claim(ClaimTypes.Email, model.Email),
+                    new Claim(ClaimTypes.Role, "Consultant")
+                };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                claimsPrincipal,
+                new AuthenticationProperties { IsPersistent = true });
+
+            HttpContext.Session.SetString("UserEmail", model.Email);
+            HttpContext.Session.SetString("IsAdmin", "false");
+
+            return RedirectToAction("Dashboard", "Consultant");
         }
     }
 }

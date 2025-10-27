@@ -59,7 +59,7 @@
         <!-- RIGHT SIDE -->
         <div class="reg-right">
             <div class="logo-holder">
-                <img src="~/images/Acadence.Logo.png.jpg" alt="Acadence Logo" class="brand-logo" />
+                <img src="~/images/acadence-logo.png" alt="Acadence Logo" class="brand-logo" />
             </div>
 
             <h1 class="brand-title">ACADENCE</h1>
@@ -74,28 +74,32 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY",
-        authDomain: "acadence-40662.firebaseapp.com",
-        projectId: "acadence-40662",
-        storageBucket: "acadence-40662.firebasestorage.app",
-        messagingSenderId: "907171020913",
-        appId: "1:907171020913:web:46cb92eea7b9ed0d28dbd0"
-    };
+    document.addEventListener("DOMContentLoaded", function () {
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY",
+            authDomain: "acadence-40662.firebaseapp.com",
+            projectId: "acadence-40662",
+            storageBucket: "acadence-40662.appspot.com",
+            messagingSenderId: "907171020913",
+            appId: "1:907171020913:web:46cb92eea7b9ed0d28dbd0"
+        };
 
-    firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
+        const provider = new firebase.auth.GoogleAuthProvider();
 
-    const provider = new firebase.auth.GoogleAuthProvider();
-
-    document.getElementById("firebase-google-btn").addEventListener("click", function () {
-        firebase.auth().signInWithPopup(provider)
-            .then((result) => {
-                alert("Signed in: " + result.user.email);
-                window.location.href = "/Home/Index";
-            })
-            .catch((error) => {
-                alert("Google Sign-In failed: " + error.message);
-                console.error(error);
+        const btn = document.getElementById("firebase-google-btn");
+        if (btn) {
+            btn.addEventListener("click", function () {
+                firebase.auth().signInWithPopup(provider)
+                    .then((result) => {
+                        alert("Signed in: " + result.user.email);
+                        window.location.href = "/Home/Index";
+                    })
+                    .catch((error) => {
+                        alert("Google Sign-In failed: " + error.message);
+                        console.error(error);
+                    });
             });
+        }
     });
 </script>
