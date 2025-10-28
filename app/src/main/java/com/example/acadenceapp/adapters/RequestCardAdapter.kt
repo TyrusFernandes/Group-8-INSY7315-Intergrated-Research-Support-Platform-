@@ -1,5 +1,6 @@
 package com.example.acadenceapp.adapters
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,10 +8,11 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.acadenceapp.R
+import com.example.acadenceapp.ConsultantRequestDetailActivity
 import com.example.acadenceapp.models.RequestModel
 import com.google.android.material.card.MaterialCardView
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
 class RequestCardAdapter(
     private var items: MutableList<RequestModel>
@@ -43,7 +45,6 @@ class RequestCardAdapter(
         holder.type.text = "Type: ${item.reviewType}"
 
         val due = item.dueDate?.toDate()?.let(df::format) ?: "—"
-        // createdAt is optional; remove if your model doesn't have it
         val createdText = try {
             val createdAtField = item::class.java.getDeclaredField("createdAt")
             createdAtField.isAccessible = true
@@ -58,15 +59,23 @@ class RequestCardAdapter(
         // Status + color
         holder.status.text = item.status
         val color = when (item.status.lowercase(Locale.getDefault())) {
-            "approved", "done", "completed" -> 0xFF2FD732.toInt() // green
-            "rejected" -> 0xFFCC2828.toInt()                      // red
-            "in progress", "reviewing" -> 0xFF6A1B9A.toInt()      // purple
-            else -> 0xFF0066FF.toInt()                            // default blue
+            "approved", "done", "completed" -> 0xFF2FD732.toInt()
+            "rejected" -> 0xFFCC2828.toInt()
+            "in progress", "reviewing" -> 0xFF6A1B9A.toInt()
+            else -> 0xFF0066FF.toInt()
         }
         holder.status.setTextColor(color)
 
         holder.card.strokeWidth = 2
         holder.card.strokeColor = ContextCompat.getColor(holder.itemView.context, R.color.black)
+
+        // ✅ Make card clickable
+        holder.card.setOnClickListener {
+            val context = holder.itemView.context
+            val intent = Intent(context, ConsultantRequestDetailActivity::class.java)
+            intent.putExtra("requestId", item.id)
+            context.startActivity(intent)
+        }
     }
 
     fun update(newItems: List<RequestModel>) {

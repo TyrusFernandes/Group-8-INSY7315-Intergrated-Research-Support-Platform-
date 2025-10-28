@@ -8,6 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class LoginActivity : AppCompatActivity() {
 
@@ -40,20 +41,28 @@ class LoginActivity : AppCompatActivity() {
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        // ✅ Login success → go to Dashboard
-                        Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this, DashboardActivity::class.java)
-                        startActivity(intent)
-                        finish()
+                        val uid = auth.currentUser?.uid
+                        FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(uid!!)
+                            .get()
+                            .addOnSuccessListener { snapshot ->
+                                val role = snapshot.getString("role")
+                                Toast.makeText(this, "Welcome, $role", Toast.LENGTH_SHORT).show()
+
+                                val intent = when (role) {
+                                    "consultant" -> Intent(this, ConsultantDashboardActivity::class.java)
+                                    "student" -> Intent(this, DashboardActivity::class.java)
+                                    else -> Intent(this, DashboardActivity::class.java) // fallback
+                                }
+                                startActivity(intent)
+                                finish()
+                            }
                     } else {
-                        //  Login failed
-                        Toast.makeText(
-                            this,
-                            "Login failed: ${task.exception?.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        Toast.makeText(this, "Login failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                     }
                 }
+
         }
 
         // Handle "Sign Up" link

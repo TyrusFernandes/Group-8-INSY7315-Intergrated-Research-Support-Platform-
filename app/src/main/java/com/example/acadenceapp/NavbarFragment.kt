@@ -1,28 +1,57 @@
 package com.example.acadenceapp
 
-import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.content.Context
-import com.example.acadenceapp.R
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.view.*
+import androidx.fragment.app.Fragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class NavbarFragment : Fragment() {
+
+    private lateinit var navView: BottomNavigationView
+    private val auth = FirebaseAuth.getInstance()
+    private val db = FirebaseFirestore.getInstance()
+
+    private var userRole: String = "student" // default
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_navbar, container, false)
+        navView = view.findViewById(R.id.nav_view)
 
-        // Find the BottomNavigationView
-        val navView: BottomNavigationView = view.findViewById(R.id.nav_view)
+        fetchUserRoleAndSetupNavigation()
 
-        // Handle item clicks (for now, just show which item was tapped)
+        return view
+    }
+
+    private fun fetchUserRoleAndSetupNavigation() {
+        val uid = auth.currentUser?.uid ?: return
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { document ->
+                userRole = document.getString("role") ?: "student"
+                setupNavigationBar()
+            }
+            .addOnFailureListener { e ->
+                Log.e("NavbarFragment", "Error fetching role", e)
+                setupNavigationBar() // fallback
+            }
+    }
+
+    private fun setupNavigationBar() {
+        if (userRole == "consultant") {
+            // Replace "add+" with Requests
+            val menu = navView.menu
+            val menuItem = menu.findItem(R.id.navigation_add)
+            menuItem.title = "Requests"
+            menuItem.setIcon(R.drawable.ic_document)
+        }
+
         navView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_home -> {
@@ -34,7 +63,11 @@ class NavbarFragment : Fragment() {
                     true
                 }
                 R.id.navigation_add -> {
-                    startActivity(Intent(requireContext(), DocumentActivity::class.java))
+                    if (userRole == "consultant") {
+                        startActivity(Intent(requireContext(), ConsultantRequestsActivity::class.java))
+                    } else {
+                        startActivity(Intent(requireContext(), DocumentActivity::class.java))
+                    }
                     true
                 }
                 R.id.navigation_messages -> {
@@ -45,11 +78,9 @@ class NavbarFragment : Fragment() {
                     startActivity(Intent(requireContext(), ProfileActivity::class.java))
                     true
                 }
+                else -> false
             }
-            true
         }
-
-        return view
     }
 
     companion object {

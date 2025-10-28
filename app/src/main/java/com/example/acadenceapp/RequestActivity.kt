@@ -127,8 +127,6 @@ class RequestActivity : AppCompatActivity() {
 
 
     private fun loadTeachersIntoSpinner() {
-        val fallback = listOf("Prof. A. Mathews", "Dr. J. Patel", "Ms. R. Chen", "Mr. S. Nkosi", "Dr. L. Gómez")
-
         db.collection("users")
             .whereEqualTo("role", "consultant")
             .get()
@@ -136,24 +134,35 @@ class RequestActivity : AppCompatActivity() {
                 val names = mutableListOf<String>()
                 teacherUidByName.clear()
 
-                if (!snap.isEmpty) {
-                    for (u in snap.documents) {
-                        val name = u.getString("displayName") ?: (u.getString("email") ?: "Unknown")
-                        names.add(name)
-                        teacherUidByName[name] = u.id
-                    }
-                } else {
-                    names.addAll(fallback)
-                    fallback.forEachIndexed { i, n -> teacherUidByName[n] = "fallback_$i" }
+                for (u in snap.documents) {
+                    val name = u.getString("displayName") ?: u.getString("username") ?: "Unnamed Consultant"
+                    names.add(name)
+                    teacherUidByName[name] = u.id
                 }
 
-                teacherSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, names)
+                // If no consultants found
+                if (names.isEmpty()) {
+                    names.add("No consultants available")
+                    teacherUidByName["No consultants available"] = ""
+                }
+
+                teacherSpinner.adapter = ArrayAdapter(
+                    this,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    names
+                )
             }
             .addOnFailureListener {
-                teacherSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, fallback)
-                fallback.forEachIndexed { i, n -> teacherUidByName[n] = "fallback_$i" }
+                Toast.makeText(this, "Could not load consultants", Toast.LENGTH_SHORT).show()
+                teacherSpinner.adapter = ArrayAdapter(
+                    this,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    listOf("Error loading consultants")
+                )
+                teacherUidByName["Error loading consultants"] = ""
             }
     }
+
 
     /**
      * Avoids composite-index requirement by sorting client-side.

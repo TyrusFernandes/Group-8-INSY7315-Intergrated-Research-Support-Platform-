@@ -21,6 +21,12 @@
         <activity
             android:name=".RequestActivity"
             android:exported="false" />
+        <activity
+            android:name=".ConsultantRequestsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ConsultantRequestDetailActivity"
+            android:exported="false" />
         <activity android:name=".DocumentDetailActivity" />
 
         <activity
@@ -45,6 +51,9 @@
             android:exported="false" />
         <activity
             android:name=".DashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ConsultantDashboardActivity"
             android:exported="false" />
         <activity
             android:name=".SignUpActivity"

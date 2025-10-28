@@ -19,7 +19,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import androidx.core.content.ContextCompat
 
-class DashboardActivity : AppCompatActivity() {
+class ConsultantDashboardActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var firestore: FirebaseFirestore

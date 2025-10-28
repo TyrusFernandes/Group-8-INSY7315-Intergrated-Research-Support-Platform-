@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -11,6 +12,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.OAuthProvider
@@ -75,6 +77,25 @@ class SignUpActivity : AppCompatActivity() {
                             .setDisplayName(username)
                             .build()
                         user?.updateProfile(profileUpdates)
+
+                        val role = when {
+                            findViewById<RadioButton>(R.id.radioStudent).isChecked -> "student"
+                            findViewById<RadioButton>(R.id.radioConsultant).isChecked -> "consultant"
+                            else -> "student" // default fallback
+                        }
+
+                        val userData = hashMapOf(
+                            "uid" to user?.uid,
+                            "email" to user?.email,
+                            "username" to username,
+                            "role" to role
+                        )
+
+                        FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(user!!.uid)
+                            .set(userData)
+
 
                         Toast.makeText(this, "Sign up successful, please log in", Toast.LENGTH_SHORT).show()
 
