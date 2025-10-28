@@ -8,22 +8,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <div class="container-fluid min-vh-100 d-flex justify-content-center align-items-center" style="background-color: #f2f2f2;">
-    <div class="card shadow border-0 rounded-4 p-5" style="max-width: 900px; width: 100%; background-color: #f7f7f7;">
-        <div class="row align-items-center">
-            <!-- Left Section -->
-            <div class="col-md-6 text-center mb-4 mb-md-0">
-                <h2 class="fw-semibold mb-5" style="color: #444;">Welcome!</h2>
-                <div class="d-grid gap-4">
-                    <a class="btn btn-primary btn-lg fw-semibold rounded-3 py-3" href="/Home/Register">Sign Up</a>
-                    <a class="btn btn-primary btn-lg fw-semibold rounded-3 py-3" href="/Home/Login">Log In</a>
-                </div>
-            </div>
+    <div class="row align-items-center justify-content-center" style="max-width: 900px; width: 100%; background-color: #f2f2f2; padding: 60px 20px;">
+        <!-- Left Section -->
+        <div class="col-md-6 text-center mb-4 mb-md-0">
+            <h2 class="fw-semibold mb-5" style="color: #444;">Welcome!</h2>
+            <div class="d-grid gap-4">
+                <a class="btn btn-primary btn-lg fw-semibold rounded-3 py-3"
+                   asp-controller="Login" asp-action="Register">Sign Up</a>
 
-            <!-- Right Section -->
-            <div class="col-md-6 text-center">
-                <img src="~/images/acadence-logo.png" alt="Acadence Logo" class="img-fluid mb-3" style="max-height: 220px;" />
-                <p class="fw-medium mt-2" style="color: #6c757d; font-size: 1.1rem;">Where Excellence Meets Guidance</p>
+                <a class="btn btn-primary btn-lg fw-semibold rounded-3 py-3"
+                   asp-controller="Login" asp-action="Login">Log In</a>
             </div>
+        </div>
+
+        <!-- Right Section -->
+        <div class="col-md-6 text-center">
+            <img src="~/images/acadence-logo.png" alt="Acadence Logo" class="img-fluid mb-3" style="max-height: 220px;" />
+            <p class="fw-medium mt-2" style="color: #6c757d; font-size: 1.1rem;">
+                Where Excellence Meets Guidance
+            </p>
         </div>
     </div>
 </div>
@@ -56,10 +59,14 @@
             transform: scale(1.03);
         }
 
-    .card {
-        background-color: #f7f7f7;
-        border-radius: 20px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    /* Ensure everything is centered nicely and consistent with login/register look */
+    .container-fluid {
+        background-color: #f2f2f2;
+    }
 
+    .row {
+        background-color: #f2f2f2;
+        border-radius: 20px;
+        box-shadow: none; /* ✅ removes card shadow */
     }
 </style>

@@ -4,16 +4,16 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<!-- ✅ Link to Updated CSS -->
 <link rel="stylesheet" href="~/css/register.css" />
 
 <div class="reg-page">
     <div class="reg-card">
-
-        <!-- LEFT SIDE -->
+        <!-- LEFT SIDE (form) -->
         <div class="reg-left">
             <div class="social-row">
                 <button id="firebase-google-btn" class="btn-social google">
-                    <img src="~/images/google-icon.png" alt="Google" class="social-icon" />
+                    <img src="@Url.Content("~/images/google-icon.png")" alt="Google" class="social-icon" />
                     Sign up with Google
                 </button>
             </div>
@@ -22,7 +22,7 @@
 
             <h3 class="reg-heading">Please enter your details</h3>
 
-            <form asp-action="Register" method="post" novalidate>
+            <form asp-action="Register" asp-controller="Login" method="post" novalidate>
                 @Html.AntiForgeryToken()
 
                 <div class="input-wrap">
@@ -52,54 +52,46 @@
 
             <div class="have-account">
                 Already have an account?
-                <a asp-controller="Account" asp-action="Login" class="login-link">Log in</a>
+                <a asp-action="Login" asp-controller="Login" class="login-link">Log in</a>
             </div>
         </div>
 
-        <!-- RIGHT SIDE -->
+        <!-- RIGHT SIDE (logo and tagline) -->
         <div class="reg-right">
             <div class="logo-holder">
-                <img src="~/images/acadence-logo.png" alt="Acadence Logo" class="brand-logo" />
+                <!-- ✅ Fixed image path -->
+                <img src="@Url.Content("~/images/acadence-logo.png")" alt="Acadence Logo" class="brand-logo" />
             </div>
-
-            <h1 class="brand-title">ACADENCE</h1>
             <p class="brand-tag">Where Excellence Meets Guidance</p>
         </div>
-
     </div>
 </div>
 
-<!-- ✅ Firebase SDK (Compat for Popup Auth) -->
+<!-- ✅ Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const firebaseConfig = {
-            apiKey: "AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY",
-            authDomain: "acadence-40662.firebaseapp.com",
-            projectId: "acadence-40662",
-            storageBucket: "acadence-40662.appspot.com",
-            messagingSenderId: "907171020913",
-            appId: "1:907171020913:web:46cb92eea7b9ed0d28dbd0"
-        };
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
 
-        firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
+
+    const googleBtn = document.getElementById("firebase-google-btn");
+    googleBtn?.addEventListener("click", function () {
         const provider = new firebase.auth.GoogleAuthProvider();
-
-        const btn = document.getElementById("firebase-google-btn");
-        if (btn) {
-            btn.addEventListener("click", function () {
-                firebase.auth().signInWithPopup(provider)
-                    .then((result) => {
-                        alert("Signed in: " + result.user.email);
-                        window.location.href = "/Home/Index";
-                    })
-                    .catch((error) => {
-                        alert("Google Sign-In failed: " + error.message);
-                        console.error(error);
-                    });
+        firebase.auth().signInWithPopup(provider)
+            .then(result => {
+                console.log("Google Sign-In Success:", result.user);
+            })
+            .catch(error => {
+                console.error("Google Sign-In Error:", error);
             });
-        }
     });
 </script>
