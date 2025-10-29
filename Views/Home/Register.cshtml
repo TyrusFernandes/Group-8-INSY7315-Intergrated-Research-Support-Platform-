@@ -4,16 +4,16 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- ✅ Link to Updated CSS -->
 <link rel="stylesheet" href="~/css/register.css" />
 
 <div class="reg-page">
     <div class="reg-card">
-        <!-- LEFT SIDE (form) -->
+
+        <!-- LEFT SIDE -->
         <div class="reg-left">
             <div class="social-row">
                 <button id="firebase-google-btn" class="btn-social google">
-                    <img src="@Url.Content("~/images/google-icon.png")" alt="Google" class="social-icon" />
+                    <img src="~/images/google-icon.png" alt="Google" class="social-icon" />
                     Sign up with Google
                 </button>
             </div>
@@ -22,7 +22,7 @@
 
             <h3 class="reg-heading">Please enter your details</h3>
 
-            <form asp-action="Register" asp-controller="Login" method="post" novalidate>
+            <form asp-action="Register" method="post" novalidate>
                 @Html.AntiForgeryToken()
 
                 <div class="input-wrap">
@@ -52,46 +52,99 @@
 
             <div class="have-account">
                 Already have an account?
-                <a asp-action="Login" asp-controller="Login" class="login-link">Log in</a>
+                <a asp-controller="Account" asp-action="Login" class="login-link">Log in</a>
             </div>
         </div>
 
-        <!-- RIGHT SIDE (logo and tagline) -->
+        <!-- RIGHT SIDE -->
         <div class="reg-right">
             <div class="logo-holder">
-                <!-- ✅ Fixed image path -->
-                <img src="@Url.Content("~/images/acadence-logo.png")" alt="Acadence Logo" class="brand-logo" />
+                <img src="~/images/acadence-logo.png" alt="Acadence Logo" class="brand-logo" />
             </div>
+
+            <h1 class="brand-title">ACADENCE</h1>
             <p class="brand-tag">Where Excellence Meets Guidance</p>
         </div>
+
     </div>
 </div>
 
-<!-- ✅ Firebase -->
+<!-- ✅ Firebase Libraries -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
+<!-- ✅ Firebase Config and Initialization -->
 <script>
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();           // ✅ define this BEFORE you use it
+    const db = firebase.firestore();        // ✅ define this too
+</script>
 
-    const googleBtn = document.getElementById("firebase-google-btn");
-    googleBtn?.addEventListener("click", function () {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        firebase.auth().signInWithPopup(provider)
-            .then(result => {
-                console.log("Google Sign-In Success:", result.user);
-            })
-            .catch(error => {
-                console.error("Google Sign-In Error:", error);
-            });
+<!-- ✅ Registration Script -->
+<script>
+    const registerForm = document.querySelector("form");
+
+    registerForm?.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const email = registerForm.querySelector('input[name="Email"]').value;
+      const username = registerForm.querySelector('input[name="Username"]').value;
+      const password = registerForm.querySelector('input[name="Password"]').value;
+
+      try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+
+        await db.collection("users").doc(uid).set({
+          email: email,
+          username: username,
+          role: "consultant",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        await auth.signOut();
+
+        alert("Registration successful. Please log in.");
+        window.location.href = "/Login";
+      } catch (error) {
+        console.error("Registration error:", error);
+        alert("Registration failed: " + error.message);
+      }
     });
 </script>
+<script>
+    document.getElementById("firebase-google-btn").addEventListener("click", async function () {
+      const provider = new firebase.auth.GoogleAuthProvider();
+
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+
+        const userRef = db.collection("users").doc(user.uid);
+        const doc = await userRef.get();
+
+        if (!doc.exists) {
+          await userRef.set({
+            email: user.email,
+            username: user.displayName || "GoogleUser",
+            role: "consultant",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+
+        await auth.signOut();
+
+        alert("✅ Google sign-up complete. Please log in.");
+        window.location.href = "/Login/Login";
+      } catch (error) {
+        console.error("❌ Google Sign-In Error:", error);
+        alert("Google Sign-In failed: " + error.message);
+      }
+    });
+</script>
+
+
+
