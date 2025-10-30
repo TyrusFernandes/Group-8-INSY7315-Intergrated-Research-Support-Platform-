@@ -1,6 +1,8 @@
 package com.example.acadenceapp
 
 import android.os.Bundle
+import android.app.DatePickerDialog
+import java.util.Calendar
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -36,6 +38,10 @@ class RequestActivity : AppCompatActivity() {
     private lateinit var uploadsAdapter: SimpleDocAdapter
     private lateinit var requestsAdapter: RequestCardAdapter
 
+    private var selectedDueDate: Calendar? = null
+    private var calculatedPrice: Int = 0
+
+
     // Local caches
     private val myDocTitles = mutableListOf<String>()
     private val myDocIdByTitle = mutableMapOf<String, String>()
@@ -53,6 +59,10 @@ class RequestActivity : AppCompatActivity() {
         visibilitySpinner    = findViewById(R.id.visibilitySpinner)
         reviewDetails        = findViewById(R.id.reviewDetails)
         submitRequestButton  = findViewById(R.id.submitRequestButton)
+        val pickDueDateButton: Button = findViewById(R.id.pickDueDateButton)
+        val selectedDueDateText: TextView = findViewById(R.id.selectedDueDateText)
+        val calculatedPriceText: TextView = findViewById(R.id.calculatedPriceText)
+
         progressBar          = findViewById(R.id.progressBar)
 
         uploadsRecycler      = findViewById(R.id.uploadsRecycler)
@@ -61,7 +71,7 @@ class RequestActivity : AppCompatActivity() {
         // --- static spinners ---
         reviewTypeSpinner.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item,
-            listOf("Technical Review", "Supervisor Feedback", "Language/Clarity", "Formatting/Referencing", "Plagiarism Check")
+            listOf("Proofreading", "Data Analysis", "Coaching")
         )
         urgencySpinner.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item,
@@ -71,6 +81,28 @@ class RequestActivity : AppCompatActivity() {
             this, android.R.layout.simple_spinner_dropdown_item,
             listOf("Private (You + Assignee)", "Your Supervisors", "Your Cohort", "Public")
         )
+
+        pickDueDateButton.setOnClickListener {
+            val now = Calendar.getInstance()
+            val dpd = DatePickerDialog(this,
+                { _, year, month, dayOfMonth ->
+                    val picked = Calendar.getInstance()
+                    picked.set(year, month, dayOfMonth, 23, 59)
+                    selectedDueDate = picked
+
+                    val sdf = SimpleDateFormat("EEE, dd MMM yyyy", Locale.getDefault())
+                    selectedDueDateText.text = sdf.format(picked.time)
+
+                    updatePricePreview()
+                },
+                now.get(Calendar.YEAR),
+                now.get(Calendar.MONTH),
+                now.get(Calendar.DAY_OF_MONTH)
+            )
+            dpd.datePicker.minDate = now.timeInMillis // prevent past dates
+            dpd.show()
+        }
+
 
         // --- recyclers ---
         uploadsAdapter = SimpleDocAdapter(mutableListOf())
@@ -131,8 +163,8 @@ class RequestActivity : AppCompatActivity() {
             .whereEqualTo("role", "consultant")
             .get()
             .addOnSuccessListener { snap ->
-                val names = mutableListOf<String>()
-                teacherUidByName.clear()
+                val names = mutableListOf("— No consultant selected —")
+                teacherUidByName["— No consultant selected —"] = ""
 
                 for (u in snap.documents) {
                     val name = u.getString("displayName") ?: u.getString("username") ?: "Unnamed Consultant"
@@ -222,17 +254,19 @@ class RequestActivity : AppCompatActivity() {
         val payload = hashMapOf(
             "docId"           to docId,
             "docTitle"        to selectedTitle,
-            "assignedToUid"   to teacherUid,
-            "assignedToName"  to teacherName,
+            "assignedToUid"   to if (teacherUid.isEmpty() || teacherName.contains("No consultant")) null else teacherUid,
+            "assignedToName"  to if (teacherUid.isEmpty() || teacherName.contains("No consultant")) null else teacherName,
             "reviewType"      to reviewType,
             "urgency"         to urgency,
             "visibility"      to visibility,
             "reviewDetails"   to notes,
-            "dueDate"         to now,        // date picker removed → save "now"
+            "dueDate"         to (selectedDueDate?.let { Timestamp(it.time) } ?: now),
             "requestedByUid"  to uid,
             "status"          to "Pending",
-            "createdAt"       to now
-        )
+            "createdAt"       to now,
+            "price"           to calculatedPrice,
+            "adminApproved"   to false,
+            )
 
         db.collection("requests")
             .add(payload)
@@ -253,4 +287,33 @@ class RequestActivity : AppCompatActivity() {
             progressBar.visibility = if (show) View.VISIBLE else View.GONE
         }
     }
+    private fun updatePricePreview() {
+        val urgency = urgencySpinner.selectedItem?.toString() ?: "Normal"
+        val now = Calendar.getInstance()
+        val due = selectedDueDate ?: return
+
+        val daysDiff = ((due.timeInMillis - now.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()
+
+        val urgencyPrice = when (urgency) {
+            "Critical" -> 500
+            "High" -> 350
+            "Normal" -> 250
+            "Low" -> 150
+            else -> 150
+        }
+
+        val timePrice = when {
+            daysDiff <= 1 -> 750
+            daysDiff <= 2 -> 650
+            daysDiff <= 3 -> 550
+            daysDiff <= 5 -> 400
+            daysDiff <= 7 -> 300
+            else -> 200
+        }
+
+        calculatedPrice = urgencyPrice + timePrice
+        val formatted = "R$calculatedPrice.00"
+        findViewById<TextView>(R.id.calculatedPriceText).text = formatted
+    }
+
 }

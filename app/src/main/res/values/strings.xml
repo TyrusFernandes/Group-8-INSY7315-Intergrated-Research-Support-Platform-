@@ -17,6 +17,7 @@
         <item>Rejected</item>
     </string-array>
 
+    <string name="default_web_client_id">"907171020913-s3ejcf6drbnb0nnqd0g6jdtnva870t0c.apps.googleusercontent.com"</string>
 
     <!-- Review Type Spinner Items -->
     <string-array name="review_types">

@@ -2,23 +2,17 @@ package com.example.acadenceapp
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.RadioButton
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.*
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.OAuthProvider
-import com.google.firebase.auth.UserProfileChangeRequest
 
 class SignUpActivity : AppCompatActivity() {
+
 
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -27,20 +21,17 @@ class SignUpActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
 
-        // Firebase Auth
         auth = FirebaseAuth.getInstance()
 
-        // Configure Google Sign-In
+        // Google sign-in config
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id)) // from google-services.json
+            .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        // UI References
         val btnSignUp: Button = findViewById(R.id.btnSignUpSubmit)
         val btnGoogle: Button = findViewById(R.id.btnGoogleSignUp)
-        val btnGitHub: Button = findViewById(R.id.btnGitHubSignUp)
         val linkLogIn: TextView = findViewById(R.id.linkLogIn)
 
         val etEmail: EditText = findViewById(R.id.etEmail)
@@ -48,9 +39,6 @@ class SignUpActivity : AppCompatActivity() {
         val etConfirmPassword: EditText = findViewById(R.id.etConfirmPassword)
         val etUsername: EditText = findViewById(R.id.etUsername)
 
-        // --------------------------
-        // Email/Password Sign Up
-        // --------------------------
         btnSignUp.setOnClickListener {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
@@ -66,23 +54,17 @@ class SignUpActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Firebase sign up
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         val user = auth.currentUser
 
-                        // Save display name in Firebase
                         val profileUpdates = UserProfileChangeRequest.Builder()
                             .setDisplayName(username)
                             .build()
                         user?.updateProfile(profileUpdates)
 
-                        val role = when {
-                            findViewById<RadioButton>(R.id.radioStudent).isChecked -> "student"
-                            findViewById<RadioButton>(R.id.radioConsultant).isChecked -> "consultant"
-                            else -> "student" // default fallback
-                        }
+                        val role = getSelectedRole()
 
                         val userData = hashMapOf(
                             "uid" to user?.uid,
@@ -96,10 +78,7 @@ class SignUpActivity : AppCompatActivity() {
                             .document(user!!.uid)
                             .set(userData)
 
-
                         Toast.makeText(this, "Sign up successful, please log in", Toast.LENGTH_SHORT).show()
-
-                        // Go to LoginActivity after signup
                         startActivity(Intent(this, LoginActivity::class.java))
                         finish()
                     } else {
@@ -108,50 +87,25 @@ class SignUpActivity : AppCompatActivity() {
                 }
         }
 
-        // --------------------------
-        // Google Sign-Up
-        // --------------------------
         btnGoogle.setOnClickListener {
             val signInIntent = googleSignInClient.signInIntent
             startActivityForResult(signInIntent, 1001)
         }
 
-        // --------------------------
-        // GitHub Sign-Up
-        // --------------------------
-        btnGitHub.setOnClickListener {
-            val provider = OAuthProvider.newBuilder("github.com")
-            auth.startActivityForSignInWithProvider(this, provider.build())
-                .addOnSuccessListener {
-                    val username = etUsername.text.toString().trim()
-                    val user = auth.currentUser
-                    if (username.isNotEmpty()) {
-                        val profileUpdates = UserProfileChangeRequest.Builder()
-                            .setDisplayName(username)
-                            .build()
-                        user?.updateProfile(profileUpdates)
-                    }
-                    Toast.makeText(this, "Signed in with GitHub: ${it.user?.email}", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
-                }
-                .addOnFailureListener {
-                    Toast.makeText(this, "GitHub Sign-In failed: ${it.message}", Toast.LENGTH_SHORT).show()
-                }
-        }
-
-        // --------------------------
-        // Link: Already have an account? → Login
-        // --------------------------
         linkLogIn.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
     }
 
-    // --------------------------
-    // Handle Google Sign-In result
-    // --------------------------
+    private fun getSelectedRole(): String {
+        return when {
+            findViewById<RadioButton>(R.id.radioConsultant).isChecked -> "consultant"
+            findViewById<RadioButton>(R.id.radioStudent).isChecked -> "student"
+            else -> "student"
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -161,7 +115,7 @@ class SignUpActivity : AppCompatActivity() {
                 val account = task.getResult(ApiException::class.java)!!
                 firebaseAuthWithGoogle(account.idToken!!)
             } catch (e: ApiException) {
-                Toast.makeText(this, "Google Sign-In failed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Google Sign-In Success", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -170,15 +124,25 @@ class SignUpActivity : AppCompatActivity() {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential).addOnCompleteListener(this) { task ->
             if (task.isSuccessful) {
+                val user = auth.currentUser ?: return@addOnCompleteListener
+                val uid = user.uid
                 val username = findViewById<EditText>(R.id.etUsername).text.toString().trim()
-                val user = auth.currentUser
-                if (username.isNotEmpty()) {
-                    val profileUpdates = UserProfileChangeRequest.Builder()
-                        .setDisplayName(username)
-                        .build()
-                    user?.updateProfile(profileUpdates)
-                }
-                Toast.makeText(this, "Signed in with Google: ${user?.email}", Toast.LENGTH_SHORT).show()
+                val role = getSelectedRole()
+
+                val userData = hashMapOf(
+                    "uid" to uid,
+                    "email" to user.email,
+                    "username" to (username.ifEmpty { user.displayName ?: "GoogleUser" }),
+                    "role" to role
+                )
+
+                // Write to Firestore
+                FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(uid)
+                    .set(userData)
+
+                Toast.makeText(this, "Signed in with Google: ${user.email}", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this, LoginActivity::class.java))
                 finish()
             } else {
