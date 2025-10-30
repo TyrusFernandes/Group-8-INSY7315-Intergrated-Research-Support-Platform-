@@ -19,6 +19,8 @@ class YourChatActivity : AppCompatActivity() {
     private lateinit var btnSend: ImageButton
     private lateinit var chatPartnerName: TextView
     private lateinit var btnBack: ImageButton
+    // NEW: Flag Button Declaration
+    private lateinit var btnFlagChat: ImageButton
 
     private lateinit var chatAdapter: ChatAdapter
     private val messageList = mutableListOf<Message>()
@@ -30,6 +32,17 @@ class YourChatActivity : AppCompatActivity() {
     private var targetUserId: String = ""
     private var targetUsername: String = "Unknown User"
     private lateinit var chatRoomId: String
+
+    // Utility function to convert Message to Map for serialization
+    // This allows the data structure to match the List<Map<String, Any>> required by FlaggedChat.kt
+    private fun Message.toReportMap(): Map<String, Any> {
+        // Assuming Message has public properties: senderId (String), text (String), timestamp (Long)
+        return mapOf(
+            "senderId" to senderId,
+            "text" to text,
+            "timestamp" to timestamp // Long timestamp of the message
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,11 +66,20 @@ class YourChatActivity : AppCompatActivity() {
         chatRecyclerView = findViewById(R.id.chatRecyclerView)
         btnBack = findViewById(R.id.btnBack)
 
+        // NEW: Initialize Flag Button
+        btnFlagChat = findViewById(R.id.btnFlagChat)
+
         // Set the header name
         chatPartnerName.text = targetUsername
 
         // Setup back button
         btnBack.setOnClickListener { finish() }
+
+        // NEW: Setup Flag Button Listener
+        btnFlagChat.setOnClickListener {
+            // In a production app, you would show a dialog here to collect the 'reason'
+            flagChat()
+        }
 
         // 4. Setup RecyclerView and Listener
         setupRecyclerView()
@@ -68,6 +90,55 @@ class YourChatActivity : AppCompatActivity() {
             sendMessage()
         }
     }
+
+    /**
+     * Saves the current chat log to the 'flaggedChats' collection for admin review.
+     */
+    private fun flagChat() {
+        if (messageList.isEmpty()) {
+            Toast.makeText(this, "Cannot flag an empty chat.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Fetch both usernames (current user and target user)
+        getCurrentUserUsername { myUsername ->
+            // 1️⃣ Prepare the chat history snapshot (with usernames included)
+            val conversationSnapshot = messageList.map { message ->
+                mapOf(
+                    "senderId" to message.senderId,
+                    "senderUsername" to if (message.senderId == currentUserId) myUsername else targetUsername,
+                    "text" to message.text,
+                    "timestamp" to message.timestamp
+                )
+            }
+
+            // 2️⃣ Prepare the FlaggedChat data map
+            val flaggedChatData = mapOf(
+                "chatId" to chatRoomId,
+                "chatPartnerUserId" to targetUserId,
+                "chatPartnerUsername" to targetUsername,
+                "flaggedByUserId" to currentUserId,
+                "flaggedByUsername" to myUsername,
+                "conversationSnapshot" to conversationSnapshot,
+                "reason" to "Flagged by user from Android app.",
+                "status" to "Pending Review",
+                "timestamp" to FieldValue.serverTimestamp()
+            )
+
+            // 3️⃣ Save to Firestore
+            db.collection("flaggedChats")
+                .add(flaggedChatData)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Chat flagged successfully for admin review.", Toast.LENGTH_LONG).show()
+                    Log.i("ChatActivity", "Chat flagged: $chatRoomId")
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Failed to flag chat.", Toast.LENGTH_SHORT).show()
+                    Log.e("ChatActivity", "Error flagging chat", e)
+                }
+        }
+    }
+
 
     private fun setupRecyclerView() {
         chatAdapter = ChatAdapter(messageList)

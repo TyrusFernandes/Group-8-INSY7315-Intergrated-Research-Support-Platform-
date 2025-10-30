@@ -45,6 +45,18 @@
             android:textStyle="bold"
             android:layout_marginEnd="16dp"/>
 
+        <!-- Flag Button -->
+        <ImageButton
+            android:id="@+id/btnFlagChat"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingStart="8dp"
+            android:paddingEnd="16dp"
+            android:src="@drawable/flag"
+            android:background="?android:attr/selectableItemBackground"
+            app:tint="@android:color/white"
+            tools:ignore="ContentDescription" />
+
     </LinearLayout>
 
     <!-- Message List (RecyclerView) -->
@@ -99,5 +111,4 @@
             app:tint="@android:color/white" />
 
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
