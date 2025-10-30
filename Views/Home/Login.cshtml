@@ -180,7 +180,7 @@
 
             <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
 
-            <form asp-action="Login" asp-controller="Account" method="post">
+            <form asp-action="Login" asp-controller="Login" method="post">
                 @Html.AntiForgeryToken()
 
                 <div class="form-group">
@@ -193,7 +193,7 @@
                     <span asp-validation-for="Password" class="field-validation-error"></span>
 
                     <div class="forgot-password">
-                        <a asp-action="ForgotPassword" asp-controller="Account">Forgot your Password?</a>
+                        <a asp-action="ForgotPassword" asp-controller="Login">Forgot your Password?</a>
                     </div>
                 </div>
 
@@ -201,7 +201,7 @@
 
                 <div class="signup-link">
                     Don't have an account?
-                    <a asp-action="Register" asp-controller="Account">Sign Up</a>
+                    <a asp-action="Register" asp-controller="Login">Sign Up</a>
                 </div>
             </form>
         </div>

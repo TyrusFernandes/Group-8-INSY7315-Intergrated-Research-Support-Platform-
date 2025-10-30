@@ -44,7 +44,7 @@ app.UseAuthorization();     // enable authorization middleware
 // Initialize Firebase Admin SDK
 FirebaseApp.Create(new AppOptions()
 {
-    Credential = GoogleCredential.FromFile("firebase-adminsdk.json") // <-- path to your JSON key
+    Credential = GoogleCredential.FromFile("firebase-adminsdk.json"), // <-- path to your JSON key
 });
 
 Console.WriteLine("Firebase initialized successfully!");
