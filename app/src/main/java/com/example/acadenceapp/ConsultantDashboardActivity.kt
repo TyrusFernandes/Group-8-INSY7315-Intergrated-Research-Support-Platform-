@@ -46,6 +46,20 @@ class ConsultantDashboardActivity : AppCompatActivity() {
         val btnNotifications: ImageButton = findViewById(R.id.btnNotifications)
         val btnCloseNotifications: ImageButton = findViewById(R.id.btn_close_notifications)
         val rvNotifications: RecyclerView = findViewById(R.id.rvNotifications)
+        val roleLabel: TextView = findViewById(R.id.roleLabel)
+
+        FirebaseFirestore.getInstance().collection("users")
+            .document(FirebaseAuth.getInstance().currentUser?.uid ?: return)
+            .get()
+            .addOnSuccessListener { document ->
+                val role = document.getString("role") ?: "User"
+                roleLabel.text = role
+            }
+            .addOnFailureListener { e ->
+                Log.e("Dashboard", "Failed to fetch user role", e)
+                roleLabel.text = "User"
+            }
+
 
         adapter = NotificationAdapter(notificationList)
         rvNotifications.layoutManager = LinearLayoutManager(this)
@@ -62,6 +76,9 @@ class ConsultantDashboardActivity : AppCompatActivity() {
         setupFirestoreListener()
         fetchTopLikedDocuments()
         fetchTotalProfileViews()
+        fetchOngoingRequestsCount()
+        fetchTotalPriceForRequests()
+        fetchUploadedDocumentsCount()
     }
 
     private fun setupFirestoreListener() {
@@ -193,6 +210,84 @@ class ConsultantDashboardActivity : AppCompatActivity() {
                 Log.e("Dashboard", "Failed to fetch profile views", e)
             }
     }
+
+    private fun fetchUploadedDocumentsCount() {
+        val activeProjectsCount: TextView = findViewById(R.id.activeProjectsCount)
+
+        firestore.collection("documents")
+            .whereEqualTo("uploadedByUid", currentUserId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val count = querySnapshot.size()
+                activeProjectsCount.text = count.toString()
+            }
+            .addOnFailureListener { e ->
+                Log.e("Dashboard", "Failed to fetch uploaded documents", e)
+                activeProjectsCount.text = "0"
+            }
+    }
+
+    private fun fetchOngoingRequestsCount() {
+        val pendingProjectsCount: TextView = findViewById(R.id.pendingProjectsCount)
+        val userId = currentUserId ?: return
+
+        firestore.collection("requests")
+            .whereNotEqualTo("status", "Done")  // Filter out completed ones
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val ongoingRequests = querySnapshot.documents.filter { doc ->
+                    val assignedTo = doc.getString("assignedToUid")
+                    val requestedBy = doc.getString("requestedByUid")
+                    assignedTo == userId || requestedBy == userId
+                }
+                pendingProjectsCount.text = ongoingRequests.size.toString()
+            }
+            .addOnFailureListener { e ->
+                Log.e("Dashboard", "Failed to fetch ongoing requests", e)
+                pendingProjectsCount.text = "0"
+            }
+    }
+
+    private fun fetchTotalPriceForRequests() {
+        val amountText: TextView = findViewById(R.id.amountText)
+        val labelText: TextView = findViewById(R.id.amountLabel) // Add this if you want to set "Total Spent" or "Earned"
+        val userId = currentUserId ?: return
+
+        FirebaseFirestore.getInstance().collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { userDoc ->
+                val role = userDoc.getString("role") ?: return@addOnSuccessListener
+                val isStudent = role.equals("student", ignoreCase = true)
+
+                firestore.collection("requests")
+                    .whereNotEqualTo("status", "Done") // Optional: only include active
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        var total = 0L // <-- Add the 'L' to make it a Long
+
+                        for (doc in querySnapshot.documents) {
+                            val price = doc.getLong("price") ?: 0
+                            val requestedBy = doc.getString("requestedByUid")
+                            val assignedTo = doc.getString("assignedToUid")
+
+                            if ((isStudent && requestedBy == userId) || (!isStudent && assignedTo == userId)) {
+                                total += price
+                            }
+                        }
+
+                        // Update label
+                        labelText.text = if (isStudent) "Total Spent" else "Total Earned"
+                        amountText.text = "R$total"
+                    }
+                    .addOnFailureListener {
+                        Log.e("Dashboard", "Failed to calculate total", it)
+                        amountText.text = "R0"
+                    }
+            }
+    }
+
+
 
 
     override fun onDestroy() {

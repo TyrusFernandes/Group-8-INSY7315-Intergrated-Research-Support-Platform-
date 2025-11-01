@@ -100,9 +100,9 @@ class SignUpActivity : AppCompatActivity() {
 
     private fun getSelectedRole(): String {
         return when {
-            findViewById<RadioButton>(R.id.radioConsultant).isChecked -> "consultant"
-            findViewById<RadioButton>(R.id.radioStudent).isChecked -> "student"
-            else -> "student"
+            findViewById<RadioButton>(R.id.radioConsultant).isChecked -> "Consultant"
+            findViewById<RadioButton>(R.id.radioStudent).isChecked -> "Student"
+            else -> "Student"
         }
     }
 

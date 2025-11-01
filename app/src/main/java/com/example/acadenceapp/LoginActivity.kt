@@ -51,8 +51,8 @@ class LoginActivity : AppCompatActivity() {
                                 Toast.makeText(this, "Welcome, $role", Toast.LENGTH_SHORT).show()
 
                                 val intent = when (role) {
-                                    "consultant" -> Intent(this, ConsultantDashboardActivity::class.java)
-                                    "student" -> Intent(this, DashboardActivity::class.java)
+                                    "Consultant" -> Intent(this, ConsultantDashboardActivity::class.java)
+                                    "Student" -> Intent(this, DashboardActivity::class.java)
                                     else -> Intent(this, DashboardActivity::class.java) // fallback
                                 }
                                 startActivity(intent)
