@@ -1,5 +1,35 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model AcadenceWebApp.Models.EscalationConsoleViewModel
+@using AcadenceWebApp.Models
 @{
+    ViewData["Title"] = "Escalation Management";
 }
+
+<div class="container py-4" style="max-width: 640px;">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title mb-3" style="font-weight:700; color:#2b2d42;">
+                <span class="me-2">🚩</span> Escalation Management Console
+            </h4>
+
+            @if (Model.Items?.Any() == true)
+            {
+                <ul class="list-group list-group-flush">
+                    @foreach (var e in Model.Items)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <span>⚠️</span>
+                                <span><strong>@e.StudentName</strong> - @e.Issue</span>
+                            </div>
+                            <a class="btn btn-sm btn-outline-primary" asp-action="EscalationDetails" asp-route-id="@e.Id">View</a>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="text-muted">No escalations yet.</div>
+            }
+        </div>
+    </div>
+</div>

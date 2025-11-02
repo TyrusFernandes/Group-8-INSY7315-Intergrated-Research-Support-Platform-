@@ -1,5 +1,76 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model AcadenceWebApp.Models.UploadResourceViewModel
+@using AcadenceWebApp.Models
+
 @{
+    ViewData["Title"] = "Upload Academic Resource";
+    var msg = TempData["UploadMsg"] as string;
+}
+
+<div class="container py-4" style="max-width: 560px;">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title mb-3" style="font-weight:700; color:#2b2d42;">
+                <span class="me-2">📎</span> Upload Academic Resource
+            </h4>
+
+            @if (!string.IsNullOrWhiteSpace(msg))
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @msg
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="UploadResource" asp-controller="Admin" method="post" enctype="multipart/form-data" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="mb-2">
+                    <input class="form-control" type="file" asp-for="File" />
+                    <span class="text-danger small" asp-validation-for="File"></span>
+                </div>
+
+                <div class="mb-3">
+                    <input class="form-control" placeholder="Resource Title" asp-for="Title" />
+                    <span class="text-danger small" asp-validation-for="Title"></span>
+                </div>
+
+                <button type="submit" class="btn btn-warning w-100" style="font-weight:600;">
+                    Upload
+                </button>
+            </form>
+
+            <hr class="my-3" />
+
+            @if (Model.Existing.Any())
+            {
+                <ul class="list-group">
+                    @foreach (var r in Model.Existing)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">@r.Title</div>
+                                <div class="text-muted small">@r.OriginalName · @r.UploadedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-primary" target="_blank" href="@r.Url">Open</a>
+                                <form asp-action="DeleteResource" asp-controller="Admin" method="post" class="m-0 p-0">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@r.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="text-muted mt-2">No resources uploaded yet.</div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }

@@ -1,5 +1,83 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model AcadenceWebApp.Models.ConsultantWorkloadViewModel
+@using System.Text.Json
 @{
+    ViewData["Title"] = "Consultant Workload";
+
+    // ✅ Prevent NullReference if the view ever renders without a model
+    var list = Model?.Consultants ?? new List<AcadenceWebApp.Models.ConsultantDto>();
+    var jsonConsultants = JsonSerializer.Serialize(list);
+}
+
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h2 class="mb-0">Consultant Workload</h2>
+            <small class="text-muted">Active projects by consultant (bar chart)</small>
+        </div>
+    </div>
+
+    <!-- KPI tiles -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted">Consultants</div>
+                    <div class="fs-3 fw-semibold">@((Model?.TotalConsultants) ?? 0)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted">Avg. Active Projects</div>
+                    <div class="fs-3 fw-semibold">@Math.Round((Model?.AverageActiveProjects) ?? 0.0, 1)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted">Busiest</div>
+                    <div class="fs-6">
+                        @(Model?.Busiest is null ? "—" : $"{Model.Busiest.Name} • {Model.Busiest.ActiveProjects}")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <input id="searchBox" class="form-control" placeholder="Search consultant..." />
+        </div>
+        <div class="col-md-4">
+            <select id="deptFilter" class="form-select">
+                <option value="all">All departments</option>
+                <option value="Health">Health</option>
+                <option value="Education">Education</option>
+                <option value="Finance">Finance</option>
+            </select>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <button id="exportCsvBtn" class="btn btn-outline-secondary">Export CSV</button>
+        </div>
+    </div>
+
+    <!-- Chart card -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <canvas id="workloadChart" height="120"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // bootstrap data from server
+        const consultants = @Html.Raw(jsonConsultants);
+    </script>
+    <script src="~/js/workload.js"></script>
 }

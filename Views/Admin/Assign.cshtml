@@ -1,0 +1,73 @@
+﻿@model AcadenceWebApp.Models.ConsultantAssignmentViewModel
+@using AcadenceWebApp.Models
+@{
+    ViewData["Title"] = "Consultant Assignment";
+
+    // Debug + state helpers
+    var success = TempData["AssignmentMsg"] as string;
+    var emptyReq = TempData["EmptyState"] as string;
+    var emptyCon = TempData["EmptyStateConsultants"] as string;
+
+    var reqCount = Model?.Requests?.Count ?? 0;
+    var conCount = Model?.Consultants?.Count ?? 0;
+}
+
+<!-- Debug counters (remove later once you see >0) -->
+<div class="alert alert-light border mb-3">
+    <strong>Debug:</strong> Requests=@reqCount, Consultants=@conCount
+</div>
+
+<div class="container py-4">
+    @if (!string.IsNullOrWhiteSpace(success))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @success
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm" style="max-width: 520px;">
+        <div class="card-body">
+            <h4 class="card-title mb-3" style="font-weight:700; color:#2b2d42;">
+                <span class="me-2">👤</span> Consultant Assignment Panel
+            </h4>
+
+            @if (!string.IsNullOrWhiteSpace(emptyReq) || !string.IsNullOrWhiteSpace(emptyCon))
+            {
+                <div class="alert alert-info mb-3">
+                    @emptyReq @emptyCon
+                </div>
+            }
+
+            <form asp-action="Assign" method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label">Select Service Request:</label>
+                    <select class="form-select" asp-for="SelectedRequestId"
+                            asp-items="@(new SelectList(Model.Requests, nameof(ServiceRequestDto.Id), nameof(ServiceRequestDto.Title)))">
+                        <option value="">-- choose request --</option>
+                    </select>
+                    <span class="text-danger small" asp-validation-for="SelectedRequestId"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Assign Consultant:</label>
+                    <select class="form-select" asp-for="SelectedConsultantId"
+                            asp-items="@(new SelectList(Model.Consultants, nameof(ConsultantDto.Id), nameof(ConsultantDto.Name)))">
+                        <option value="">-- choose consultant --</option>
+                    </select>
+                    <span class="text-danger small" asp-validation-for="SelectedConsultantId"></span>
+                </div>
+
+                <button type="submit" class="btn btn-warning w-100" style="font-weight:600;">
+                    Assign
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

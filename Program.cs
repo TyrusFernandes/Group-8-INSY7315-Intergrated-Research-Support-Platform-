@@ -1,17 +1,16 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-using Microsoft.AspNetCore.Builder.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// ----- Services -----
 builder.Services.AddControllersWithViews();
-builder.Services.AddSession();
-builder.Services.AddDistributedMemoryCache(); // required for session
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(); // if you use TempData/Session
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ----- Pipeline -----
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -20,22 +19,42 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseSession();
 
 app.UseRouting();
+
+app.UseSession();
+// app.UseAuthentication(); // uncomment if you add auth
 app.UseAuthorization();
 
-// Initialize Firebase Admin SDK here (C# version)
-FirebaseApp.Create(new AppOptions()
+// ----- Firebase Admin (init once) -----
+if (FirebaseApp.DefaultInstance == null)
 {
-    Credential = GoogleCredential.FromFile("firebase-adminsdk.json") // <-- path to your JSON key
-});
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = GoogleCredential.FromFile("firebase-adminsdk.json")
+    });
+    Console.WriteLine("Firebase initialized successfully!");
+}
 
-// Example: verify initialization
-Console.WriteLine("Firebase initialized successfully!");
+// ----- Routes -----
+// Consultant Workload page
+app.MapControllerRoute(
+    name: "consultants_workload",
+    pattern: "consultants/workload",
+    defaults: new { controller = "Consultants", action = "Workload" }
+);
 
+// Consultant Assignment Panel page
+app.MapControllerRoute(
+    name: "assignments_assign",
+    pattern: "assignments/assign",
+    defaults: new { controller = "Assignments", action = "Assign" }
+);
+
+// Default MVC route (Home/Index if no controller/action specified)
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();
