@@ -83,8 +83,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-
-                            android:text="Welcome"
+                            android:text="@string/welcome"
                             android:textColor="@android:color/white"
                             android:textSize="22sp"
                             android:textStyle="bold" />
@@ -122,7 +121,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Active Projects Count"
+                            android:text="@string/active_projects_count"
                             android:textColor="#000000"
                             android:textSize="14sp"/>
                         <TextView
@@ -149,7 +148,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Pending Requests"
+                            android:text="@string/pending_requests"
                             android:textColor="#000000"
                             android:textSize="14sp"/>
                         <TextView
@@ -185,7 +184,7 @@
                             android:id="@+id/amountLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total"
+                            android:text="@string/total"
                             android:textColor="#000000"
                             android:textSize="14sp"/>
 
@@ -213,7 +212,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Profile Views"
+                            android:text="@string/profile_views"
                             android:textColor="#000000"
                             android:textSize="14sp"/>
                         <TextView
@@ -236,12 +235,12 @@
                     android:layout_marginBottom="16dp">
 
                     <Button
-                        android:id="@+id/btnJobs"
+                        android:id="@+id/btnUploades"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:backgroundTint="#003366"
-                        android:text="View Consultants Uploads"
+                        android:text="@string/upload_documents"
                         android:textColor="@android:color/white"
                         android:layout_marginEnd="8dp"/>
 
@@ -251,7 +250,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:backgroundTint="#003366"
-                        android:text="View Interesting Articles"
+                        android:text="@string/view_articles"
                         android:textColor="@android:color/white"
                         android:layout_marginStart="8dp"/>
                 </LinearLayout>
@@ -259,7 +258,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Your Most Liked Projects"
+                    android:text="@string/most_liked_projects"
                     android:textSize="18sp"
                     android:textColor="@android:color/white"
                     android:layout_marginBottom="8dp"/>
@@ -269,12 +268,19 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+                </LinearLayout>
 
+                    <LinearLayout
+                        android:id="@+id/messagePreviewContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:background="@android:color/transparent"
+                        android:orientation="vertical"
+                        android:padding="16dp" />
 
 
                 </LinearLayout>
-
-            </LinearLayout>
         </ScrollView>
 
         <androidx.fragment.app.FragmentContainerView

@@ -1,5 +1,6 @@
 package com.example.acadenceapp
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.*
@@ -16,6 +17,13 @@ class SignUpActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
+
+    override fun attachBaseContext(newBase: Context?) {
+        val language = newBase?.let { LocaleHelper.getSavedLanguage(it) } ?: "English"
+        val context = newBase?.let { LocaleHelper.setLocale(it, language) }
+        super.attachBaseContext(context)
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

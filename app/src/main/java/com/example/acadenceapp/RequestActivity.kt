@@ -2,6 +2,7 @@ package com.example.acadenceapp
 
 import android.os.Bundle
 import android.app.DatePickerDialog
+import android.content.Context
 import java.util.Calendar
 import android.view.View
 import android.widget.*
@@ -17,6 +18,12 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 class RequestActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        val lang = newBase?.let { LocaleHelper.getSavedLanguage(it) } ?: "English"
+        val context = newBase?.let { LocaleHelper.setLocale(it, lang) }
+        super.attachBaseContext(context)
+    }
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()

@@ -39,7 +39,7 @@
                 android:id="@+id/openDocBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Open Document"
+                android:text="@string/open_document_button"
                 android:backgroundTint="#0066FF"
                 android:textColor="@android:color/white"
                 android:layout_marginBottom="16dp"/>
@@ -47,7 +47,7 @@
             <TextView android:id="@+id/statusLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Status:"
+                android:text="@string/status_label"
                 android:textStyle="bold"
                 android:layout_marginTop="16dp" />
 
@@ -57,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp" />
 
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Comments" android:textStyle="bold" android:textSize="16sp" android:layout_marginBottom="8dp" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/comments_title" android:textStyle="bold" android:textSize="16sp" android:layout_marginBottom="8dp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/commentsRecycler"
@@ -83,7 +83,7 @@
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Leave a comment..."
+            android:hint="@string/comment_hint"
             android:minHeight="60dp"
             android:background="@drawable/rounded_edittext"
             android:padding="12dp" />
@@ -92,7 +92,7 @@
             android:id="@+id/submitCommentBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Post"
+            android:text="@string/post_button"
             android:backgroundTint="#0066FF"
             android:textColor="@android:color/white"
             android:layout_marginStart="8dp"/>

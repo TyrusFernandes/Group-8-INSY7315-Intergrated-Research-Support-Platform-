@@ -1,0 +1,79 @@
+<resources>
+    <string name="app_name">AcadenceApp</string>
+    <string name="hello_blank_fragment">Hallo leë fragment</string>
+
+    <string-array name="document_list">
+        <item>Data-analise Navorsing</item>
+        <item>Die invloed van KI op Bankwese</item>
+        <item>Sagteware-ingenieurswese Studie</item>
+        <item>Kuberveiligheid Verslag</item>
+    </string-array>
+
+    <string name="open">Maak oop</string>
+
+    <string-array name="status_options">
+        <item>Hangend</item>
+        <item>Besig</item>
+        <item>Word hersien</item>
+        <item>Voltooi</item>
+        <item>Verwerp</item>
+    </string-array>
+
+    <string-array name="review_types">
+        <item>Tegniese Hersiening</item>
+        <item>Eweknie Hersiening</item>
+        <item>Toesighouer Hersiening</item>
+        <item>Finale Goedkeuring</item>
+    </string-array>
+
+    <string-array name="languages">
+        <item>Engels</item>
+        <item>Afrikaans</item>
+    </string-array>
+
+    <string name="first_fragment_label">Eerste Fragment</string>
+    <string name="second_fragment_label">Tweede Fragment</string>
+    <string name="next">Volgende</string>
+    <string name="previous">Vorige</string>
+
+    <string name="welcome">Welkom</string>
+    <string name="role">Rol</string>
+    <string name="active_projects_count">Aktiewe Projekte</string>
+    <string name="pending_requests">Hangende Versoeke</string>
+    <string name="total">Totaal</string>
+    <string name="profile_views">Profielbesigtiging</string>
+    <string name="upload_documents">Laai Nuwe Dokumente Op</string>
+    <string name="view_articles">Sien Interessante Artikels</string>
+    <string name="most_liked_projects">Jou Mees Geliefde Projekte</string>
+    <string name="notifications">Kennisgewings</string>
+    <string name="close_notifications">Maak Kennisgewings Toe</string>
+    <string name="document_title_label">Dokumenttitel</string>
+    <string name="open_document_button">Maak Dokument Oop</string>
+    <string name="status_label">Status:</string>
+    <string name="comments_title">Opmerkings</string>
+    <string name="comment_hint">Los ’n opmerking...</string>
+    <string name="post_button">Plaas</string>
+    <string name="settings_title">Instellings</string>
+    <string name="back_button_desc">Terug</string>
+    <string name="profile_picture_desc">Profielprent</string>
+    <string name="profile_name_placeholder">Gebruiker Naam</string>
+    <string name="profile_email_placeholder">gebruiker@email.com</string>
+    <string name="edit_profile_button">Wysig Profiel</string>
+    <string name="preferences_section_title">Voorkeure</string>
+    <string name="language_option">Taal</string>
+    <string name="language_icon_desc">Taalikoon</string>
+    <string name="account_section_title">Rekening</string>
+    <string name="support_button">Ondersteuning</string>
+    <string name="support_icon_desc">Ondersteuning Ikoon</string>
+    <string name="terms_privacy_button">Bepalings en Privaatheid</string>
+    <string name="terms_icon_desc">Bepalings Ikoon</string>
+    <string name="logout_button">Teken uit</string>
+    <string name="logout_icon_desc">Teken uit Ikoon</string>
+    <string name="nav_requests">Versoeke</string>
+    <string name="nav_add">Voeg by</string>
+    <string name="nav_home">Tuis</string>
+    <string name="nav_for_you">Vir Jou</string>
+    <string name="nav_messages">Boodskappe</string>
+    <string name="nav_profile">Profiel</string>
+
+</resources>

@@ -1,6 +1,7 @@
 package com.example.acadenceapp
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -13,6 +14,12 @@ import com.google.firebase.storage.FirebaseStorage
 import java.util.*
 
 class UploadActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        val lang = newBase?.let { LocaleHelper.getSavedLanguage(it) } ?: "English"
+        val context = newBase?.let { LocaleHelper.setLocale(it, lang) }
+        super.attachBaseContext(context)
+    }
 
     private lateinit var fileTitle: EditText
     private lateinit var tagsInput: EditText

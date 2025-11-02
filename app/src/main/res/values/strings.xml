@@ -17,7 +17,51 @@
         <item>Rejected</item>
     </string-array>
 
-    <string name="default_web_client_id">"907171020913-s3ejcf6drbnb0nnqd0g6jdtnva870t0c.apps.googleusercontent.com"</string>
+    <string name="welcome">Welcome</string>
+    <string name="role">Role</string>
+    <string name="active_projects_count">Active Projects Count</string>
+    <string name="pending_requests">Pending Requests</string>
+    <string name="total">Total</string>
+    <string name="profile_views">Profile Views</string>
+    <string name="upload_documents">Upload New Documents</string>
+    <string name="view_articles">View Interesting Articles</string>
+    <string name="most_liked_projects">Your Most Liked Projects</string>
+    <string name="notifications">Notifications</string>
+    <string name="close_notifications">Close Notifications</string>
+    <string name="document_title_label">Document Title</string>
+    <string name="open_document_button">Open Document</string>
+    <string name="status_label">Status:</string>
+    <string name="comments_title">Comments</string>
+    <string name="comment_hint">Leave a comment...</string>
+    <string name="post_button">Post</string>
+    <string name="settings_title">Settings</string>
+    <string name="back_button_desc">Back</string>
+    <string name="profile_picture_desc">Profile picture</string>
+    <string name="profile_name_placeholder">User Name</string>
+    <string name="profile_email_placeholder">user@email.com</string>
+    <string name="edit_profile_button">Edit Profile</string>
+    <string name="preferences_section_title">Preferences</string>
+    <string name="language_option">Language</string>
+    <string name="language_icon_desc">Language Icon</string>
+    <string name="account_section_title">Account</string>
+    <string name="support_button">Support</string>
+    <string name="support_icon_desc">Support Icon</string>
+    <string name="terms_privacy_button">Terms and Privacy Policy</string>
+    <string name="terms_icon_desc">Terms Icon</string>
+    <string name="logout_button">Logout</string>
+    <string name="logout_icon_desc">Logout Icon</string>
+    <string name="nav_requests">Requests</string>
+    <string name="nav_add">Add</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_for_you">For You</string>
+    <string name="nav_messages">Messages</string>
+    <string name="nav_profile">Profile</string>
+
+
+
+
+
+    <string name="default_web_client_id" translatable="false">"907171020913-s3ejcf6drbnb0nnqd0g6jdtnva870t0c.apps.googleusercontent.com"</string>
 
     <!-- Review Type Spinner Items -->
     <string-array name="review_types">
@@ -38,7 +82,7 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
-    <string name="lorem_ipsum">
+    <string name="lorem_ipsum" translatable="false">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
         volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus
         dui nec risus. Maecenas non sodales nisi, vel dictum dolor. Class aptent taciti sociosqu ad

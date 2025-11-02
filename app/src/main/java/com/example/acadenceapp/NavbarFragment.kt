@@ -44,44 +44,55 @@ class NavbarFragment : Fragment() {
     }
 
     private fun setupNavigationBar() {
+        val context = requireContext()
+
+        val menu = navView.menu
+
+        menu.findItem(R.id.navigation_home).title = context.getString(R.string.nav_home)
+        menu.findItem(R.id.navigation_for_you).title = context.getString(R.string.nav_for_you)
+        menu.findItem(R.id.navigation_messages).title = context.getString(R.string.nav_messages)
+        menu.findItem(R.id.navigation_profile).title = context.getString(R.string.nav_profile)
+
+        val addItem = menu.findItem(R.id.navigation_add)
         if (userRole == "consultant") {
-            // Replace "add+" with Requests
-            val menu = navView.menu
-            val menuItem = menu.findItem(R.id.navigation_add)
-            menuItem.title = "Requests"
-            menuItem.setIcon(R.drawable.ic_document)
+            addItem.title = context.getString(R.string.nav_requests)
+            addItem.setIcon(R.drawable.ic_document)
+        } else {
+            addItem.title = context.getString(R.string.nav_add)
+            addItem.setIcon(R.drawable.ic_add)
         }
 
         navView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_home -> {
-                    startActivity(Intent(requireContext(), DashboardActivity::class.java))
+                    startActivity(Intent(context, DashboardActivity::class.java))
                     true
                 }
                 R.id.navigation_for_you -> {
-                    startActivity(Intent(requireContext(), ForYouActivity::class.java))
+                    startActivity(Intent(context, ForYouActivity::class.java))
                     true
                 }
                 R.id.navigation_add -> {
                     if (userRole == "consultant") {
-                        startActivity(Intent(requireContext(), ConsultantRequestsActivity::class.java))
+                        startActivity(Intent(context, ConsultantRequestsActivity::class.java))
                     } else {
-                        startActivity(Intent(requireContext(), DocumentActivity::class.java))
+                        startActivity(Intent(context, DocumentActivity::class.java))
                     }
                     true
                 }
                 R.id.navigation_messages -> {
-                    startActivity(Intent(requireContext(), MessageActivity::class.java))
+                    startActivity(Intent(context, MessageActivity::class.java))
                     true
                 }
                 R.id.navigation_profile -> {
-                    startActivity(Intent(requireContext(), ProfileActivity::class.java))
+                    startActivity(Intent(context, ProfileActivity::class.java))
                     true
                 }
                 else -> false
             }
         }
     }
+
 
     companion object {
         @JvmStatic

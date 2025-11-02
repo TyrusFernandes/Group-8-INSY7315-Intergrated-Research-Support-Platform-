@@ -1,5 +1,6 @@
 package com.example.acadenceapp
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -16,6 +17,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class ConsultantRequestsActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        val lang = newBase?.let { LocaleHelper.getSavedLanguage(it) } ?: "English"
+        val context = newBase?.let { LocaleHelper.setLocale(it, lang) }
+        super.attachBaseContext(context)
+    }
+
 
     private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth

@@ -1,5 +1,6 @@
 package com.example.acadenceapp
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -11,6 +12,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class LoginActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        val lang = newBase?.let { LocaleHelper.getSavedLanguage(it) } ?: "English"
+        val context = newBase?.let { LocaleHelper.setLocale(it, lang) }
+        super.attachBaseContext(context)
+    }
 
     private lateinit var auth: FirebaseAuth
 

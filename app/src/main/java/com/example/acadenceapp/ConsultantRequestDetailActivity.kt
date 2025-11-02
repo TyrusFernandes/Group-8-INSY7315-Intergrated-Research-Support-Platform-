@@ -1,5 +1,6 @@
 package com.example.acadenceapp
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -37,6 +38,12 @@ class ConsultantRequestDetailActivity : AppCompatActivity() {
     private var requestId: String? = null
     private var docId: String? = null
     private var docUrl: String? = null
+
+    override fun attachBaseContext(newBase: Context?) {
+        val lang = newBase?.let { LocaleHelper.getSavedLanguage(it) } ?: "English"
+        val context = newBase?.let { LocaleHelper.setLocale(it, lang) }
+        super.attachBaseContext(context)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

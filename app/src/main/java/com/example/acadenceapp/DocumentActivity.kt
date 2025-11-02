@@ -1,5 +1,6 @@
 package com.example.acadenceapp
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -14,6 +15,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
 class DocumentActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        val lang = newBase?.let { LocaleHelper.getSavedLanguage(it) } ?: "English"
+        val context = newBase?.let { LocaleHelper.setLocale(it, lang) }
+        super.attachBaseContext(context)
+    }
+
 
     private val db = FirebaseFirestore.getInstance()
     private lateinit var recentFilesRecycler: RecyclerView

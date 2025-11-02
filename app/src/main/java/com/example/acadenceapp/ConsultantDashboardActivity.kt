@@ -47,6 +47,17 @@ class ConsultantDashboardActivity : AppCompatActivity() {
         val btnCloseNotifications: ImageButton = findViewById(R.id.btn_close_notifications)
         val rvNotifications: RecyclerView = findViewById(R.id.rvNotifications)
         val roleLabel: TextView = findViewById(R.id.roleLabel)
+        val btnJobs = findViewById<Button>(R.id.btnUploades)
+        btnJobs.setOnClickListener {
+            val intent = Intent(this, DocumentActivity::class.java)
+            startActivity(intent)
+        }
+
+        val btnArticle = findViewById<Button>(R.id.btnArticle)
+        btnArticle.setOnClickListener {
+            val intent = Intent(this, ForYouActivity::class.java)
+            startActivity(intent)
+        }
 
         FirebaseFirestore.getInstance().collection("users")
             .document(FirebaseAuth.getInstance().currentUser?.uid ?: return)
@@ -78,6 +89,7 @@ class ConsultantDashboardActivity : AppCompatActivity() {
         fetchTotalProfileViews()
         fetchOngoingRequestsCount()
         fetchTotalPriceForRequests()
+        fetchRecentMessagesPreview()
         fetchUploadedDocumentsCount()
     }
 
@@ -183,10 +195,10 @@ class ConsultantDashboardActivity : AppCompatActivity() {
                     documentsLayout.addView(itemLayout)
 
                     itemLayout.setOnClickListener {
-                        val intent = Intent(context, DocumentDetailActivity::class.java)
-                        intent.putExtra("documentId", docId)
+                        val intent = Intent(context, DocumentActivity::class.java)
                         startActivity(intent)
                     }
+
                 }
             }
             .addOnFailureListener { e ->
@@ -286,6 +298,75 @@ class ConsultantDashboardActivity : AppCompatActivity() {
                     }
             }
     }
+    private fun fetchRecentMessagesPreview() {
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val chatsRef = FirebaseFirestore.getInstance().collection("chats")
+        val previewContainer = findViewById<LinearLayout>(R.id.messagePreviewContainer)
+
+        chatsRef.get().addOnSuccessListener { chatDocs ->
+            val relevantChats = chatDocs.documents.filter { it.id.contains(currentUserId) }
+            val recentMessages = mutableListOf<Triple<String, String, Long>>() // otherUserId, messageText, timestamp
+
+            val tasks = relevantChats.map { chatDoc ->
+                val chatId = chatDoc.id
+                val otherUserId = chatId.replace(currentUserId, "").replace("_", "")
+                chatsRef.document(chatId).collection("messages")
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener { messages ->
+                        val message = messages.documents.firstOrNull()
+                        message?.let {
+                            val text = it.getString("text") ?: ""
+                            val ts = it.getLong("timestamp") ?: 0L
+                            recentMessages.add(Triple(otherUserId, text, ts))
+                        }
+
+                        if (recentMessages.size == relevantChats.size) {
+                            displayRecentMessagesPreview(recentMessages.sortedByDescending { it.third }.take(3), previewContainer)
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun displayRecentMessagesPreview(messages: List<Triple<String, String, Long>>, container: LinearLayout) {
+        val context = this
+        container.removeAllViews()
+
+        for ((otherUserId, lastMessage, _) in messages) {
+            val chatView = LinearLayout(context).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    bottomMargin = 24
+                }
+                orientation = LinearLayout.VERTICAL
+                setPadding(24, 24, 24, 24)
+                setBackgroundResource(R.drawable.rounded_white_bg)
+                elevation = 6f
+            }
+
+            val textView = TextView(context).apply {
+                text = lastMessage
+                textSize = 18f
+                setTextColor(ContextCompat.getColor(context, android.R.color.black))
+            }
+
+            chatView.addView(textView)
+            container.addView(chatView)
+
+            chatView.setOnClickListener {
+                val intent = Intent(context, YourChatActivity::class.java)
+                intent.putExtra("TARGET_USER_ID", otherUserId)
+                // You may also pass username if needed
+                startActivity(intent)
+            }
+        }
+    }
+
+
 
 
 

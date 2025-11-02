@@ -1,5 +1,6 @@
 package com.example.acadenceapp
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -14,8 +15,15 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.appcompat.widget.Toolbar
 
 class DocumentDetailActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        val lang = newBase?.let { LocaleHelper.getSavedLanguage(it) } ?: "English"
+        val context = newBase?.let { LocaleHelper.setLocale(it, lang) }
+        super.attachBaseContext(context)
+    }
 
     private lateinit var title: TextView
     private lateinit var meta: TextView
@@ -53,15 +61,24 @@ class DocumentDetailActivity : AppCompatActivity() {
         sendCommentBtn = findViewById(R.id.sendCommentBtn)
         commentsList = findViewById(R.id.commentsRecycler)
 
-        // Get document data from intent
-        documentId = intent.getStringExtra("docId").also {
-            Log.d("DocumentDetailActivity", "Received docId: $it")
-        } ?: run {
-            Toast.makeText(this, "Missing document ID", Toast.LENGTH_LONG).show()
-            Log.e("DocumentDetailActivity", "docId is null or empty!")
-            finish()
-            return
-        }
+        documentId = intent.getStringExtra("documentId")
+            ?: intent.getStringExtra("docId")
+                    ?: run {
+                Toast.makeText(this, "Missing document ID", Toast.LENGTH_LONG).show()
+                Log.e("DocumentDetailActivity", "docId is null or empty!")
+                finish()
+                return
+            }
+
+        Log.d("DocumentDetailActivity", "Resolved documentId: $documentId")
+
+        val toolbar = findViewById<Toolbar>(R.id.globalToolbar)
+        toolbar.title = "Document Detail" // or dynamic title
+        setSupportActionBar(toolbar)
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+
 
         title.text = intent.getStringExtra("title")
         meta.text = intent.getStringExtra("meta")
@@ -211,6 +228,13 @@ class DocumentDetailActivity : AppCompatActivity() {
                 adapter.notifyDataSetChanged()
             }
     }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
+
+
     private fun incrementViewCount() {
         val docRef = db.collection("documents").document(documentId)
 

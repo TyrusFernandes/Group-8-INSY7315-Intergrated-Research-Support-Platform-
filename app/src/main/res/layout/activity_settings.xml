@@ -33,7 +33,7 @@
             android:id="@+id/settingsTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Settings"
+            android:text="@string/settings_title"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -116,7 +116,7 @@
                 android:id="@+id/edit_profile_button"
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
-                android:text="Edit Profile"
+                android:text="@string/edit_profile_button"
                 android:textSize="12sp"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
@@ -147,44 +147,13 @@
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp">
 
-                <LinearLayout
-                    android:id="@+id/notifications_item_switch"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingVertical="6dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_notfication"
-                        android:layout_marginEnd="16dp"
-                        android:contentDescription="Notifications Icon" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Notifications"
-                        android:textSize="16sp"
-                        android:textColor="@android:color/black"/>
-
-                    <Switch
-                        android:id="@+id/switch_notifications"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:thumbTint="#0066FF"
-                        android:trackTint="#C0C0C0"
-                        android:layout_marginEnd="-8dp"/>
-                </LinearLayout>
-
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="#E0E0E0"
-                    android:layout_marginStart="40dp" /> <LinearLayout
+                    android:layout_marginStart="40dp" />
+
+                <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -201,7 +170,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Language"
+                    android:text="@string/language_option"
                     android:textSize="16sp"
                     android:textColor="@android:color/black"
                     android:layout_marginEnd="16dp"/>
@@ -222,44 +191,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="#E0E0E0"
-                    android:layout_marginStart="40dp" /> <LinearLayout
-                android:id="@+id/theme_item_switch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="6dp"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_star"
-                    android:layout_marginEnd="16dp"
-                    android:contentDescription="Theme Icon" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Dark Mode"
-                    android:textSize="16sp"
-                    android:textColor="@android:color/black"/>
-
-                <Switch
-                    android:id="@+id/switch_theme"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="false"
-                    android:thumbTint="#0066FF"
-                    android:trackTint="#C0C0C0"
-                    android:layout_marginEnd="-8dp"/>
-            </LinearLayout>
+                    android:layout_marginStart="40dp" />
             </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Account"
+                android:text="@string/account_section_title"
                 android:textSize="14sp"
                 android:textColor="@android:color/darker_gray"
                 android:paddingTop="16dp"
@@ -274,39 +212,6 @@
                 android:elevation="1dp"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp">
-
-                <LinearLayout
-                    android:id="@+id/biometrics_item"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingVertical="6dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_lock"
-                        android:layout_marginEnd="16dp"
-                        android:contentDescription="Biometrics Icon" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Login with Biometrics"
-                        android:textSize="16sp"
-                        android:textColor="@android:color/black"/>
-
-                    <Switch
-                        android:id="@+id/switch_biometrics"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:thumbTint="#0066FF"
-                        android:trackTint="#C0C0C0"
-                        android:layout_marginEnd="-8dp"/>
-                </LinearLayout>
 
                 <View
                     android:layout_width="match_parent"
@@ -334,7 +239,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Support"
+                    android:text="@string/support_button"
                     android:textSize="16sp"
                     android:textColor="@android:color/black"/>
 
@@ -367,7 +272,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Terms and Privacy Policy"
+                    android:text="@string/terms_privacy_button"
                     android:textSize="16sp"
                     android:textColor="@android:color/black"/>
 
@@ -401,7 +306,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Logout"
+                    android:text="@string/logout_button"
                     android:textSize="16sp"
                     android:textColor="@android:color/holo_red_dark"
                     android:textStyle="bold"/>

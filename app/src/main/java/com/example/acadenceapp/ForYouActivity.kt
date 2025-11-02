@@ -1,5 +1,6 @@
 package com.example.acadenceapp
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -22,6 +23,12 @@ import com.google.firebase.firestore.Query
 class ForYouActivity : AppCompatActivity() {
 
     private val db = FirebaseFirestore.getInstance()
+
+    override fun attachBaseContext(newBase: Context?) {
+        val lang = newBase?.let { LocaleHelper.getSavedLanguage(it) } ?: "English"
+        val context = newBase?.let { LocaleHelper.setLocale(it, lang) }
+        super.attachBaseContext(context)
+    }
 
     private lateinit var search: EditText
     private lateinit var chips: ChipGroup

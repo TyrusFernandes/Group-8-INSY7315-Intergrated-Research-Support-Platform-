@@ -1,5 +1,6 @@
 package com.example.acadenceapp
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
@@ -13,6 +14,12 @@ import com.google.firebase.firestore.*
 import java.util.*
 
 class YourChatActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        val lang = newBase?.let { LocaleHelper.getSavedLanguage(it) } ?: "English"
+        val context = newBase?.let { LocaleHelper.setLocale(it, lang) }
+        super.attachBaseContext(context)
+    }
 
     private lateinit var chatRecyclerView: RecyclerView
     private lateinit var editTextMessage: EditText
