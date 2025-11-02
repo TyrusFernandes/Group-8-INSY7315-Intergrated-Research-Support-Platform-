@@ -1,12 +1,27 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ----- Services -----
+// Add services to the container
 builder.Services.AddControllersWithViews();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(); // if you use TempData/Session
+
+// Add session support
+builder.Services.AddDistributedMemoryCache(); // required for session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(1);
+});
+
+// Add authentication with cookies
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Login/Login";      // redirect here if not authenticated
+        options.AccessDeniedPath = "/Login/Login"; // optional
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    });
 
 var app = builder.Build();
 
@@ -22,36 +37,19 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseSession();
-// app.UseAuthentication(); // uncomment if you add auth
-app.UseAuthorization();
+app.UseSession();           // session must come before auth
+app.UseAuthentication();    // enable authentication middleware
+app.UseAuthorization();     // enable authorization middleware
 
-// ----- Firebase Admin (init once) -----
-if (FirebaseApp.DefaultInstance == null)
+// Initialize Firebase Admin SDK
+FirebaseApp.Create(new AppOptions()
 {
-    FirebaseApp.Create(new AppOptions
-    {
-        Credential = GoogleCredential.FromFile("firebase-adminsdk.json")
-    });
-    Console.WriteLine("Firebase initialized successfully!");
-}
+    Credential = GoogleCredential.FromFile("firebase-adminsdk.json"), // <-- path to your JSON key
+});
 
-// ----- Routes -----
-// Consultant Workload page
-app.MapControllerRoute(
-    name: "consultants_workload",
-    pattern: "consultants/workload",
-    defaults: new { controller = "Consultants", action = "Workload" }
-);
+Console.WriteLine("Firebase initialized successfully!");
 
-// Consultant Assignment Panel page
-app.MapControllerRoute(
-    name: "assignments_assign",
-    pattern: "assignments/assign",
-    defaults: new { controller = "Assignments", action = "Assign" }
-);
-
-// Default MVC route (Home/Index if no controller/action specified)
+// Default route: start at Home/Index
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"

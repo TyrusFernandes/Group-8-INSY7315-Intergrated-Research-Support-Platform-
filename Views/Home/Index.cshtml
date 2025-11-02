@@ -1,39 +1,72 @@
 ﻿@{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Welcome";
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["HideLayoutElements"] = true;
 }
 
-<div class="container-fluid min-vh-100 d-flex justify-content-center align-items-center bg-light">
-    <div class="text-center w-100" style="max-width: 600px;">
-        <img src="/images/acadence-logo.png" alt="Acadence Logo" class="img-fluid mb-4" style="max-height: 200px;" />
-        <h2 class="mb-4 display-5">Welcome!</h2>
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
-        <div class="d-grid gap-4">
-            <a class="btn btn-primary btn-lg rounded-pill py-3" href="/Home/Register">Sign Up</a>
-            <a class="btn btn-primary btn-lg rounded-pill py-3" href="/Home/Login">Log In</a>
+<div class="container-fluid min-vh-100 d-flex justify-content-center align-items-center" style="background-color: #f2f2f2;">
+    <div class="row align-items-center justify-content-center" style="max-width: 900px; width: 100%; background-color: #f2f2f2; padding: 60px 20px;">
+        <!-- Left Section -->
+        <div class="col-md-6 text-center mb-4 mb-md-0">
+            <h2 class="fw-semibold mb-5" style="color: #444;">Welcome!</h2>
+            <div class="d-grid gap-4">
+                <a class="btn btn-primary btn-lg fw-semibold rounded-3 py-3"
+                   asp-controller="Login" asp-action="Register">Sign Up</a>
+
+                <a class="btn btn-primary btn-lg fw-semibold rounded-3 py-3"
+                   asp-controller="Login" asp-action="Login">Log In</a>
+            </div>
+        </div>
+
+        <!-- Right Section -->
+        <div class="col-md-6 text-center">
+            <img src="~/images/acadence-logo.png" alt="Acadence Logo" class="img-fluid mb-3" style="max-height: 220px;" />
+            <p class="fw-medium mt-2" style="color: #6c757d; font-size: 1.1rem;">
+                Where Excellence Meets Guidance
+            </p>
         </div>
     </div>
 </div>
 
 <style>
     body {
-        background-color: #f6f4f1;
         margin: 0;
         padding: 0;
+        font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f2f2f2 !important;
     }
 
     h2 {
-        color: #333;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 600;
+        font-size: 2.2rem;
+        color: #444;
     }
 
     .btn-primary {
         background-color: #0047ff;
         border: none;
+        transition: all 0.3s ease;
+        color: white;
+        font-weight: 500;
+        font-size: 1.1rem;
     }
 
         .btn-primary:hover {
             background-color: #0036cc;
+            transform: scale(1.03);
         }
+
+    /* Ensure everything is centered nicely and consistent with login/register look */
+    .container-fluid {
+        background-color: #f2f2f2;
+    }
+
+    .row {
+        background-color: #f2f2f2;
+        border-radius: 20px;
+        box-shadow: none; /* ✅ removes card shadow */
+    }
 </style>
