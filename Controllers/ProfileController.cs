@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AcadenceWebApp.Models;
-using AcadenceWebApp.Models;
 using Google.Cloud.Firestore;
 using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +15,7 @@ namespace AcadenceWebApp.Controllers
     public class ProfileController : Controller
     {
         private readonly FirestoreDb _firestoreDb;
-        private readonly string _bucketName = "acadence-40662.appspot.com"; 
+        private readonly string _bucketName = "acadence-40662.firebasestorage.app"; 
         private readonly string _projectId = "acadence-40662"; 
 
         public ProfileController()
