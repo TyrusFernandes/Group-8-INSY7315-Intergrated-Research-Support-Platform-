@@ -1,5 +1,4 @@
-﻿// FILE: Controllers/LoginController.cs
-using AcadenceWebApp.Models;
+﻿using AcadenceWebApp.Models;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -18,20 +17,19 @@ namespace AcadenceWebApp.Controllers
 
         public LoginController()
         {
-            // 🔹 Path to the JSON file (root of project)
+            // Path to the JSON file (root of project)
             string credentialsPath = Path.Combine(Directory.GetCurrentDirectory(), "firebase-adminsdk.json");
 
-            // 🔹 Set env variable so Firestore SDK picks it up
+            // Set env variable so Firestore SDK picks it up
             Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialsPath);
 
-            // 🔹 Read JSON file
+            // Read JSON file
             var json = System.IO.File.ReadAllText(credentialsPath);
             var parsed = JsonDocument.Parse(json);
 
-            // 🔹 Get project ID
+            // Get project ID
             var projectId = parsed.RootElement.GetProperty("project_id").GetString();
 
-            // 🔹 OPTIONAL: Read Web API key from custom field you must add to JSON
             if (!parsed.RootElement.TryGetProperty("api_key", out var apiKeyElement))
             {
                 throw new Exception("Missing 'api_key' in firebase-adminsdk.json. Please add it manually.");
@@ -39,7 +37,7 @@ namespace AcadenceWebApp.Controllers
 
             _apiKey = apiKeyElement.GetString();
 
-            // 🔹 Initialize Firestore
+            // Initialize Firestore
             _firestore = FirestoreDb.Create(projectId);
         }
 
