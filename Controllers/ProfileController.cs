@@ -16,7 +16,7 @@ namespace AcadenceWebApp.Controllers
     {
         private readonly FirestoreDb _firestoreDb;
         private readonly string _bucketName = "acadence-40662.firebasestorage.app"; 
-        private readonly string _projectId = "acadence-40662"; 
+        private readonly string _projectId = "acadence-40662";
 
         public ProfileController()
         {
@@ -123,15 +123,17 @@ namespace AcadenceWebApp.Controllers
                     await file.CopyToAsync(memoryStream);
                     memoryStream.Position = 0;
 
+                    // Upload and make the object publicly readable
                     await storage.UploadObjectAsync(
                         _bucketName,
                         fileName,
                         file.ContentType,
-                        memoryStream
+                        memoryStream,
+                        new UploadObjectOptions { PredefinedAcl = PredefinedObjectAcl.PublicRead }
                     );
                 }
 
-                // Return public URL
+                // Return a public URL that works when the object is public
                 return $"https://storage.googleapis.com/{_bucketName}/{fileName}";
             }
             catch (Exception ex)
