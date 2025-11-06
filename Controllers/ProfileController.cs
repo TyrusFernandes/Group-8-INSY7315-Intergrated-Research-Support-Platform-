@@ -15,8 +15,8 @@ namespace AcadenceWebApp.Controllers
     public class ProfileController : Controller
     {
         private readonly FirestoreDb _firestoreDb;
-        private readonly string _bucketName = "acadence-40662.firebasestorage.app"; 
-        private readonly string _projectId = "acadence-40662"; 
+        private readonly string _bucketName = "acadence-40662.firebasestorage.app";
+        private readonly string _projectId = "acadence-40662";
 
         public ProfileController()
         {
