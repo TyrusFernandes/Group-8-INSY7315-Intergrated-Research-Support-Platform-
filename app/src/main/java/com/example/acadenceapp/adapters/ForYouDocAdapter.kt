@@ -6,8 +6,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.acadenceapp.R
 import com.example.acadenceapp.models.DocumentModel
 import com.example.acadenceapp.DocumentDetailActivity
@@ -27,9 +29,10 @@ class ForYouDocAdapter(
 
     inner class VH(v: View) : RecyclerView.ViewHolder(v) {
         val card: MaterialCardView = v.findViewById(R.id.docCard)
-        val title: TextView = v.findViewById(R.id.docTitle)
-        val meta: TextView = v.findViewById(R.id.docMeta)
-        val tags: TextView = v.findViewById(R.id.docTags)
+        val thumbnail: ImageView = v.findViewById(R.id.thumbnailImage)
+        val title: TextView = v.findViewById(R.id.titleText)
+        val uploader: TextView = v.findViewById(R.id.uploaderText)
+        val tagText: TextView = v.findViewById(R.id.tagText)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -41,30 +44,34 @@ class ForYouDocAdapter(
     override fun getItemCount(): Int = items.size
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        val it = items[position]
+        val doc = items[position]
 
-        holder.title.text = it.title
+        holder.title.text = doc.title
+        holder.uploader.text = "By: ${doc.uploadedBy ?: "Unknown"} • ${doc.createdAt?.toDate()?.let(df::format) ?: ""}"
+        holder.tagText.text = doc.tags.joinToString(", ")
 
-        val who = it.uploadedBy ?: "Unknown"
-        val whenTxt = it.createdAt?.toDate()?.let(df::format) ?: ""
-        holder.meta.text = if (whenTxt.isNotEmpty()) "By: $who • $whenTxt" else "By: $who"
-
-        // show tags if present (e.g., "ai, nlp, research")
-        val tagLine = it.tags?.takeIf { t -> t.isNotEmpty() }?.joinToString(", ")
-        holder.tags.text = tagLine ?: ""
+        if (!doc.thumbnailUrl.isNullOrEmpty()) {
+            Glide.with(holder.itemView.context)
+                .load(doc.thumbnailUrl)
+                .placeholder(R.drawable.placeholder_image)
+                .into(holder.thumbnail)
+        } else {
+            holder.thumbnail.setImageResource(R.drawable.placeholder_image)
+        }
 
         holder.card.setOnClickListener { v ->
             val context = v.context
-            val intent = Intent(context, DocumentDetailActivity::class.java)
-            intent.putExtra("docId", it.id) // This must be the Firestore document ID
-            intent.putExtra("title", it.title)
-            intent.putExtra("meta", holder.meta.text.toString())
-            intent.putExtra("tags", holder.tags.text.toString())
-            intent.putExtra("url", it.fileUrl)
+            val intent = Intent(context, DocumentDetailActivity::class.java).apply {
+                putExtra("docId", doc.id)
+                putExtra("title", doc.title)
+                putExtra("meta", holder.uploader.text.toString())
+                putExtra("tags", holder.tagText.text.toString())
+                putExtra("url", doc.fileUrl)
+                putExtra("thumbnailUrl", doc.thumbnailUrl ?: "")
+            }
             context.startActivity(intent)
+            incrementDocumentsRead()
         }
-
-
     }
 
     private fun incrementDocumentsRead() {
@@ -88,3 +95,4 @@ class ForYouDocAdapter(
         notifyDataSetChanged()
     }
 }
+

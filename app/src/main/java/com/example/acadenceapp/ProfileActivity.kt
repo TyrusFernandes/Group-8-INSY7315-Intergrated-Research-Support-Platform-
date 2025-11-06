@@ -19,6 +19,14 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import com.google.firebase.Firebase
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.MediaStore
+import com.google.firebase.storage.FirebaseStorage
+import com.bumptech.glide.Glide
+import android.widget.ImageView
+
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -38,42 +46,82 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var inputField: TextInputEditText
     private lateinit var btnSave: Button
 
+    private val PICK_IMAGE_REQUEST = 1
+    private lateinit var profileImageView: ImageView
+    private var imageUri: Uri? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
-        // Initialize Firebase
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        // Bind views
         inputFullName = findViewById(R.id.inputFullName)
         inputUsername = findViewById(R.id.inputUsername)
         inputEmail = findViewById(R.id.inputEmail)
         inputPhone = findViewById(R.id.inputPhone)
         inputField = findViewById(R.id.inputField)
         btnSave = findViewById(R.id.btnSave)
+        profileImageView = findViewById(R.id.profileImage)
 
-        // Load current user profile
         loadUserProfile()
 
-        // Save button click
         btnSave.setOnClickListener {
             saveUserProfile()
         }
+
+        // ✅ Click to pick image
+        profileImageView.setOnClickListener {
+            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            startActivityForResult(intent, PICK_IMAGE_REQUEST)
+        }
     }
 
+    // ✅ Receive image and upload
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            imageUri = data.data
+            profileImageView.setImageURI(imageUri) // show image
+            uploadImageToFirebase() // upload to Firebase
+        }
+    }
+
+    private fun uploadImageToFirebase() {
+        val user = auth.currentUser ?: return
+        val storageRef = FirebaseStorage.getInstance().reference
+            .child("documents/${user.uid}.jpg") // 👈 Uploads to /documents/
+
+        imageUri?.let { uri ->
+            storageRef.putFile(uri)
+                .addOnSuccessListener {
+                    storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                        val profileUpdates = UserProfileChangeRequest.Builder()
+                            .setPhotoUri(downloadUri)
+                            .build()
+
+                        user.updateProfile(profileUpdates)
+                            .addOnSuccessListener {
+                                Toast.makeText(this, "Profile picture updated", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Failed to upload image", Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
+
+    // ✅ Load image and fields
     private fun loadUserProfile() {
         val user = auth.currentUser ?: return
         val userId = user.uid
 
-        // Set FirebaseAuth displayName as username
         inputUsername.setText(user.displayName)
-
-        // Set email
         inputEmail.setText(user.email)
 
-        // Load other fields from Firestore
         db.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
@@ -82,15 +130,16 @@ class ProfileActivity : AppCompatActivity() {
                     inputField.setText(document.getString("field") ?: "")
                 }
             }
-            .addOnFailureListener {
-                Toast.makeText(this, "Failed to load profile data", Toast.LENGTH_SHORT).show()
-            }
+
+        val profilePicRef = FirebaseStorage.getInstance().reference.child("documents/$userId.jpg")
+        profilePicRef.downloadUrl.addOnSuccessListener { uri ->
+            Glide.with(this).load(uri).into(profileImageView)
+        }
     }
 
+    // ✅ Save text profile
     private fun saveUserProfile() {
-        val user = FirebaseAuth.getInstance().currentUser
-        val db = FirebaseFirestore.getInstance()
-
+        val user = auth.currentUser
         val fullName = inputFullName.text.toString().trim()
         val username = inputUsername.text.toString().trim()
         val phone = inputPhone.text.toString().trim()
@@ -101,22 +150,12 @@ class ProfileActivity : AppCompatActivity() {
             return
         }
 
-        // Update display name in Firebase Auth (optional)
-        if (fullName.isNotEmpty() || username.isNotEmpty()) {
-            val profileUpdates = UserProfileChangeRequest.Builder()
-                .setDisplayName(username) // display name is username
-                .build()
+        val profileUpdates = UserProfileChangeRequest.Builder()
+            .setDisplayName(username)
+            .build()
 
-            user?.updateProfile(profileUpdates)
-                ?.addOnSuccessListener {
-                    Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show()
-                }
-                ?.addOnFailureListener { e ->
-                    Toast.makeText(this, "Failed to update profile: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-        }
+        user?.updateProfile(profileUpdates)
 
-        // Update Firestore document
         val userMap = hashMapOf(
             "fullName" to fullName,
             "username" to username,
@@ -127,12 +166,6 @@ class ProfileActivity : AppCompatActivity() {
         user?.uid?.let { uid ->
             db.collection("users").document(uid)
                 .set(userMap, SetOptions.merge())
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Profile details saved successfully", Toast.LENGTH_SHORT).show()
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Failed to save details: ${e.message}", Toast.LENGTH_LONG).show()
-                }
         }
     }
 }

@@ -10,5 +10,6 @@ data class DocumentModel(
     val uploadedByUid: String? = null,
     val createdAt: Timestamp? = null,
     val tags: List<String> = emptyList(),     // NEW
-    val titleLower: String = ""               // NEW
+    val titleLower: String = "",               // NEW
+    val thumbnailUrl: String? = null
 )

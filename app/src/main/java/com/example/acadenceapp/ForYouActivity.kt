@@ -170,9 +170,10 @@ class ForYouActivity : AppCompatActivity() {
                 progress.visibility = View.GONE
                 val docs = snap.documents.map { d ->
                     DocumentModel(
-                        id = d.id, // ✅ Include document ID
+                        id = d.id,
                         title = d.getString("title") ?: "Untitled",
                         fileUrl = d.getString("fileUrl") ?: "",
+                        thumbnailUrl = d.getString("thumbnailUrl"), // adding this
                         uploadedBy = d.getString("uploadedBy"),
                         uploadedByUid = d.getString("uploadedByUid"),
                         createdAt = d.getTimestamp("createdAt"),
