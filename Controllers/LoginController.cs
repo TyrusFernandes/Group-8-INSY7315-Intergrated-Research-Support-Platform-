@@ -93,12 +93,15 @@ namespace AcadenceWebApp.Controllers
                 return View("~/Views/Home/Login.cshtml", model);
             }
 
-            // Create claims
+            // Create claims - include the Firebase UID in multiple common claim names
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, model.Email),
-                new Claim(ClaimTypes.Email, model.Email),
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Name, model.Email ?? ""),
+                new Claim(ClaimTypes.Email, model.Email ?? ""),
+                new Claim(ClaimTypes.Role, role ?? ""),
+                new Claim(ClaimTypes.NameIdentifier, userId ?? ""), // <-- important for AssignedTasks
+                new Claim("user_id", userId ?? ""),                 // fallback name used by some libraries
+                new Claim("sub", userId ?? "")                      // another common claim name
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -116,8 +119,13 @@ namespace AcadenceWebApp.Controllers
                 claimsPrincipal,
                 authProperties);
 
-            HttpContext.Session.SetString("UserEmail", model.Email);
-            HttpContext.Session.SetString("UserRole", role);
+            // Store helpful values in session as well (fallback for server-side code)
+            HttpContext.Session.SetString("UserEmail", model.Email ?? "");
+            HttpContext.Session.SetString("UserRole", role ?? "");
+            if (!string.IsNullOrEmpty(userId))
+            {
+                HttpContext.Session.SetString("UserUid", userId);
+            }
 
             // Redirect to correct dashboard
             return role.ToLower() == "admin"

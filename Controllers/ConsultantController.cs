@@ -1,30 +1,189 @@
-﻿using FirebaseAdmin.Auth;
+﻿using AcadenceWebApp.Models;
+using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+
 namespace AcadenceWebApp.Controllers
 {
     public class ConsultantController : Controller
     {
+        private readonly FirestoreDb _firestoreDb;
+        private readonly string _projectId = "acadence-40662";
+
+        public ConsultantController()
+        {
+            _firestoreDb = FirestoreDb.Create(_projectId);
+        }
+
         public IActionResult Dashboard()
         {
             return View();
         }
-        public IActionResult AssignedTasks()
+
+        // GET: /Consultant/AssignedTasks
+        [HttpGet]
+        public async Task<IActionResult> AssignedTasks()
         {
-            return View();
+            // Resolve Firebase UID from claims or session
+            string currentUserUid = null;
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                currentUserUid =
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                    ?? User.FindFirst("user_id")?.Value
+                    ?? User.FindFirst("sub")?.Value;
+            }
+
+            if (string.IsNullOrEmpty(currentUserUid))
+            {
+                currentUserUid = HttpContext.Session.GetString("UserUid");
+            }
+
+            ViewBag.CurrentUserId = currentUserUid ?? string.Empty;
+
+            if (string.IsNullOrEmpty(currentUserUid))
+            {
+                ViewBag.ErrorMessage = "Error: No current user UID found in claims. Check which claim holds the Firebase UID.";
+                return View(Enumerable.Empty<TaskViewModel>());
+            }
+
+            try
+            {
+                var requestsRef = _firestoreDb.Collection("requests");
+
+                // only return requests assigned to this consultant AND approved by admin
+                var query = requestsRef
+                    .WhereEqualTo("assignedToUid", currentUserUid)
+                    .WhereEqualTo("adminApproved", true);
+
+                var snap = await query.GetSnapshotAsync();
+
+                var tasks = new List<TaskViewModel>();
+
+                foreach (var doc in snap.Documents)
+                {
+                    try
+                    {
+                        var fr = doc.ConvertTo<FirestoreRequest>();
+
+                        // Resolve student display name (try doc by UID, then query by email, then by username)
+                        string studentName = fr.RequestedByUid ?? "(unknown)";
+                        if (!string.IsNullOrEmpty(fr.RequestedByUid))
+                        {
+                            // 1) Try direct document lookup (users/{uid})
+                            var studentDoc = await _firestoreDb.Collection("users").Document(fr.RequestedByUid).GetSnapshotAsync();
+                            if (studentDoc.Exists)
+                            {
+                                var fu = studentDoc.ConvertTo<FirestoreUser>();
+                                studentName = !string.IsNullOrEmpty(fu.DisplayName) ? fu.DisplayName
+                                            : !string.IsNullOrEmpty(fu.Username) ? fu.Username
+                                            : !string.IsNullOrEmpty(fu.Email) ? fu.Email
+                                            : fr.RequestedByUid;
+                            }
+                            else
+                            {
+                                // 2) Query users where email == requestedByUid
+                                var qByEmail = _firestoreDb.Collection("users").WhereEqualTo("email", fr.RequestedByUid).Limit(1);
+                                var qSnap = await qByEmail.GetSnapshotAsync();
+                                if (qSnap.Documents.Count > 0)
+                                {
+                                    var fu = qSnap.Documents[0].ConvertTo<FirestoreUser>();
+                                    studentName = !string.IsNullOrEmpty(fu.DisplayName) ? fu.DisplayName
+                                                : !string.IsNullOrEmpty(fu.Username) ? fu.Username
+                                                : !string.IsNullOrEmpty(fu.Email) ? fu.Email
+                                                : fr.RequestedByUid;
+                                }
+                                else
+                                {
+                                    // 3) Query users where username == requestedByUid
+                                    var qByUsername = _firestoreDb.Collection("users").WhereEqualTo("username", fr.RequestedByUid).Limit(1);
+                                    var qSnap2 = await qByUsername.GetSnapshotAsync();
+                                    if (qSnap2.Documents.Count > 0)
+                                    {
+                                        var fu = qSnap2.Documents[0].ConvertTo<FirestoreUser>();
+                                        studentName = !string.IsNullOrEmpty(fu.DisplayName) ? fu.DisplayName
+                                                    : !string.IsNullOrEmpty(fu.Username) ? fu.Username
+                                                    : !string.IsNullOrEmpty(fu.Email) ? fu.Email
+                                                    : fr.RequestedByUid;
+                                    }
+                                    // else fallback remains UID
+                                }
+                            }
+                        }
+
+                        // Map to view model
+                        var model = new TaskViewModel
+                        {
+                            Id = doc.Id,
+                            DocId = fr.DocId,
+                            DocTitle = fr.DocTitle,
+                            RequestedByUid = fr.RequestedByUid,
+                            StudentName = studentName,
+                            AssignedToUid = fr.AssignedToUid,
+                            AssignedToName = fr.AssignedToName,
+                            ReviewType = fr.ReviewType ?? "",         // ensure reviewType is mapped
+                            ReviewDetails = fr.ReviewDetails ?? "",
+                            Urgency = fr.Urgency ?? "",
+                            Visibility = fr.Visibility ?? "",
+                            Status = fr.Status ?? "Pending",
+                            DueDate = fr.DueDate.ToDateTime(),
+                            CreatedAt = fr.CreatedAt.ToDateTime(),
+                            Price = fr.Price,
+                            AdminApproved = fr.AdminApproved
+                        };
+
+                        tasks.Add(model);
+                    }
+                    catch
+                    {
+                        // ignore mapping errors per-document but continue
+                    }
+                }
+
+                // sort by due date ascending
+                var ordered = tasks.OrderBy(t => t.DueDate).ToList();
+                return View(ordered);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Unable to load assigned tasks: " + ex.Message;
+                return View(Enumerable.Empty<TaskViewModel>());
+            }
         }
+
+        // POST: /Consultant/UpdateTaskStatus
+        [HttpPost]
+        public async Task<IActionResult> UpdateTaskStatus([FromBody] TaskStatusUpdateDto dto)
+        {
+            if (dto == null || string.IsNullOrEmpty(dto.TaskId) || string.IsNullOrEmpty(dto.Status))
+            {
+                return Json(new ApiResponse { Success = false, Message = "Invalid request" });
+            }
+
+            try
+            {
+                var docRef = _firestoreDb.Collection("requests").Document(dto.TaskId);
+                await docRef.UpdateAsync("status", dto.Status);
+                return Json(new ApiResponse { Success = true, Message = "Status updated" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse { Success = false, Message = "Error updating status: " + ex.Message });
+            }
+        }
+
         public IActionResult ResourceLibrary()
         {
             return View();
         }
+
         public async Task<IActionResult> MessagesAsync()
         {
-            // 1. Get the current application user's ID (Replace with your actual ASP.NET Identity logic)
             string currentAppUserId = User.Identity.IsAuthenticated ? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value : "anonymous_user_123";
-            // --- ⚠️ CONFIGURATION: REPLACE THESE WITH YOUR ACTUAL VALUES ⚠️ ---
-            // This is the CRITICAL Firebase SDK JSON CONFIGURATION. 
-            // Get these values from your Firebase Project Settings -> Web App Setup.
-            // It must be a valid JSON string.
             string firebaseConfigJson = @"{
            apiKey: ""AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY"",
            authDomain: ""acadence-40662.firebaseapp.com"",
@@ -33,22 +192,22 @@ namespace AcadenceWebApp.Controllers
            messagingSenderId: ""907171020913"",
            appId: ""1:907171020913:web:46cb92eea7b9ed0d28dbd0""
         }";
-            // Your Canvas Application ID (Used for Firestore paths)
             string canvasAppId = "YOUR_CANVAS_APP_ID";
 
-            // 2. Generate the Firebase Custom Auth Token
-            string firebaseCustomToken = await FirebaseAuth.DefaultInstance
+            string firebaseCustomToken = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance
                 .CreateCustomTokenAsync(currentAppUserId);
-            // 3. Pass the necessary variables to the view
+
             ViewBag.InitialAuthToken = firebaseCustomToken;
             ViewBag.AppId = canvasAppId;
             ViewBag.FirebaseConfig = firebaseConfigJson;
             return View();
         }
+
         public IActionResult MeetingCalendar()
         {
             return View();
         }
+
         public IActionResult ProgressReport()
         {
             return View();

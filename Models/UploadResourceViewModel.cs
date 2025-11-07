@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 
@@ -13,6 +14,7 @@ namespace AcadenceWebApp.Models
         [StringLength(120)]
         public string? Title { get; set; }
 
-        public List<AcademicResourceDto> Existing { get; set; } = new();
+        // Resources already uploaded (used by Views/Admin/UploadResource.cshtml)
+        public List<ResourceItemDto> Existing { get; set; } = new List<ResourceItemDto>();
     }
 }
