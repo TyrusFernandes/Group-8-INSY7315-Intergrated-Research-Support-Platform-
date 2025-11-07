@@ -1,73 +1,133 @@
 ﻿@model AcadenceWebApp.Models.ConsultantAssignmentViewModel
-@using AcadenceWebApp.Models
+
 @{
     ViewData["Title"] = "Consultant Assignment";
-
-    // Debug + state helpers
-    var success = TempData["AssignmentMsg"] as string;
-    var emptyReq = TempData["EmptyState"] as string;
-    var emptyCon = TempData["EmptyStateConsultants"] as string;
-
-    var reqCount = Model?.Requests?.Count ?? 0;
-    var conCount = Model?.Consultants?.Count ?? 0;
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- Debug counters (remove later once you see >0) -->
-<div class="alert alert-light border mb-3">
-    <strong>Debug:</strong> Requests=@reqCount, Consultants=@conCount
-</div>
+<style>
+    /* keep visual parity with AssignedTasks */
+    .main-content { margin-left: 60px; padding: 20px 40px; }
+    .content-header { background:white; padding:20px; border-radius:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+    .task-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; box-shadow:0 2px 4px rgba(0,0,0,0.05); }
+    .task-table th, .task-table td { padding:16px 20px; border-bottom:1px solid #f0f0f0; text-align:left; }
+    .priority-badge { padding:6px 12px; border-radius:12px; background:#c6f6d5; color:#276749; font-weight:600; font-size:12px; }
+    .assign-select { min-width:200px; }
+</style>
 
-<div class="container py-4">
-    @if (!string.IsNullOrWhiteSpace(success))
+<div class="main-content">
+    <div class="content-header">
+        <h2>Consultant Assignment</h2>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage as string))
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @success
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
     }
 
-    <div class="card shadow-sm" style="max-width: 520px;">
-        <div class="card-body">
-            <h4 class="card-title mb-3" style="font-weight:700; color:#2b2d42;">
-                <span class="me-2">👤</span> Consultant Assignment Panel
-            </h4>
-
-            @if (!string.IsNullOrWhiteSpace(emptyReq) || !string.IsNullOrWhiteSpace(emptyCon))
-            {
-                <div class="alert alert-info mb-3">
-                    @emptyReq @emptyCon
-                </div>
-            }
-
-            <form asp-action="Assign" method="post" novalidate>
-                @Html.AntiForgeryToken()
-
-                <div class="mb-3">
-                    <label class="form-label">Select Service Request:</label>
-                    <select class="form-select" asp-for="SelectedRequestId"
-                            asp-items="@(new SelectList(Model.Requests, nameof(ServiceRequestDto.Id), nameof(ServiceRequestDto.Title)))">
-                        <option value="">-- choose request --</option>
-                    </select>
-                    <span class="text-danger small" asp-validation-for="SelectedRequestId"></span>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label">Assign Consultant:</label>
-                    <select class="form-select" asp-for="SelectedConsultantId"
-                            asp-items="@(new SelectList(Model.Consultants, nameof(ConsultantDto.Id), nameof(ConsultantDto.Name)))">
-                        <option value="">-- choose consultant --</option>
-                    </select>
-                    <span class="text-danger small" asp-validation-for="SelectedConsultantId"></span>
-                </div>
-
-                <button type="submit" class="btn btn-warning w-100" style="font-weight:600;">
-                    Assign
-                </button>
-            </form>
-        </div>
+    <div class="task-table-container">
+        @if (Model.Requests != null && Model.Requests.Any())
+        {
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Task Type</th>
+                        <th>Description</th>
+                        <th>Priority</th>
+                        <th>Assigned To</th>
+                        <th>Approve</th>
+                        <th>Deadline</th>
+                    </tr>
+                </thead>
+                <tbody id="requestsBody">
+                    @foreach (var req in Model.Requests)
+                    {
+                        var priorityClass = req.Priority?.ToLower() ?? "normal";
+                        <tr data-task-id="@req.Id">
+                            <td>@req.StudentName</td>
+                            <td>@req.ReviewType</td>
+                            <td>@(!string.IsNullOrEmpty(req.ReviewDetails) ? req.ReviewDetails : req.DocTitle)</td>
+                            <td><span class="priority-badge">@req.Priority</span></td>
+                            <td>
+                                <select class="form-select assign-select" data-task-id="@req.Id">
+                                    <option value="">-- Unassigned --</option>
+                                    @foreach(var c in Model.Consultants)
+                                    {
+                                        <option value="@c.Id" selected="@(c.Id == req.AssignedToUid ? "selected" : null)">@c.Name</option>
+                                    }
+                                </select>
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" class="approve-checkbox" data-task-id="@req.Id" @(req.AdminApproved ? "checked" : "") />
+                            </td>
+                            <td>@req.DeadlineFormatted</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state p-5 text-center">No requests found.</div>
+        }
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const consultants = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Consultants));
+
+        // helper to find consultant name by id
+        function getConsultantNameById(id) {
+            if (!id) return "";
+            const c = consultants.find(x => x.id === id || x.Id === id);
+            return c ? (c.name || c.Name) : "";
+        }
+
+        // wire select change events
+        document.querySelectorAll('.assign-select').forEach(sel => {
+            sel.addEventListener('change', async function () {
+                const taskId = this.dataset.taskId;
+                const assignedUid = this.value || null;
+                const assignedName = getConsultantNameById(assignedUid) || "";
+
+                // find checkbox current state
+                const checkbox = document.querySelector('.approve-checkbox[data-task-id="' + taskId + '"]');
+                const adminApproved = checkbox ? checkbox.checked : false;
+
+                await postAssignmentUpdate({ taskId, assignedToUid: assignedUid, assignedToName: assignedName, adminApproved });
+            });
+        });
+
+        // wire checkbox change events
+        document.querySelectorAll('.approve-checkbox').forEach(cb => {
+            cb.addEventListener('change', async function () {
+                const taskId = this.dataset.taskId;
+                // find current select value for assigned user
+                const sel = document.querySelector('.assign-select[data-task-id="' + taskId + '"]');
+                const assignedUid = sel ? sel.value || null : null;
+                const assignedName = getConsultantNameById(assignedUid) || "";
+
+                await postAssignmentUpdate({ taskId, assignedToUid: assignedUid, assignedToName: assignedName, adminApproved: this.checked });
+            });
+        });
+
+        async function postAssignmentUpdate(payload) {
+            try {
+                const res = await fetch('/Assignments/UpdateAssignment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    alert('Update failed: ' + (data.message || 'unknown'));
+                }
+            } catch (err) {
+                console.error('Error updating assignment', err);
+                alert('Error updating assignment');
+            }
+        }
+    </script>
 }

@@ -5,9 +5,11 @@ namespace AcadenceWebApp.Models
 {
     public class ConsultantAssignmentViewModel
     {
-        // Dropdown data
-        public List<ServiceRequestDto> Requests { get; set; } = new();
-        public List<ConsultantDto> Consultants { get; set; } = new();
+        // All requests (mapped from Firestore 'requests')
+        public List<TaskViewModel> Requests { get; set; } = new List<TaskViewModel>();
+
+        // All consultants for the dropdown
+        public List<ConsultantDto> Consultants { get; set; } = new List<ConsultantDto>();
 
         // Selected values
         [Required(ErrorMessage = "Please select a service request.")]
