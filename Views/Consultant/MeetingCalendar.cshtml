@@ -1,5 +1,132 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model object
 @{
+    ViewData["Title"] = "Meeting Calendar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .main-content { margin-left: 60px; padding: 20px 40px; }
+    .content-header { background:white; padding:20px; border-radius:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.04); }
+    .panel { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+    #calendar { max-width: 1100px; margin: 18px auto; min-height: 560px; }
+    .fc .fc-toolbar-title { font-weight:600; color:#1b1f3b; }
+
+    /* Prevent overflow and overlapping inside event boxes */
+    .fc .fc-daygrid-event {
+        padding: 2px 6px;
+        box-sizing: border-box;
+    }
+
+    /* Custom compact event layout: title (single-line) + review type (small muted line) */
+    .fc-event-custom { display:flex; flex-direction:column; gap:2px; }
+    .fc-event-title { font-size:13px; font-weight:600; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .fc-event-review { font-size:11px; opacity:0.85; color: rgba(255,255,255,0.92); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    /* limit number of event rows in month view so layout remains tidy */
+    .fc .fc-daygrid-body .fc-daygrid-week { max-height: 140px; }
+
+    /* Modal styling */
+    .event-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:2000; align-items:center; justify-content:center; }
+    .event-modal .card { width: 480px; max-width:92%; }
+</style>
+
+<div class="main-content">
+    <div class="content-header">
+        <h2>My Calendar</h2>
+        <div><small class="text-muted">Visual overview of your upcoming requests — days with requests are highlighted.</small></div>
+    </div>
+
+    <div class="panel">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<div id="eventModal" class="event-modal" onclick="if(event.target===this) closeModal()">
+    <div class="card">
+        <div class="card-body">
+            <h5 id="modalTitle" class="card-title"></h5>
+            <p id="modalBody" class="card-text" style="white-space:pre-line"></p>
+            <div class="d-flex justify-content-end">
+                <!-- go to task list (AssignedTasks) per request -->
+                <a id="openRequestBtn" class="btn btn-sm btn-primary me-2" href="/Consultant/AssignedTasks">Go to Tasks</a>
+                <button class="btn btn-sm btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                const calendarEl = document.getElementById('calendar');
+                if (!calendarEl) return;
+
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    height: 'auto',
+                    events: '/Consultant/GetCalendarEvents',
+                    dayMaxEventRows: 3, // limit rows to prevent overflow
+                    eventContent: function(arg) {
+                        // show docTitle (title) and reviewType in compact two-line layout
+                        const props = arg.event.extendedProps || {};
+                        const docTitle = props.docTitle || arg.event.title || '';
+                        const review = props.reviewType || '';
+
+                        const container = document.createElement('div');
+                        container.className = 'fc-event-custom';
+
+                        const titleSpan = document.createElement('span');
+                        titleSpan.className = 'fc-event-title';
+                        titleSpan.textContent = docTitle;
+
+                        const reviewSpan = document.createElement('span');
+                        reviewSpan.className = 'fc-event-review';
+                        reviewSpan.textContent = review;
+
+                        container.appendChild(titleSpan);
+                        container.appendChild(reviewSpan);
+
+                        return { domNodes: [container] };
+                    },
+                    eventDidMount: function (info) {
+                        const p = (info.event.extendedProps.priority || "").toString().toLowerCase();
+                        let color = '#5e72eb';
+                        if (p.includes('high') || p.includes('urgent') || p.includes('critical')) color = '#f56565';
+                        else if (p.includes('low')) color = '#48bb78';
+                        info.el.style.backgroundColor = color;
+                        info.el.style.borderColor = color;
+                        info.el.style.color = '#fff';
+                    },
+                    eventClick: function (info) {
+                        const props = info.event.extendedProps || {};
+                        document.getElementById('modalTitle').innerText = `${props.docTitle || info.event.title} — ${props.reviewType || ''}`;
+                        document.getElementById('modalBody').innerText =
+                            `Status: ${props.status || 'Unknown'}\nPriority: ${props.priority || 'Normal'}\nRequested By: ${props.requestedBy || '—'}`;
+                        // per request: navigate to Task List (AssignedTasks) rather than single request id page
+                        const openBtn = document.getElementById('openRequestBtn');
+                        openBtn.href = '/Consultant/AssignedTasks';
+                        openBtn.style.display = 'inline-block';
+                        document.getElementById('eventModal').style.display = 'flex';
+                    }
+                });
+
+                calendar.render();
+            } catch (err) {
+                console.error('Failed to initialize calendar', err);
+            }
+        });
+
+        function closeModal() {
+            document.getElementById('eventModal').style.display = 'none';
+        }
+    </script>
 }
