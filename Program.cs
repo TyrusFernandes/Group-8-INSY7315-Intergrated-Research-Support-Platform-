@@ -1,6 +1,7 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Google.Cloud.Firestore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Login/Login"; // optional
         options.ExpireTimeSpan = TimeSpan.FromHours(24);
     });
+
+builder.Services.AddSingleton(provider =>
+{
+    string projectId = "acadence-40662";
+    return FirestoreDb.Create(projectId);
+});
 
 var app = builder.Build();
 
@@ -48,6 +55,7 @@ FirebaseApp.Create(new AppOptions()
 });
 
 Console.WriteLine("Firebase initialized successfully!");
+
 
 // Default route: start at Home/Index
 app.MapControllerRoute(

@@ -1,860 +1,292 @@
-﻿@{
+﻿@model List<AcadenceWebApp.Models.RecentChatViewModel>
+@using Newtonsoft.Json
+@{
     ViewData["Title"] = "Messaging Home";
-    // will Retrieve variables passed from the controller
-    var initialAuthToken = ViewBag.InitialAuthToken;
-    var appId = ViewBag.AppId;
-    var firebaseConfig = ViewBag.FirebaseConfig;
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messaging Home | Desktop View</title>
-
-    <!-- Using <link> for Google Fonts -->
+    <title>Consultant Dashboard | Messages</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
 
     <style>
-        /* Reset and Base Styles */
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
             margin: 0;
             padding: 0;
-            background-color: #f3f4f6; /* bg-gray-100 */
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            justify-content: center; /* Center content horizontally */
-            align-items: center; /* Center content vertically */
         }
 
         #appContainer {
             display: flex;
-            height: 95%; /* Increased height */
-            width: 95%;
-            max-width: 1300px; /* Adjusted max width */
-            min-width: 900px;
-            margin: 0 auto;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); /* Softer shadow */
-            border-radius: 12px;
-            overflow: hidden;
-            background-color: white;
+            height: 100vh;
         }
 
-        /* LEFT SIDEBAR (CONVERSATION LIST) */
-        #sidebar {
-            width: 320px;
+        #chatList {
+            width: 30%;
+            background-color: #f9fafb;
+            border-right: 1px solid #e5e7eb;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            background-color: #f8f9fa; /* Lighter sidebar background */
-            border-right: 1px solid #e5e7eb;
-            flex-shrink: 0;
-            padding-bottom: 0.5rem; /* Space at bottom for the + icon */
         }
 
-        /* Sidebar Header - Adjusted to match image */
-        #sidebar-header {
-            padding: 1rem;
-            background-color: white;
-            color: #333;
-            font-size: 1.25rem;
-            font-weight: 700;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-            #sidebar-header svg {
-                color: #4b5563;
+            #chatList header {
+                padding: 1rem;
+                background-color: white;
+                border-bottom: 1px solid #e5e7eb;
             }
 
-        /* User ID Display - Changed to a simple status bar */
-        #userIdContainer {
-            padding: 0.5rem 1rem;
-            background-color: white;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-
-        #userIdDisplay {
-            font-weight: 600;
-            color: #4b5563;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #10b981; /* green-500 */
-            border-radius: 50%;
-            margin-right: 4px;
-            display: inline-block;
-        }
-
-        .user-status {
-            display: flex;
-            align-items: center;
-            font-size: 0.875rem;
-        }
-
-
-        /* Search Bar */
-        #searchContainer {
-            padding: 0.5rem 1rem;
-            border-bottom: 1px solid #f3f4f6;
-            background-color: white;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        #searchBar {
-            flex-grow: 1;
-            padding: 0.6rem;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.75rem;
-            font-size: 0.875rem;
-            background-color: #f3f4f6;
-        }
-
-            #searchBar:focus {
-                border-color: #93c5fd;
-                outline: none;
-                box-shadow: 0 0 0 1px #93c5fd;
+            #chatList h1 {
+                color: #1d4ed8;
+                font-size: 1.25rem;
             }
 
-        #searchButton {
-            display: none; /* Hide search button as per new design style */
-        }
+            #chatList input {
+                width: 100%;
+                padding: 0.5rem;
+                margin-top: 0.5rem;
+                border-radius: 0.25rem;
+                border: 1px solid #d1d5db;
+            }
 
-        /* Recent Chats List */
-        #recentChatsContainer {
+        #chatItemsContainer {
             flex-grow: 1;
             overflow-y: auto;
-            background-color: white;
         }
 
         .chat-item {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            gap: 0.75rem;
-            cursor: pointer;
-            transition: background-color 150ms;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-            .chat-item:hover, .chat-item.active {
-                background-color: #e0f2ff; /* Blue-50 for hover/active */
-            }
-
-            .chat-item.active {
-                border-left: 4px solid #3b82f6;
-                padding-left: calc(1rem - 4px); /* Adjust padding for border */
-            }
-
-        .chat-initial {
-            width: 2rem;
-            height: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background-color: #d1d5db; /* Gray-300 */
-            color: #4b5563;
-            font-weight: 500;
-            font-size: 0.875rem;
-            flex-shrink: 0;
-        }
-
-        .chat-info {
-            flex-grow: 1;
-            min-width: 0;
-        }
-
-        .chat-name {
-            font-weight: 600;
-            color: #111827;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 0.9rem;
-        }
-
-        .chat-message {
-            font-size: 0.8rem;
-            color: #6b7280;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Sidebar footer for the + icon */
-        #sidebar-footer {
-            padding: 0.5rem 1rem;
-            border-top: 1px solid #e5e7eb;
-            background-color: white;
-            text-align: right;
-        }
-
-        #add-chat-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            color: #3b82f6;
-        }
-
-        /* RIGHT COLUMN: MAIN CHAT AREA */
-        #mainChatArea {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: white;
-        }
-
-        #chatHeader {
-            padding: 1.25rem 1.5rem;
+            padding: 1rem;
             border-bottom: 1px solid #e5e7eb;
-            background-color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        }
-
-        #targetUsernameDisplay {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        #chatHeader button {
-            background: none;
-            border: none;
             cursor: pointer;
-            color: #4b5563;
-            transition: color 150ms;
+            transition: background-color 0.15s ease-in-out;
         }
 
-            #chatHeader button:hover {
-                color: #3b82f6;
+            .chat-item:hover {
+                background-color: #dbeafe;
             }
 
-        /* Chat History */
-        #chatHistoryContainer {
+            .chat-item.selected {
+                background-color: #bfdbfe;
+            }
+
+        #conversationArea {
             flex-grow: 1;
-            padding: 1.5rem;
+            padding: 2rem;
             overflow-y: auto;
-            background-color: #f9fafb; /* Light background for chat area */
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            justify-content: space-between;
         }
 
-        /* Placeholder styling */
-        #chatHistoryPlaceholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            text-align: center;
-            color: #9ca3af;
+        #messagesContainer {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 1rem;
         }
 
-            #chatHistoryPlaceholder div {
-                padding: 2rem;
-                border-radius: 0.5rem;
-                background-color: white;
-                border: 1px solid #e5e7eb;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            }
-
-        /* Message Bubble Styles */
-        .message-row {
-            display: flex;
-        }
-
-            .message-row.user-message {
-                justify-content: flex-end;
-            }
-
-            .message-row.other-message {
-                justify-content: flex-start;
-            }
-
-        .message-bubble {
-            max-width: 70%;
-            padding: 0.75rem 1rem;
-            border-radius: 1rem;
-            line-height: 1.4;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .message-row.user-message .message-bubble {
-            background-color: #3b82f6; /* Blue-500 */
-            color: white;
-            border-bottom-right-radius: 0.2rem;
-        }
-
-        .message-row.other-message .message-bubble {
-            background-color: white;
-            color: #374151; /* Gray-700 */
-            border: 1px solid #e5e7eb;
-            border-bottom-left-radius: 0.2rem;
-        }
-
-        /* Chat Input Area */
-        #chatInputContainer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #e5e7eb;
-            background-color: white;
-        }
-
-        .live-input {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.75rem;
-            background-color: #f9fafb;
-        }
-
-            .live-input input {
-                flex-grow: 1;
-                padding: 0.5rem;
-                border: none;
-                background: transparent;
-                font-size: 0.95rem;
-            }
-
-                .live-input input:focus {
-                    outline: none;
-                }
-
-            .live-input button, .live-input .icon-btn {
-                background: none;
-                border: none;
-                cursor: pointer;
-                padding: 0.5rem;
-                color: #6b7280;
-                transition: color 150ms;
-            }
-
-                .live-input button:hover {
-                    color: #3b82f6;
-                }
-
-                .live-input .icon-btn:hover {
-                    color: #3b82f6;
-                }
-
-        #sendButton {
-            color: white;
-            background-color: #3b82f6;
-            border-radius: 50%;
-            width: 2.5rem;
-            height: 2.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 0.5rem;
-            transition: background-color 150ms;
-        }
-
-            #sendButton:hover {
-                background-color: #2563eb;
-            }
-
-        /* Modal/Toast */
-        #messageBox {
-            left: 50%;
-            transform: translate(-50%, 0);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            position: fixed;
-            bottom: 1rem;
+        .msg-bubble {
+            max-width: 60%;
             padding: 0.75rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .msg-sent {
+            background-color: #2563eb;
             color: white;
-            border-radius: 0.5rem;
-            z-index: 50;
-            display: none;
+            align-self: flex-end;
+        }
+
+        .msg-received {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            color: #374151;
+            align-self: flex-start;
+        }
+
+        .msg-row {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid #d1d5db;
+            resize: none;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+            button:hover {
+                background-color: #1e40af;
+            }
+
+        #sendArea {
+            margin-top: 1rem;
         }
     </style>
 </head>
-<body class="bg-gray-100 h-screen w-full flex">
-
-    <!-- Main Application Container -->
+<body>
     <div id="appContainer">
-
-        <!-- LEFT SIDEBAR: Recent Chats List -->
-        <div id="sidebar">
-
-            <!-- Sidebar Header -->
-            <header id="sidebar-header">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                Messages
+        <!-- Left Panel -->
+        <div id="chatList">
+            <header>
+                <h1>Messages</h1>
+                <input type="text"
+                       id="userSearch"
+                       placeholder="Search or start new chat"
+                       oninput="filterChats()"
+                       onkeypress="checkEnter(event)">
             </header>
 
-            <!-- User Status Bar (Shows current user's details) -->
-            <div id="userIdContainer">
-                <div class="user-status">
-                    <span class="status-dot"></span>
-                    <span style="font-weight: 500;">Logged in as:</span>
-                </div>
-                <span id="userIdDisplay">Loading User...</span>
-            </div>
-
-            <!-- Search Bar -->
-            <div id="searchContainer">
-                <input id="searchBar" type="text" placeholder="Search for users or conversations"
-                       onkeydown="if(event.key === 'Enter') searchUserAndStartChat()">
-                <!-- Search Button is hidden in CSS but kept for JS function call -->
-                <button id="searchButton" onclick="searchUserAndStartChat()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Recent Chats List -->
-            <main id="recentChatsContainer">
-                <div id="recentChatsList" style="width: 100%;">
-                    <!-- Recent chat items will be injected here -->
-                    <p id="loadingMessage" style="text-align: center; margin-top: 2rem; color: #9ca3af;">Loading conversations...</p>
-                </div>
-            </main>
-
-            <!-- Sidebar Footer (Add Chat Button - currently placeholder) -->
-            <div id="sidebar-footer">
-                <button id="add-chat-btn" onclick="openSearchModal()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                </button>
+            <div id="chatItemsContainer">
+                @if (Model == null || !Model.Any())
+                {
+                    <div style="padding: 1rem; color: #6b7280;">No recent chats.</div>
+                }
+                else
+                {
+                    foreach (var chat in Model)
+                    {
+                        <div class="chat-item" onclick="openChat('@chat.ChatRoomId', '@chat.OtherUserId', '@chat.OtherUsername')">
+                            <span style="font-weight:600;">@chat.OtherUsername</span><br />
+                            <span style="font-size:0.85rem; color:#6b7280;">@chat.LastMessage</span>
+                        </div>
+                    }
+                }
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: Main Chat View -->
-        <section id="mainChatArea">
-            <div id="chatHeader">
-                <div id="targetUsernameDisplay">
-                    <!-- Placeholder icon for the user -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Select a Chat to Begin</span>
-                </div>
-                <!-- Action Buttons (Video/Call) -->
-                <div>
-                    <button>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-3"></path><path d="M10 16.92v3a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-3"></path><path d="M22 13.06V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6.06"></path><circle cx="16" cy="18" r="4"></circle><line x1="14" y1="18" x2="18" y2="18"></line></svg>
-                    </button>
-                    <button>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                    </button>
-                </div>
+        <!-- Right Panel -->
+        <div id="conversationArea">
+            <div id="messagesContainer">
+                <h2>Select or search for a user to start chatting</h2>
             </div>
 
-            <!-- Chat History Area -->
-            <div id="chatHistoryContainer">
-                <div id="chatHistoryPlaceholder">
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                        <p style="font-size: 1.1rem; margin-top: 1rem; font-weight: 500;">Welcome to Academic Chat.</p>
-                        <p style="font-size: 0.9rem;">Start a new conversation by searching for a user.</p>
-                    </div>
-                </div>
+            <div id="sendArea" style="display:none;">
+                <textarea id="messageText" placeholder="Type your message..."></textarea>
+                <button id="sendButton" onclick="sendMessage()">Send</button>
             </div>
-
-            <!-- Message Input Area -->
-            <div id="chatInputContainer">
-                <div class="live-input">
-                    <!-- Document/Image/Attachment icons -->
-                    <button class="icon-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22.8a2.3 2.3 0 0 1-2.3 2.3H5.2A2.3 2.3 0 0 1 3 22.8V5.2A2.3 2.3 0 0 1 5.2 3h13.6A2.3 2.3 0 0 1 21 5.2v8.1"></path><path d="M7.7 18.2a.8.8 0 1 0 0 1.6h8.6a.8.8 0 1 0 0-1.6H7.7z"></path></svg>
-                    </button>
-                    <button class="icon-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>
-                    </button>
-
-                    <input type="text" id="messageInput" placeholder="Write a message..."
-                           onkeydown="if(event.key === 'Enter') sendMessage()">
-
-                    <!-- Send Button -->
-                    <button id="sendButton" onclick="sendMessage()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="22" y1="2" x2="11" y2="13"></line>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </section>
-
+        </div>
     </div>
 
-    <!-- Modal for Message/Toast Simulation -->
-    <div id="messageBox"></div>
+    <script>
+        let currentChatRoomId = null;
+        let currentReceiverId = null;
+        let currentReceiverName = null;
 
-    <!-- Firebase SDK Imports -->
-    <script type="module">
-        // Import all necessary Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import {
-            getFirestore, collection, doc, query, where, orderBy, onSnapshot, getDocs, setDoc, serverTimestamp, addDoc
-        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        // --- GLOBAL SETUP: Injecting C# Variables ---
-        // These variables are provided by the canvas environment
-        const appId = '@Html.Raw(appId)';
-        const firebaseConfig = '@Html.Raw(firebaseConfig)';
-        const initialAuthToken = '@Html.Raw(initialAuthToken)';
-
-        // Removed hardcoded mock user setup.
-
-        let db;
-        let auth;
-        let currentUserId = null;
-        let currentUsername = null;
-        let targetUser = { id: null, username: null };
-
-        const searchBar = document.getElementById('searchBar');
-        const recentChatsList = document.getElementById('recentChatsList');
-        const chatHistoryContainer = document.getElementById('chatHistoryContainer');
-
-        // --- UTILITY FUNCTIONS ---
-
-        function showMessage(text, isError = false) {
-            const box = document.getElementById('messageBox');
-            box.textContent = text;
-            box.style.display = 'block';
-
-            // Apply custom CSS for the message box
-            box.style.backgroundColor = isError ? '#dc2626' : '#16a34a'; /* Red-600 or Green-600 */
-
-            // Ensure positioning styles are correct (already in CSS block)
-            setTimeout(() => { box.style.display = 'none'; }, 3000);
-        }
-
-        function formatTime(timestamp) {
-            if (!timestamp) return '';
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        }
-
-        // --- USER REGISTRATION FOR SEARCH ---
-        /**
-         * Writes the current user's ID and username to the public collection
-         * so they can be found by other users via the search bar.
-         */
-        async function registerCurrentUser(userId, username) {
-            if (!db) return;
-            try {
-                // Documents are stored in /artifacts/{appId}/public/data/users/{userId}
-                const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, userId);
-                await setDoc(userDocRef, {
-                    username: username,
-                }, { merge: true });
-            } catch (error) {
-                console.error("Failed to register current user for search:", error);
-            }
-        }
-
-
-        // --- FIREBASE INITIALIZATION & AUTH ---
-
-        async function initFirebase() {
-            try {
-                // Display 'Authenticating...' before sign-in attempt
-                document.getElementById('userIdDisplay').textContent = 'Authenticating...';
-
-                const config = JSON.parse(firebaseConfig);
-                const app = initializeApp(config);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                // **STEP 1: Use a custom token OR sign in anonymously if no token is provided**
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                // **STEP 2: Set current user based on authenticated state**
-                const user = auth.currentUser;
-
-                if (user) {
-                    currentUserId = user.uid;
-                    // Use displayName if available, otherwise generate a unique, visible name from the UID.
-                    currentUsername = user.displayName || `User-${user.uid.substring(0, 6)}`;
-                } else {
-                    // This should not happen if sign-in is successful.
-                    document.getElementById('userIdDisplay').textContent = 'Auth Failed!';
-                    console.error("Authentication succeeded but no user object found.");
-                    showMessage("Authentication failed. Cannot find user data.", true);
-                    return;
-                }
-
-                // **STEP 3: Update UI with actual user ID**
-                document.getElementById('userIdDisplay').textContent = `${currentUsername} (${currentUserId.substring(0, 6)}...)`;
-
-
-                // **STEP 4: REGISTER CURRENT USER FOR SEARCHABILITY**
-                await registerCurrentUser(currentUserId, currentUsername);
-
-                // Fetch and listen to recent chats
-                fetchRecentChats();
-
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                showMessage("Firebase initialization failed. Check console for details.", true);
-            }
-        }
-
-        // --- CHAT & DATA LOGIC ---
-
-        function renderRecentChats(chats) {
-            recentChatsList.innerHTML = '';
-
-            if (chats.length === 0) {
-                recentChatsList.innerHTML = `<p id="loadingMessage" style="text-align: center; margin-top: 2rem; color: #9ca3af;">No recent conversations. Search for a user to start one!</p>`;
-                return;
-            }
-
+        // Filter chat list by username
+        function filterChats() {
+            const input = document.getElementById('userSearch').value.toLowerCase();
+            const chats = document.querySelectorAll('.chat-item');
             chats.forEach(chat => {
-                const chatElement = document.createElement('div');
-                chatElement.className = 'chat-item';
-                // Highlight the active chat
-                if (targetUser.id === chat.otherUserId) {
-                    chatElement.classList.add('active');
+                const username = chat.querySelector('span').innerText.toLowerCase();
+                chat.style.display = username.includes(input) ? 'block' : 'none';
+            });
+        }
+
+        // Press Enter to start new chat
+        function checkEnter(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                const username = document.getElementById('userSearch').value.trim();
+                if (username) startNewChat(username);
+            }
+        }
+
+        // Start new chat by resolving username to UID
+        async function startNewChat(username) {
+            try {
+                const res = await fetch(`/Chat/GetUserIdByUsername?username=${encodeURIComponent(username)}`);
+                if (!res.ok) {
+                    alert("User not found");
+                    return;
                 }
-                chatElement.onclick = () => openChatPage(chat.otherUserId, chat.otherUsername);
+                const data = await res.json();
+                currentReceiverId = data.userId;
+                currentReceiverName = username;
+                currentChatRoomId = null;
 
-                const initial = chat.otherUsername.charAt(0).toUpperCase();
+                document.getElementById('messagesContainer').innerHTML = `<h2>New chat with ${username}</h2>`;
+                document.getElementById('sendArea').style.display = 'block';
+            } catch (err) {
+                console.error("Error finding user:", err);
+                alert("Error finding user.");
+            }
+        }
 
-                chatElement.innerHTML = `
-                    <div class="chat-initial">${initial}</div>
-                    <div class="chat-info">
-                        <p class="chat-name">${chat.otherUsername}</p>
-                        <p class="chat-message">${chat.lastMessage}</p>
+        // Open chat messages
+        async function openChat(chatRoomId, otherUserId, otherUsername) {
+            currentChatRoomId = chatRoomId;
+            currentReceiverId = otherUserId;
+            currentReceiverName = otherUsername;
+            document.getElementById('sendArea').style.display = 'block';
+
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = `<h2>Chat with ${otherUsername}</h2><hr/>`;
+
+            try {
+                const res = await fetch(`/Chat/ChatRoom?chatRoomId=${chatRoomId}`);
+                const messages = await res.json();
+
+                container.innerHTML += messages.map(m => `
+                    <div class="msg-row" style="justify-content:${m.senderId === currentReceiverId ? "flex-start" : "flex-end"};">
+                        <div class="msg-bubble ${m.senderId === currentReceiverId ? "msg-received" : "msg-sent"}">
+                            <div>${m.text}</div>
+                            <div style="font-size:0.8rem;opacity:0.8;">${new Date(m.timestamp).toLocaleString()}</div>
+                        </div>
                     </div>
-                `;
-                // Note: Removed time display from the side list to match the image style
-                recentChatsList.appendChild(chatElement);
-            });
-        }
+                `).join('');
 
-        function fetchRecentChats() {
-            if (!currentUserId || !db) return;
-
-            // Firestore path for the current user's recent chats
-            const userChatsRef = `artifacts/${appId}/users/${currentUserId}/recentChats`;
-            const chatsQuery = query(
-                collection(db, userChatsRef),
-                orderBy("timestamp", "desc")
-            );
-
-            // Listen for real-time updates
-            onSnapshot(chatsQuery, (snapshot) => {
-                const chatsData = [];
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    chatsData.push({
-                        otherUserId: data.otherUserId,
-                        otherUsername: data.otherUsername,
-                        lastMessage: data.lastMessage,
-                        // Firestore Timestamp objects need conversion to milliseconds
-                        timestamp: data.timestamp ? data.timestamp.toMillis() : Date.now()
-                    });
-                });
-                renderRecentChats(chatsData);
-            }, (error) => {
-                console.error("Error listening to recent chats:", error);
-                showMessage("Failed to load conversations.", true);
-            });
-        }
-
-        window.searchUserAndStartChat = async function() {
-            const username = searchBar.value.trim();
-            searchBar.value = '';
-
-            if (!username) {
-                showMessage("Please enter a username to search.", false);
-                return;
+                container.scrollTop = container.scrollHeight;
+            } catch (err) {
+                console.error("Error loading messages:", err);
             }
-            if (!db) { showMessage("Database not ready.", true); return; }
+        }
+
+        // Send a message
+        async function sendMessage() {
+            const text = document.getElementById('messageText').value.trim();
+            if (!text || !currentReceiverId) return;
+
+            const payload = {
+                receiverId: currentReceiverId,
+                text: text
+            };
 
             try {
-                // Public collection to find other users
-                const usersCollection = collection(db, `artifacts/${appId}/public/data/users`);
-                const q = query(usersCollection, where("username", "==", username));
+                const res = await fetch('/Chat/SendMessage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    showMessage(`User '${username}' not found. Make sure the username is exact.`, true);
-                    return;
-                }
-
-                const userDoc = querySnapshot.docs[0];
-                const targetUserId = userDoc.id;
-                const targetUsername = userDoc.data().username || "Unknown User";
-
-                if (targetUserId === currentUserId) {
-                    showMessage("You're searching for yourself!", true);
-                    return;
-                }
-
-                openChatPage(targetUserId, targetUsername);
-
-            } catch (error) {
-                console.error("Search failed:", error);
-                showMessage("Search failed. See console for error.", true);
-            }
-        }
-
-        function getChatRoomId(user1Id, user2Id) {
-            // Firestore chat room ID should be consistent regardless of who initiates the chat.
-            // Sort IDs lexicographically and join them.
-            return [user1Id, user2Id].sort().join('_');
-        }
-
-        function openChatPage(targetUserId, targetUsername) {
-            targetUser.id = targetUserId;
-            targetUser.username = targetUsername;
-
-            document.getElementById('targetUsernameDisplay').innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>${targetUsername}</span>
-            `;
-
-            // Re-render the side list to highlight the active chat
-            fetchRecentChats();
-
-            // Clear all previous content (including placeholder)
-            chatHistoryContainer.innerHTML = '';
-
-            const chatRoomId = getChatRoomId(currentUserId, targetUserId);
-            const messagesRef = `artifacts/${appId}/public/data/chats/${chatRoomId}/messages`;
-            const messagesQuery = query(
-                collection(db, messagesRef),
-                orderBy("timestamp", "asc")
-            );
-
-            // Start listening for new messages in the chat history
-            onSnapshot(messagesQuery, (snapshot) => {
-                // Clear the container on every full update to ensure correct order
-                chatHistoryContainer.innerHTML = '';
-
-                if (snapshot.empty) {
-                    chatHistoryContainer.innerHTML = `<p style="text-align:center; color:#9ca3af; font-size:0.8rem; margin-top: 1rem;">Start your conversation with ${targetUsername}!</p>`;
+                if (res.ok) {
+                    document.getElementById('messageText').value = '';
+                    const result = await res.json();
+                    currentChatRoomId = result.chatRoomId;
+                    openChat(currentChatRoomId, currentReceiverId, currentReceiverName);
                 } else {
-                    snapshot.forEach(doc => {
-                        const message = doc.data();
-                        renderMessage(message.senderId === currentUserId, message.text, message.timestamp);
-                    });
+                    alert('Failed to send message.');
                 }
-
-                // Scroll to the bottom
-                chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
-
-            }, (error) => {
-                console.error("Error listening to messages:", error);
-                // Only show system-level error here if needed.
-            });
-
-            showMessage(`You are now chatting with ${targetUsername}. (Room ID: ${chatRoomId})`);
-        }
-
-        function renderMessage(isUser, text, timestamp) {
-            const messageRow = document.createElement('div');
-            messageRow.className = `message-row ${isUser ? 'user-message' : 'other-message'}`;
-
-            const messageBubble = document.createElement('div');
-            messageBubble.className = 'message-bubble';
-            messageBubble.textContent = text;
-
-            messageRow.appendChild(messageBubble);
-            chatHistoryContainer.appendChild(messageRow);
-        }
-
-        window.sendMessage = async function() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-
-            if (!text || !targetUser.id) return;
-
-            if (!db || !currentUserId) {
-                showMessage("Error: User or Database not ready.", true);
-                return;
-            }
-
-            const targetId = targetUser.id;
-            const targetUsername = targetUser.username;
-            const chatRoomId = getChatRoomId(currentUserId, targetId);
-
-            try {
-                // 1. Send the message to the chat room
-                const messagesRef = `artifacts/${appId}/public/data/chats/${chatRoomId}/messages`;
-                await addDoc(collection(db, messagesRef), {
-                    senderId: currentUserId,
-                    text: text,
-                    timestamp: serverTimestamp()
-                });
-
-                // 2. Update recent chat for the current user
-                const currentUserChatRef = doc(db, `artifacts/${appId}/users/${currentUserId}/recentChats`, targetId);
-                await setDoc(currentUserChatRef, {
-                    otherUserId: targetId,
-                    otherUsername: targetUsername,
-                    lastMessage: text,
-                    timestamp: serverTimestamp()
-                }, { merge: true });
-
-                // 3. Update recent chat for the target user (if it exists)
-                const targetUserChatRef = doc(db, `artifacts/${appId}/users/${targetId}/recentChats`, currentUserId);
-                await setDoc(targetUserChatRef, {
-                    otherUserId: currentUserId,
-                    otherUsername: currentUsername,
-                    lastMessage: text,
-                    timestamp: serverTimestamp()
-                }, { merge: true });
-
-                input.value = ''; // Clear input field
-
-            } catch (error) {
-                console.error("Error sending message or updating recent chats:", error);
-                showMessage("Failed to send message.", true);
+            } catch (err) {
+                console.error("Send message error:", err);
+                alert("Error sending message.");
             }
         }
-
-        window.openSearchModal = function() {
-            showMessage("Please use the search bar to find a user by their exact username for now.", false);
-        }
-
-        // Initialize Firebase on load
-        window.onload = initFirebase;
     </script>
 </body>
-</html></html>
+</html>

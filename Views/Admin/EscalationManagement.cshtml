@@ -1,5 +1,167 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model List<AcadenceWebApp.Models.FlaggedReportViewModel>
+@using Newtonsoft.Json
 @{
+    ViewData["Title"] = "AdminEscalationManagement";
 }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Flagged Chats</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        #appContainer {
+            display: flex;
+            height: 100vh;
+        }
+
+        #reportsList {
+            width: 30%;
+            background-color: #f9fafb;
+            border-right: 1px solid #e5e7eb;
+            overflow-y: auto;
+        }
+
+            #reportsList header {
+                padding: 1rem;
+                background-color: white;
+                border-bottom: 1px solid #e5e7eb;
+            }
+
+            #reportsList h1 {
+                color: #b91c1c;
+                font-size: 1.25rem;
+            }
+
+        .report-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+
+            .report-item:hover {
+                background-color: #fee2e2;
+            }
+
+            .report-item.selected {
+                background-color: #fecaca;
+            }
+
+        #detailsArea {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .msg-bubble {
+            max-width: 60%;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .msg-flagger {
+            background-color: #ef4444;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .msg-other {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            color: #374151;
+            align-self: flex-start;
+        }
+
+        .msg-row {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="appContainer">
+        <!-- Left Panel: List of flagged chats -->
+        <div id="reportsList">
+            <header>
+                <h1>Flagged Chats</h1>
+                <p>@Model.Count report(s)</p>
+            </header>
+
+            @if (Model == null || !Model.Any())
+            {
+                <div style="padding: 1rem; color: #6b7280;">No flagged chats found.</div>
+            }
+            else
+            {
+                foreach (var report in Model)
+                {
+                    <div class="report-item" onclick="showDetails('@report.Id')">
+                        <span style="font-weight:600;">@report.FlaggedByUsername</span> <!-- ✅ Display username -->
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Right Panel: Conversation Transcript -->
+        <div id="detailsArea">
+            <div id="placeholder">
+                <h2>Select a report to view conversation</h2>
+            </div>
+
+            @foreach (var report in Model)
+            {
+                <div id="report-@report.Id" class="report-details" style="display:none;">
+                    <h3 style="margin-bottom: 1rem;">Conversation Transcript</h3>
+                    <div>
+                        @{
+                            var messages = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(report.ConversationJson ?? "[]");
+                            if (messages.Count == 0)
+                            {
+                                <p style="color:#6b7280;">No messages found.</p>
+                                ;
+                            }
+                            else
+                            {
+                                foreach (var msg in messages)
+                                {
+                                    var senderUsername = msg.ContainsKey("senderUsername") ? msg["senderUsername"]?.ToString() : msg["senderId"]?.ToString();
+                                    var text = msg.ContainsKey("text") ? msg["text"]?.ToString() : "";
+                                    var timestamp = msg.ContainsKey("timestamp") ? msg["timestamp"]?.ToString() : "";
+                                    bool isFlagger = msg.ContainsKey("senderId") && msg["senderId"].ToString() == report.FlaggedByUserId;
+
+                                    <div class="msg-row" style="@(isFlagger ? "justify-content:flex-end;" : "justify-content:flex-start;")">
+                                        <div class="msg-bubble @(isFlagger ? "msg-flagger" : "msg-other")">
+                                            <div style="font-weight:bold;">@senderUsername</div>
+                                            <div>@text</div>
+                                            <div style="font-size:0.8rem; opacity:0.8;">@timestamp</div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <script>
+        function showDetails(id) {
+            document.querySelectorAll('.report-details').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.report-item').forEach(el => el.classList.remove('selected'));
+            document.getElementById('report-' + id).style.display = 'block';
+            event.currentTarget.classList.add('selected');
+        }
+    </script>
+</body>
+</html>
