@@ -255,5 +255,87 @@ namespace AcadenceWebApp.Controllers
         {
             return View();
         }
+
+        // Add this method inside the existing ConsultantController class
+        [HttpGet]
+        public async Task<IActionResult> GetCalendarEvents()
+        {
+            // Resolve current user UID (same approach as AssignedTasks)
+            string currentUserUid = null;
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                currentUserUid =
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                    ?? User.FindFirst("user_id")?.Value
+                    ?? User.FindFirst("sub")?.Value;
+            }
+
+            if (string.IsNullOrEmpty(currentUserUid))
+            {
+                currentUserUid = HttpContext.Session.GetString("UserUid");
+            }
+
+            if (string.IsNullOrEmpty(currentUserUid))
+            {
+                return Json(new List<object>());
+            }
+
+            try
+            {
+                var requestsRef = _firestoreDb.Collection("requests");
+                var query = requestsRef
+                    .WhereEqualTo("assignedToUid", currentUserUid)
+                    .WhereEqualTo("adminApproved", true);
+
+                var snap = await query.GetSnapshotAsync();
+                var events = new List<object>();
+
+                foreach (var doc in snap.Documents)
+                {
+                    try
+                    {
+                        var fr = doc.ConvertTo<FirestoreRequest>();
+
+                        // Skip if no due date
+                        if (fr.DueDate == null) continue;
+
+                        var due = fr.DueDate.ToDateTime();
+
+                        // Use docTitle (or fallback) as the main label; include reviewType in extendedProps
+                        var docTitle = !string.IsNullOrEmpty(fr.DocTitle) ? fr.DocTitle : (!string.IsNullOrEmpty(fr.ReviewType) ? fr.ReviewType : "Request");
+                        var reviewType = fr.ReviewType ?? "";
+
+                        // Render as an all-day, single-day event (use date-only start so it does NOT span days)
+                        var startDate = due.Date.ToString("yyyy-MM-dd");
+
+                        events.Add(new
+                        {
+                            id = doc.Id,
+                            title = docTitle,
+                            start = startDate,
+                            allDay = true,
+                            extendedProps = new
+                            {
+                                status = fr.Status ?? "Pending",
+                                priority = fr.Urgency ?? "Normal",
+                                reviewType = reviewType,
+                                docTitle = fr.DocTitle ?? "",
+                                requestedBy = fr.RequestedByUid ?? ""
+                            }
+                        });
+                    }
+                    catch
+                    {
+                        // ignore mapping errors per document
+                    }
+                }
+
+                return Json(events);
+            }
+            catch
+            {
+                return Json(new List<object>());
+            }
+        }
     }
 }
