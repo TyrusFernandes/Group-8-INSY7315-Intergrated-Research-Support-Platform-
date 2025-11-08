@@ -176,9 +176,52 @@ namespace AcadenceWebApp.Controllers
             }
         }
 
-        public IActionResult ResourceLibrary()
+        // modified ResourceLibrary action to load resources from Firestore and return model
+        [HttpGet]
+        public async Task<IActionResult> ResourceLibrary()
         {
-            return View();
+            var vm = new UploadResourceViewModel();
+
+            try
+            {
+                var coll = _firestoreDb.Collection("resources");
+                var snap = await coll.GetSnapshotAsync();
+                var list = new List<ResourceItemDto>();
+
+                foreach (var doc in snap.Documents)
+                {
+                    try
+                    {
+                        var data = doc.ToDictionary();
+
+                        DateTime uploadedAt = DateTime.UtcNow;
+                        if (data.TryGetValue("uploadedAt", out var tsObj) && tsObj is Timestamp ts)
+                            uploadedAt = ts.ToDateTime();
+
+                        var item = new ResourceItemDto
+                        {
+                            Id = doc.Id,
+                            Title = data.ContainsKey("title") ? data["title"]?.ToString() ?? "" : "",
+                            OriginalName = data.ContainsKey("originalName") ? data["originalName"]?.ToString() ?? "" : "",
+                            Url = data.ContainsKey("url") ? data["url"]?.ToString() ?? "" : "",
+                            UploadedAt = uploadedAt
+                        };
+                        list.Add(item);
+                    }
+                    catch
+                    {
+                        // ignore parse errors for individual docs
+                    }
+                }
+
+                vm.Existing = list.OrderByDescending(r => r.UploadedAt).ToList();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Unable to load resources: " + ex.Message;
+            }
+
+            return View(vm);
         }
 
         public async Task<IActionResult> MessagesAsync()

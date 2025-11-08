@@ -1,5 +1,63 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model AcadenceWebApp.Models.UploadResourceViewModel
+
 @{
+    ViewData["Title"] = "Resource Library";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+<style>
+    .main-content { margin-left: 60px; padding: 20px 40px; }
+    .content-header { background:white; padding:20px; border-radius:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.04); }
+    .panel { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+    .task-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
+    .task-table th, .task-table td { padding:14px 18px; border-bottom:1px solid #f0f0f0; text-align:left; }
+    .empty-state { padding:24px; color:#6b7280; text-align:center; }
+</style>
+
+<div class="main-content">
+    <div class="content-header">
+        <h2>Resource Library</h2>
+        <div><small class="text-muted">Browse academic resources uploaded by admins.</small></div>
+    </div>
+
+    <div class="panel">
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+        }
+
+        @if (Model != null && Model.Existing.Any())
+        {
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Original File</th>
+                        <th>Uploaded</th>
+                        <th style="width:140px">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Existing)
+                    {
+                        <tr>
+                            <td><div class="fw-semibold">@r.Title</div></td>
+                            <td class="text-muted">@r.OriginalName</td>
+                            <td class="text-muted">@r.UploadedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary" target="_blank" href="@r.Url">Open</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <h5 class="mb-1">No resources available.</h5>
+                <p class="small">Admins can upload resources from the Upload Resource page.</p>
+            </div>
+        }
+    </div>
+</div>

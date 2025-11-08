@@ -716,10 +716,9 @@
 
 
     <script type="module">
-        // Notification logic copied from Dashboard to provide same functionality.
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
         import {
-            getFirestore, collection, getDocs, query, orderBy, updateDoc, doc
+            getFirestore, collection, getDocs, query, orderBy, updateDoc, doc, arrayUnion
         } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -728,11 +727,8 @@
           projectId: "acadence-40662",
           storageBucket: "acadence-40662.firebasestorage.app",
           messagingSenderId: "907171020913",
-          appId: "1:907171020913:web:46cb92ee7b9ed0d28dbd0"
+          appId: "1:907171020913:web:46cb92eea7b9ed0d28dbd0"
         };
-
-        // NOTE: replace CURRENT_USER_ID with your real current user id if available.
-        const CURRENT_USER_ID = "vqC6mM3zMIbmCcjF5MNdm0lFJgj2";
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -743,10 +739,8 @@
         const notificationsList = document.getElementById("notificationsList");
         const unreadCount = document.getElementById("unreadCount");
 
-        const modal = document.getElementById("notificationModal");
-        const modalTitle = document.getElementById("modalTitle");
-        const modalMessage = document.getElementById("modalMessage");
-        const modalTimestamp = document.getElementById("modalTimestamp");
+        // Use server-provided current user id instead of a hard-coded value
+        const CURRENT_USER_ID = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CurrentUserId ?? ""));
 
         let unread = 0;
 
@@ -758,19 +752,14 @@
         notificationBtn.addEventListener("click", () => toggleSidebar(true));
         overlay.addEventListener("click", () => toggleSidebar(false));
 
-        modal && modal.addEventListener("click", (e) => {
-            if (e.target === modal) {
-                modal.style.display = "none";
-            }
-        });
-
         async function markAsRead(docId, alreadyRead) {
-            if (!alreadyRead) {
+            if (!alreadyRead && CURRENT_USER_ID) {
                 const notifRef = doc(db, "notifications", docId);
+                // add user to the array without overwriting (use arrayUnion)
                 await updateDoc(notifRef, {
-                    readBy: CURRENT_USER_ID
+                    readBy: arrayUnion(CURRENT_USER_ID)
                 });
-                unread--;
+                unread = Math.max(0, unread - 1);
                 unreadCount.innerText = unread > 0 ? unread : "0";
             }
         }
@@ -785,7 +774,7 @@
                 const recipients = data.recipientIds || [];
                 const readBy = data.readBy || [];
 
-                if (recipients.includes(CURRENT_USER_ID) || recipients.includes("all")) {
+                if ((CURRENT_USER_ID && (recipients.includes(CURRENT_USER_ID) || recipients.includes("all"))) ) {
                     const card = document.createElement("div");
                     card.className = "card mb-2";
                     card.style.cursor = "pointer";
@@ -804,22 +793,13 @@
 
                     card.appendChild(body);
 
-                    // If unread, highlight it
                     const isRead = readBy.includes(CURRENT_USER_ID);
                     if (!isRead) {
                         card.style.background = "#fef8e7";
                         unread++;
                     }
 
-                    // When clicked, show modal and mark as read
                     card.addEventListener("click", async () => {
-                        // fallback modal display in-case modal HTML exists elsewhere
-                        if (modal) {
-                            modalTitle && (modalTitle.innerText = data.title || "Untitled");
-                            modalMessage && (modalMessage.innerText = data.message || "");
-                            modalTimestamp && (modalTimestamp.innerText = date);
-                            modal.style.display = "flex";
-                        }
                         await markAsRead(docSnap.id, isRead);
                     });
 
