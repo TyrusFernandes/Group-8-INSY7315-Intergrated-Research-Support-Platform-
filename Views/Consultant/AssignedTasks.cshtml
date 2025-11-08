@@ -1,5 +1,815 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model IEnumerable<AcadenceWebApp.Models.TaskViewModel>
+
 @{
+    ViewData["Title"] = "Task List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Retained page styles; adjusted main-content margin to work with shared layout sidebar */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: #e8e8e8;
+        overflow-x: hidden;
+    }
+
+    .app-container {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    /* removed local sidebar (using shared layout sidebar) */
+
+    .main-content {
+        margin-left: 60px; /* matches shared layout collapsed sidebar width */
+        flex: 1;
+        padding: 20px 40px;
+        width: calc(100% - 60px);
+    }
+
+    /* Header */
+    .content-header {
+        background: white;
+        padding: 20px 30px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .content-header h2 {
+        font-size: 24px;
+        color: #2d3748;
+        font-weight: 600;
+    }
+
+    .header-controls {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-box input {
+        padding: 10px 15px 10px 40px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        width: 280px;
+        font-size: 14px;
+        background: #f7fafc;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: #3498db;
+        background: white;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a0aec0;
+        font-size: 16px;
+    }
+
+    .language-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    /* Notification button placed inline with header-controls */
+    .notification-button {
+        position: relative;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .notification-button .badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        font-size: 10px;
+    }
+
+    /* ... rest of the original page styles (legend, table, modal, notification toast) ... */
+    .legend {
+        display: flex;
+        gap: 25px;
+        margin-bottom: 20px;
+        padding: 18px 25px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: #4a5568;
+        font-weight: 500;
+    }
+
+    .legend-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+    }
+
+    .legend-dot.in-progress { background-color: #48bb78; }
+    .legend-dot.awaiting { background-color: #ed8936; }
+    .legend-dot.submitted { background-color: #4299e1; }
+    .legend-dot.overdue { background-color: #f56565; }
+
+    .task-table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .task-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .task-table thead {
+        background-color: #f7fafc;
+    }
+
+    .task-table th {
+        padding: 18px 20px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .task-table td {
+        padding: 22px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+        color: #2d3748;
+    }
+
+    .task-table tbody tr {
+        transition: background-color 0.2s;
+    }
+
+    .task-table tbody tr:hover {
+        background-color: #f7fafc;
+    }
+
+    .student-name {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .task-type {
+        color: #4a5568;
+        font-weight: 500;
+    }
+
+    .description {
+        color: #718096;
+        max-width: 400px;
+        line-height: 1.5;
+    }
+
+    .priority-badge {
+        padding: 5px 14px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .priority-high, .priority-critical {
+        background-color: #fed7d7;
+        color: #c53030;
+    }
+
+    .priority-normal, .priority-low {
+        background-color: #c6f6d5;
+        color: #276749;
+    }
+
+    .status-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 10px;
+    }
+
+    .status-pending { background-color: #a0aec0; }
+    .status-in-progress { background-color: #48bb78; }
+    .status-awaiting-feedback { background-color: #ed8936; }
+    .status-submitted { background-color: #4299e1; }
+    .status-overdue { background-color: #f56565; }
+
+    .status-cell {
+        display: flex;
+        align-items: center;
+    }
+
+    .status-dropdown {
+        padding: 8px 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        background: white;
+        min-width: 160px;
+        transition: all 0.2s;
+        color: #4a5568;
+    }
+
+    .status-dropdown:hover {
+        border-color: #cbd5e0;
+    }
+
+    .status-dropdown:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .status-dropdown.status-pending {
+        border-color: #a0aec0;
+    }
+
+    .status-dropdown.status-in-progress {
+        border-color: #48bb78;
+    }
+
+    .status-dropdown.status-awaiting-feedback {
+        border-color: #ed8936;
+    }
+
+    .status-dropdown.status-submitted {
+        border-color: #4299e1;
+    }
+
+    .status-dropdown.status-overdue {
+        border-color: #f56565;
+    }
+
+    .deadline {
+        color: #4a5568;
+        font-size: 14px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+    }
+
+    .empty-state h3 {
+        font-size: 18px;
+        margin-bottom: 10px;
+        color: #4a5568;
+    }
+
+    .error-message {
+        background-color: #fed7d7;
+        color: #c53030;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    /* Status Modal */
+    .status-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .status-modal.show {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #2d3748;
+    }
+
+    .status-option {
+        padding: 15px;
+        margin: 8px 0;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 2px solid #e2e8f0;
+        transition: all 0.2s;
+    }
+
+    .status-option:hover {
+        border-color: #3498db;
+        background: #f7fafc;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        flex: 1;
+    }
+
+    .btn-primary {
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-secondary {
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+
+    .save-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #48bb78;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s;
+        z-index: 2000;
+    }
+
+    .save-notification.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @@media (max-width: 1024px) {
+        .main-content {
+            margin-left: 0;
+            width: 100%;
+            padding: 12px;
+        }
+    }
+</style>
+
+<div class="app-container">
+    <main class="main-content">
+        <div class="save-notification" id="saveNotification">
+            Status updated successfully!
+        </div>
+
+        <!-- Header -->
+        <div class="content-header">
+            <h2>Your Taskbar</h2>
+            <div class="header-controls">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Search Tasks" />
+                </div>
+                <div class="language-selector">
+                    <span>🌐</span>
+                    <span>English</span>
+                </div>
+
+                <!-- Notification bell moved inline here but uses same behavior/IDs as Dashboard -->
+                <button id="notificationBtn" class="notification-button" title="Notifications">
+                    🔔
+                    <span class="badge bg-danger rounded-pill" id="unreadCount">0</span>
+                </button>
+            </div>
+        </div>
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="error-message">
+                <strong>Error:</strong> @ViewBag.ErrorMessage
+            </div>
+        }
+
+        <!-- Debug Info (shown only if DebugCurrentUserUid is available) -->
+        @if (!string.IsNullOrEmpty(ViewBag.DebugCurrentUserUid as string))
+        {
+            <div style="background:#fff3cd;border:1px solid #ffeeba;padding:10px;margin-bottom:12px;border-radius:6px;">
+                <strong>Debug:</strong><br />
+                Current UID used for query: @ViewBag.DebugCurrentUserUid <br />
+                Claim NameIdentifier: @ViewBag.DebugClaim_NameIdentifier <br />
+                Claim user_id: @ViewBag.DebugClaim_user_id <br />
+                Claim sub: @ViewBag.DebugClaim_sub <br />
+                Matched request count: @ViewBag.DebugAssignedCount <br />
+                Doc IDs: <pre>@(string.Join(", ", (IEnumerable<string>)ViewBag.DebugAssignedDocIds ?? Enumerable.Empty<string>()))</pre>
+            </div>
+        }
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <span class="legend-dot in-progress"></span>
+                <span>In Progress</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot awaiting"></span>
+                <span>Awaiting Feedback</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot submitted"></span>
+                <span>Submitted</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot overdue"></span>
+                <span>Overdue</span>
+            </div>
+        </div>
+
+        <!-- Task Table -->
+        <div class="task-table-container">
+            @if (Model != null && Model.Any())
+            {
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Task Type</th>
+                            <th>Description</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Deadline</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskTableBody">
+                        @foreach (var task in Model)
+                        {
+                            var statusClass = task.Status.Replace(" ", "-").ToLower();
+                            var priorityClass = "priority-" + task.Priority.ToLower();
+
+                            <tr data-task-id="@task.Id" data-current-status="@task.Status">
+                                <td class="student-name">@task.StudentName</td>
+                                <td class="task-type">@task.ReviewType</td>
+                                <td class="description">
+                                    @(string.IsNullOrEmpty(task.ReviewDetails) ? task.DocTitle : task.ReviewDetails)
+                                </td>
+                                <td>
+                                    <span class="priority-badge @priorityClass">@task.Priority</span>
+                                </td>
+                                <td>
+                                    <span class="status-dot status-@statusClass"
+                                          onclick="openStatusModal('@task.Id', '@task.Status')"
+                                          style="cursor: pointer;"
+                                          title="Click to change status"></span>
+                                </td>
+                                <td class="deadline">@task.DeadlineFormatted</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <h3>No Tasks Assigned</h3>
+                    <p>You don't have any tasks assigned at the moment.</p>
+                </div>
+            }
+        </div>
+    </main>
+</div>
+
+<!-- Status Change Modal -->
+<div class="status-modal" id="statusModal">
+    <div class="modal-content">
+        <div class="modal-header">Change Task Status</div>
+        <div id="statusOptions">
+            <div class="status-option" data-status="Pending">
+                <span class="status-dot status-pending"></span>
+                <span>Pending</span>
+            </div>
+            <div class="status-option" data-status="In Progress">
+                <span class="status-dot status-in-progress"></span>
+                <span>In Progress</span>
+            </div>
+            <div class="status-option" data-status="Awaiting Feedback">
+                <span class="status-dot status-awaiting-feedback"></span>
+                <span>Awaiting Feedback</span>
+            </div>
+            <div class="status-option" data-status="Submitted">
+                <span class="status-dot status-submitted"></span>
+                <span>Submitted</span>
+            </div>
+            <div class="status-option" data-status="Overdue">
+                <span class="status-dot status-overdue"></span>
+                <span>Overdue</span>
+            </div>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-secondary" onclick="closeStatusModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveStatusChange()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Sidebar (same structure as Dashboard) -->
+<div id="notificationSidebar" style="position: fixed; top: 0; right: -400px; width: 400px; height: 100vh; background: white; box-shadow: -2px 0 10px rgba(0,0,0,0.2); overflow-y: auto; transition: right 0.3s; z-index: 1050; padding: 20px;">
+    <h4>Notifications</h4>
+    <div id="notificationsList">Loading...</div>
+</div>
+
+<!-- Overlay (click outside to close sidebar) -->
+<div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.2); z-index:1040;"></div>
+
+@section Scripts {
+    <script>
+        // Status modal and task scripts (kept same as before)
+        let currentTaskId = null;
+        let selectedStatus = null;
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#taskTableBody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Open status modal
+        function openStatusModal(taskId, currentStatus) {
+            currentTaskId = taskId;
+            selectedStatus = currentStatus;
+
+            // Highlight current status
+            document.querySelectorAll('.status-option').forEach(option => {
+                option.style.background = '';
+                option.style.borderColor = '#e2e8f0';
+                if (option.dataset.status === currentStatus) {
+                    option.style.background = '#f7fafc';
+                    option.style.borderColor = '#3498db';
+                }
+            });
+
+            document.getElementById('statusModal').classList.add('show');
+        }
+
+        // Close status modal
+        function closeStatusModal() {
+            document.getElementById('statusModal').classList.remove('show');
+            currentTaskId = null;
+            selectedStatus = null;
+        }
+
+        // Handle status option click
+        document.querySelectorAll('.status-option').forEach(option => {
+            option.addEventListener('click', function() {
+                selectedStatus = this.dataset.status;
+                document.querySelectorAll('.status-option').forEach(opt => {
+                    opt.style.background = '';
+                    opt.style.borderColor = '#e2e8f0';
+                });
+                this.style.background = '#f7fafc';
+                this.style.borderColor = '#3498db';
+            });
+        });
+
+        // Save status change
+        function saveStatusChange() {
+            if (!currentTaskId || !selectedStatus) return;
+
+            fetch('/Consultant/UpdateTaskStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    taskId: currentTaskId,
+                    status: selectedStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the status dot in the table
+                    const row = document.querySelector(`tr[data-task-id="${currentTaskId}"]`);
+                    if (row) {
+                        const statusDot = row.querySelector('.status-dot');
+                        const oldClass = row.dataset.currentStatus.replace(/ /g, '-').toLowerCase();
+                        const newClass = selectedStatus.replace(/ /g, '-').toLowerCase();
+
+                        statusDot.classList.remove('status-' + oldClass);
+                        statusDot.classList.add('status-' + newClass);
+                        row.dataset.currentStatus = selectedStatus;
+                    }
+
+                    showNotification('Status updated successfully!', false);
+                    closeStatusModal();
+                } else {
+                    showNotification(data.message || 'Error updating status', true);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating status:', error);
+                showNotification('Error updating status', true);
+            });
+        }
+
+        // Show notification toast
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('saveNotification');
+            notification.textContent = message;
+            notification.style.background = isError ? '#f56565' : '#48bb78';
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('statusModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStatusModal();
+            }
+        });
+    </script>
+
+    <!-- ✅ ADD THESE in the <head> or before your own script -->
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY",
+          authDomain: "acadence-40662.firebaseapp.com",
+          projectId: "acadence-40662",
+          storageBucket: "acadence-40662.firebasestorage.app",
+          messagingSenderId: "907171020913",
+          appId: "1:907171020913:web:46cb92ee7b9ed0d28dbd0"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import {
+            getFirestore, collection, getDocs, query, orderBy, updateDoc, doc, arrayUnion
+        } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY",
+          authDomain: "acadence-40662.firebaseapp.com",
+          projectId: "acadence-40662",
+          storageBucket: "acadence-40662.firebasestorage.app",
+          messagingSenderId: "907171020913",
+          appId: "1:907171020913:web:46cb92eea7b9ed0d28dbd0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const notificationBtn = document.getElementById("notificationBtn");
+        const sidebar = document.getElementById("notificationSidebar");
+        const overlay = document.getElementById("overlay");
+        const notificationsList = document.getElementById("notificationsList");
+        const unreadCount = document.getElementById("unreadCount");
+
+        // Use server-provided current user id instead of a hard-coded value
+        const CURRENT_USER_ID = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CurrentUserId ?? ""));
+
+        let unread = 0;
+
+        function toggleSidebar(show) {
+            sidebar.style.right = show ? "0px" : "-400px";
+            overlay.style.display = show ? "block" : "none";
+        }
+
+        notificationBtn.addEventListener("click", () => toggleSidebar(true));
+        overlay.addEventListener("click", () => toggleSidebar(false));
+
+        async function markAsRead(docId, alreadyRead) {
+            if (!alreadyRead && CURRENT_USER_ID) {
+                const notifRef = doc(db, "notifications", docId);
+                // add user to the array without overwriting (use arrayUnion)
+                await updateDoc(notifRef, {
+                    readBy: arrayUnion(CURRENT_USER_ID)
+                });
+                unread = Math.max(0, unread - 1);
+                unreadCount.innerText = unread > 0 ? unread : "0";
+            }
+        }
+
+        async function loadNotifications() {
+            const snapshot = await getDocs(query(collection(db, "notifications"), orderBy("priority", "desc")));
+            unread = 0;
+            notificationsList.innerHTML = "";
+
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const recipients = data.recipientIds || [];
+                const readBy = data.readBy || [];
+
+                if ((CURRENT_USER_ID && (recipients.includes(CURRENT_USER_ID) || recipients.includes("all"))) ) {
+                    const card = document.createElement("div");
+                    card.className = "card mb-2";
+                    card.style.cursor = "pointer";
+                    card.style.borderLeft = data.priority === "High" ? "5px solid red" : "5px solid gray";
+
+                    const body = document.createElement("div");
+                    body.className = "card-body";
+
+                    const date = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : "Unknown Date";
+
+                    body.innerHTML = `
+                        <h5>${data.title || "Untitled"}</h5>
+                        <p class="mb-1">${data.message || ""}</p>
+                        <small class="text-muted">${date}</small>
+                    `;
+
+                    card.appendChild(body);
+
+                    const isRead = readBy.includes(CURRENT_USER_ID);
+                    if (!isRead) {
+                        card.style.background = "#fef8e7";
+                        unread++;
+                    }
+
+                    card.addEventListener("click", async () => {
+                        await markAsRead(docSnap.id, isRead);
+                    });
+
+                    notificationsList.appendChild(card);
+                }
+            });
+
+            unreadCount.innerText = unread;
+        }
+
+        loadNotifications();
+    </script>
 }

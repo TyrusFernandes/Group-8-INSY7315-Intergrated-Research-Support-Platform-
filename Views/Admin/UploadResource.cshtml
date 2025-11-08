@@ -1,5 +1,109 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model AcadenceWebApp.Models.UploadResourceViewModel
+@using AcadenceWebApp.Models
+
 @{
+    ViewData["Title"] = "Upload Academic Resource";
+    var msg = TempData["UploadMsg"] as string;
+}
+
+<style>
+    /* Match look-and-feel of task list / consultant pages */
+    .main-content { margin-left: 60px; padding: 20px 40px; }
+    .content-header { background:white; padding:20px; border-radius:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.04); }
+    .resource-panel { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+    .upload-form { max-width:720px; width:100%; }
+    .task-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; box-shadow:0 2px 4px rgba(0,0,0,0.03); }
+    .task-table th, .task-table td { padding:14px 18px; border-bottom:1px solid #f0f0f0; text-align:left; }
+    .action-buttons .btn { min-width:72px; }
+    .empty-state { padding:24px; color:#6b7280; text-align:center; }
+</style>
+
+<div class="main-content">
+    <div class="content-header">
+        <h2>Upload Academic Resource</h2>
+        <div>
+            <small class="text-muted">Upload and manage files available to consultants and students.</small>
+        </div>
+    </div>
+
+    <div class="resource-panel">
+        @if (!string.IsNullOrWhiteSpace(msg))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @msg
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="upload-form mb-4">
+            <form asp-action="UploadResource" asp-controller="Admin" method="post" enctype="multipart/form-data" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted">File</label>
+                        <input class="form-control" type="file" asp-for="File" />
+                        <span class="text-danger small" asp-validation-for="File"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">Title</label>
+                        <input class="form-control" placeholder="Resource Title" asp-for="Title" />
+                        <span class="text-danger small" asp-validation-for="Title"></span>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button type="submit" class="btn btn-warning w-100" style="font-weight:600;">
+                            Upload
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <hr />
+
+        @if (Model.Existing.Any())
+        {
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Original File</th>
+                        <th>Uploaded</th>
+                        <th style="width:170px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Existing)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@r.Title</div>
+                            </td>
+                            <td class="text-muted">@r.OriginalName</td>
+                            <td class="text-muted">@r.UploadedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td class="action-buttons">
+                                <a class="btn btn-sm btn-outline-primary me-2" target="_blank" href="@r.Url">Open</a>
+                                <form asp-action="DeleteResource" asp-controller="Admin" method="post" class="d-inline m-0 p-0">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@r.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <h5 class="mb-1">No resources uploaded yet.</h5>
+                <p class="small">Use the form above to add academic resources for consultants and students.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }

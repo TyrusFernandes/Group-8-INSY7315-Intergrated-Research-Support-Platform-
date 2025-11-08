@@ -9,7 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js"></script>
 
 <script>
-        const firebaseConfig = {
+    const firebaseConfig = {
       apiKey: "AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY",
       authDomain: "acadence-40662.firebaseapp.com",
       projectId: "acadence-40662",
@@ -19,7 +19,6 @@
     };
     firebase.initializeApp(firebaseConfig);
 </script>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -103,21 +102,19 @@
                 text-align: center;
             }
 
-        /* Initially hide the text label */
         .sidebar .link-text {
             opacity: 0;
             transition: opacity 0.2s ease;
             overflow: hidden;
         }
 
-        /* On hover, show the text */
         .sidebar:hover .link-text {
             opacity: 1;
         }
 
-            .sidebar .nav-link:hover {
-                background-color: var(--primary);
-            }
+        .sidebar .nav-link:hover {
+            background-color: var(--primary);
+        }
 
         .main {
             margin-left: 60px;
@@ -159,12 +156,17 @@
                             <a class="nav-link" asp-controller="Admin" asp-action="StudentSatisfaction">
                                 <span class="icon">📊</span><span class="link-text">Student Satisfaction</span>
                             </a>
-                            <a class="nav-link" asp-controller="Admin" asp-action="ConsultantWorkload">
+
+                            <!-- Updated: points to ConsultantsController.Workload -->
+                            <a class="nav-link" asp-controller="Consultants" asp-action="Workload">
                                 <span class="icon">📈</span><span class="link-text">Consultant Workload</span>
                             </a>
-                            <a class="nav-link" asp-controller="Admin" asp-action="ConsultantAssignment">
+
+                            <!-- Updated: points to AssignmentsController.Assign -->
+                            <a class="nav-link" asp-controller="Assignments" asp-action="Assign">
                                 <span class="icon">👥</span><span class="link-text">Assign Consultant</span>
                             </a>
+
                             <a class="nav-link" asp-controller="Admin" asp-action="Notifications">
                                 <span class="icon">📢</span><span class="link-text">Broadcast Message</span>
                             </a>

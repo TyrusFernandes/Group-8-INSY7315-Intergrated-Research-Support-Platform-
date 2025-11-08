@@ -1,5 +1,52 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model AcadenceWebApp.Models.StudentSatisfactionViewModel
+
 @{
+    ViewData["Title"] = "Student Satisfaction";
+
+    // expose to JS — guard against a null Model to avoid NullReference
+    var dataJson = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        satisfied = Model?.Satisfied ?? 0,
+        neutral = Model?.Neutral ?? 0,
+        unsatisfied = Model?.Unsatisfied ?? 0
+    });
+}
+
+<div class="container py-4" style="max-width: 680px;">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title mb-3" style="font-weight:700; color:#2b2d42;">
+                <span class="me-2">📊</span> Student Satisfaction Overview
+            </h4>
+
+            <!-- Legend -->
+            <div class="d-flex gap-4 mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span style="width:14px;height:14px;background:#5B6EE1;display:inline-block;border-radius:3px;"></span>
+                    <span class="small fw-semibold">Satisfied</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span style="width:14px;height:14px;background:#F5A623;display:inline-block;border-radius:3px;"></span>
+                    <span class="small fw-semibold">Neutral</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span style="width:14px;height:14px;background:#E74C3C;display:inline-block;border-radius:3px;"></span>
+                    <span class="small fw-semibold">Unsatisfied</span>
+                </div>
+            </div>
+
+            <div class="position-relative">
+                <canvas id="satisfactionChart" height="280"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Pass data to JS
+        window.__satisfaction = @Html.Raw(dataJson);
+    </script>
+    <script src="~/js/studentSatisfaction.js"></script>
 }

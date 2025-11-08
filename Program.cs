@@ -32,7 +32,7 @@ builder.Services.AddSingleton(provider =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ----- Pipeline -----
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -60,6 +60,7 @@ Console.WriteLine("Firebase initialized successfully!");
 // Default route: start at Home/Index
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();

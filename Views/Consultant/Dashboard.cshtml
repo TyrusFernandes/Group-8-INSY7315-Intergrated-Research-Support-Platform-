@@ -1,8 +1,12 @@
 ﻿@{
     ViewData["Title"] = "Consultant Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
-}
 
+    // Prefer an explicit server-provided UID; fall back to session or claim if not set.
+    var currentUserId = ViewBag.CurrentUserId
+                        ?? Context.Session.GetString("UserUid")
+                        ?? (User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "");
+}
 <!-- Notification Sidebar -->
 <div id="notificationSidebar" style="position: fixed; top: 0; right: -400px; width: 400px; height: 100vh; background: white; box-shadow: -2px 0 10px rgba(0,0,0,0.2); overflow-y: auto; transition: right 0.3s; z-index: 1050; padding: 20px;">
     <h4>Notifications</h4>
@@ -52,7 +56,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
     import {
-        getFirestore, collection, getDocs, query, orderBy, updateDoc, doc
+        getFirestore, collection, getDocs, query, orderBy, updateDoc, doc, arrayUnion
     } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -64,7 +68,8 @@
       appId: "1:907171020913:web:46cb92eea7b9ed0d28dbd0"
     };
 
-    const CURRENT_USER_ID = "vqC6mM3zMIbmCcjF5MNdm0lFJgj2";
+    // Inject the server-determined current user id into the client script
+    const CURRENT_USER_ID = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(currentUserId ?? ""));
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -87,22 +92,23 @@
         overlay.style.display = show ? "block" : "none";
     }
 
-    notificationBtn.addEventListener("click", () => toggleSidebar(true));
-    overlay.addEventListener("click", () => toggleSidebar(false));
+    notificationBtn && notificationBtn.addEventListener("click", () => toggleSidebar(true));
+    overlay && overlay.addEventListener("click", () => toggleSidebar(false));
 
-    modal.addEventListener("click", (e) => {
+    modal && modal.addEventListener("click", (e) => {
         if (e.target === modal) {
             modal.style.display = "none";
         }
     });
 
     async function markAsRead(docId, alreadyRead) {
-        if (!alreadyRead) {
+        if (!alreadyRead && CURRENT_USER_ID) {
             const notifRef = doc(db, "notifications", docId);
+            // preserve array shape and append this UID only if not already present
             await updateDoc(notifRef, {
-                readBy: CURRENT_USER_ID
+                readBy: arrayUnion(CURRENT_USER_ID)
             });
-            unread--;
+            unread = Math.max(0, unread - 1);
             unreadCount.innerText = unread > 0 ? unread : "0";
         }
     }
@@ -115,9 +121,10 @@
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
             const recipients = data.recipientIds || [];
-            const readBy = data.readBy || [];
+            const readBy = Array.isArray(data.readBy) ? data.readBy : [];
 
-            if (recipients.includes(CURRENT_USER_ID) || recipients.includes("all")) {
+            // show if this notification targets the current user or is broadcast ("all")
+            if ((CURRENT_USER_ID && recipients.includes(CURRENT_USER_ID)) || recipients.includes("all")) {
                 const card = document.createElement("div");
                 card.className = "card mb-2";
                 card.style.cursor = "pointer";
