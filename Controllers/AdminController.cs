@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.Http;
 using AcadenceWebApp.Models;
 using Google.Cloud.Firestore;
 using Google.Cloud.Storage.V1;
+using FirebaseAdmin.Auth;
+using System.Diagnostics;
+using System.Security.Claims;
+using Newtonsoft.Json;
 
 namespace AcadenceWebApp.Controllers
 {

@@ -240,7 +240,7 @@ namespace AcadenceWebApp.Controllers
             }
 
             // Load recent chats for sidebar
-            var recentChatsRef = _firestore.Collection("users").Document(currentUserId).Collection("recentChats");
+            var recentChatsRef = _firestoreDb.Collection("users").Document(currentUserId).Collection("recentChats");
             var snapshot = await recentChatsRef.OrderByDescending("timestamp").GetSnapshotAsync();
 
             var recentChats = new List<RecentChatViewModel>();
@@ -271,7 +271,7 @@ namespace AcadenceWebApp.Controllers
             try
             {
                 // Query Firestore users collection by "username" field
-                var usersRef = _firestore.Collection("users");
+                var usersRef = _firestoreDb.Collection("users");
                 var query = usersRef.WhereEqualTo("username", username);
                 var snapshot = await query.GetSnapshotAsync();
 
@@ -294,7 +294,7 @@ namespace AcadenceWebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> ChatRoom(string chatRoomId)
         {
-            var messagesRef = _firestore.Collection("chats").Document(chatRoomId).Collection("messages");
+            var messagesRef = _firestoreDb.Collection("chats").Document(chatRoomId).Collection("messages");
             var snapshot = await messagesRef.OrderBy("timestamp").GetSnapshotAsync();
 
             var messages = snapshot.Documents.Select(d => new
@@ -323,7 +323,7 @@ namespace AcadenceWebApp.Controllers
                 ? currentUserId + "_" + request.ReceiverId
                 : request.ReceiverId + "_" + currentUserId;
 
-            var messagesRef = _firestore.Collection("chats").Document(chatRoomId).Collection("messages");
+            var messagesRef = _firestoreDb.Collection("chats").Document(chatRoomId).Collection("messages");
 
             var newMessage = new Dictionary<string, object>
         {
@@ -335,14 +335,14 @@ namespace AcadenceWebApp.Controllers
             await messagesRef.AddAsync(newMessage);
 
             // Update recent chats for both users
-            var senderDoc = _firestore.Collection("users").Document(currentUserId)
+            var senderDoc = _firestoreDb.Collection("users").Document(currentUserId)
                 .Collection("recentChats").Document(request.ReceiverId);
-            var receiverDoc = _firestore.Collection("users").Document(request.ReceiverId)
+            var receiverDoc = _firestoreDb.Collection("users").Document(request.ReceiverId)
                 .Collection("recentChats").Document(currentUserId);
 
             // Get usernames
-            var senderSnapshot = await _firestore.Collection("users").Document(currentUserId).GetSnapshotAsync();
-            var receiverSnapshot = await _firestore.Collection("users").Document(request.ReceiverId).GetSnapshotAsync();
+            var senderSnapshot = await _firestoreDb.Collection("users").Document(currentUserId).GetSnapshotAsync();
+            var receiverSnapshot = await _firestoreDb.Collection("users").Document(request.ReceiverId).GetSnapshotAsync();
 
             string senderUsername = senderSnapshot.GetValue<string>("username") ?? "You";
             string receiverUsername = receiverSnapshot.GetValue<string>("username") ?? "Unknown";
