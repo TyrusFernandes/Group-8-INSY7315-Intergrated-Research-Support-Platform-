@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text;
 using System.Net.Http.Headers;
+using System.Net.Http;
 
 namespace AcadenceWebApp.Controllers
 {
@@ -144,6 +145,60 @@ namespace AcadenceWebApp.Controllers
         public IActionResult Register()
         {
             return View("~/Views/Home/Register.cshtml");
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View("~/Views/Home/ForgotPassword.cshtml", new ForgotPasswordViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("~/Views/Home/ForgotPassword.cshtml", model);
+            }
+
+            try
+            {
+                using var client = new HttpClient();
+
+                var payload = new
+                {
+                    requestType = "PASSWORD_RESET",
+                    email = model.Email
+                };
+
+                var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(
+                    $"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={_apiKey}",
+                    content
+                );
+
+                // Always show generic message to avoid leaking whether the email exists
+                if (response.IsSuccessStatusCode)
+                {
+                    ViewBag.Message = "If the email exists in our system, a password reset link has been sent.";
+                    return View("~/Views/Home/ForgotPassword.cshtml");
+                }
+                else
+                {
+                    // Log details for diagnostics; do not show raw error to user
+                    var respContent = await response.Content.ReadAsStringAsync();
+                    // You can log respContent here
+                    ViewBag.Message = "If the email exists in our system, a password reset link has been sent.";
+                    return View("~/Views/Home/ForgotPassword.cshtml");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log ex for diagnostics
+                ViewBag.Message = "If the email exists in our system, a password reset link has been sent.";
+                return View("~/Views/Home/ForgotPassword.cshtml");
+            }
         }
 
     }
