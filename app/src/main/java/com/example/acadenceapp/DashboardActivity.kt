@@ -61,11 +61,20 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val btnArticle = findViewById<Button>(R.id.btnArticle)
-        btnArticle.setOnClickListener {
-            val intent = Intent(this, ForYouActivity::class.java)
+        val btnFeedback = findViewById<Button>(R.id.btnArticle)
+        btnFeedback.text = "Give Us Feedback"
+        btnFeedback.setOnClickListener {
+            val intent = Intent(this, FeedbackActivity::class.java)
             startActivity(intent)
         }
+
+        // StudentDashboardActivity.kt
+        val btnSupportTickets = findViewById<Button>(R.id.btnSupportTickets)
+        btnSupportTickets.setOnClickListener {
+            val intent = Intent(this, SupportTicketsActivity::class.java)
+            startActivity(intent)
+        }
+
 
         FirebaseFirestore.getInstance().collection("users")
             .document(FirebaseAuth.getInstance().currentUser?.uid ?: return)

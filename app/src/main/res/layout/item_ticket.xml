@@ -1,0 +1,34 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="@drawable/ticket_item_bg"
+    android:layout_margin="10dp"
+    android:elevation="2dp">
+
+    <!-- Ticket Summary -->
+    <TextView
+        android:id="@+id/ticket_summary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Issue summary here..."
+        android:textSize="16sp"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="8dp" />
+
+    <!-- Ticket Status -->
+    <TextView
+        android:id="@+id/ticket_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Status: Pending"
+        android:textSize="14sp"
+        android:textColor="#444444"
+        android:gravity="center"
+        android:paddingBottom="4dp"
+        android:paddingTop="4dp" />
+
+</LinearLayout>

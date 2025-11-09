@@ -28,6 +28,8 @@
             android:name=".ConsultantRequestDetailActivity"
             android:exported="false" />
         <activity android:name=".DocumentDetailActivity" />
+        <activity android:name=".FeedbackActivity" />
+        <activity android:name=".SupportTicketsActivity" />
 
         <activity
             android:name=".UploadActivity" />

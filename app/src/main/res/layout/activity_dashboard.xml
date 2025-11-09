@@ -280,7 +280,19 @@
                         android:padding="16dp" />
 
 
-                </LinearLayout>
+                    <!-- Support Tickets button inside the vertical layout -->
+                    <Button
+                        android:id="@+id/btnSupportTickets"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Support Tickets"
+                        android:layout_marginTop="16dp"
+                        android:backgroundTint="@color/black"
+                        android:textColor="@android:color/white" />
+
+                </LinearLayout> <!-- This closes the ScrollView's single LinearLayout child -->
+
+
         </ScrollView>
 
         <androidx.fragment.app.FragmentContainerView
