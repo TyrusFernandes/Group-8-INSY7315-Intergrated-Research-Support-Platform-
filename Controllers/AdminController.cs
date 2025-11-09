@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.Http;
 using AcadenceWebApp.Models;
 using Google.Cloud.Firestore;
 using Google.Cloud.Storage.V1;
+using FirebaseAdmin.Auth;
+using System.Diagnostics;
+using System.Security.Claims;
+using Newtonsoft.Json;
 
 namespace AcadenceWebApp.Controllers
 {
@@ -207,11 +211,85 @@ namespace AcadenceWebApp.Controllers
             return RedirectToAction(nameof(UploadResource));
         }
 
-        // Escalation management route (keeps existing behavior)
-        [HttpGet]
-        public IActionResult EscalationManagement()
+        public async Task<IActionResult> EscalationManagement()
         {
-            return View(); // Views/Admin/EscalationManagement.cshtml
+            
+            var collectionRef = _firestore.Collection("flaggedChats");
+
+            // 2. Fetch all reports ordered by latest timestamp
+            QuerySnapshot snapshot = await collectionRef
+                .OrderByDescending("timestamp")
+                .GetSnapshotAsync();
+
+            var reports = new List<FlaggedReportViewModel>();
+
+            // 3. Map Firestore documents to the FlaggedReportViewModel
+            foreach (DocumentSnapshot doc in snapshot.Documents)
+            {
+                if (doc.Exists)
+                {
+                    Dictionary<string, object> data = doc.ToDictionary();
+
+                    DateTime timestamp = data.TryGetValue("timestamp", out object ts) && ts is Timestamp firestoreTs
+                        ? firestoreTs.ToDateTime()
+                        : DateTime.MinValue;
+
+                    string conversationJson = "[]";
+                    if (data.TryGetValue("conversationSnapshot", out object conversationObj))
+                    {
+                        try
+                        {
+                            conversationJson = JsonConvert.SerializeObject(conversationObj);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error serializing conversation snapshot for doc {doc.Id}: {ex.Message}");
+                        }
+                    }
+
+                    string flaggedByUserId = data.TryGetValue("flaggedByUserId", out object flaggedBy)
+                        ? flaggedBy.ToString()
+                        : "N/A";
+
+                    // Fetch the username of the flagger from the users collection
+                    string flaggedByUsername = "Unknown User";
+                    if (!string.IsNullOrEmpty(flaggedByUserId) && flaggedByUserId != "N/A")
+                    {
+                        try
+                        {
+                            DocumentSnapshot userDoc = await _firestore
+                                .Collection("users")
+                                .Document(flaggedByUserId)
+                                .GetSnapshotAsync();
+
+                            if (userDoc.Exists && userDoc.ContainsField("username"))
+                            {
+                                flaggedByUsername = userDoc.GetValue<string>("username");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error fetching username for user {flaggedByUserId}: {ex.Message}");
+                        }
+                    }
+
+                    // 4. Create the ViewModel instance
+                    reports.Add(new FlaggedReportViewModel
+                    {
+                        Id = doc.Id,
+                        ChatId = data.TryGetValue("chatId", out object chatId) ? chatId.ToString() : "N/A",
+                        FlaggedByUserId = flaggedByUserId,
+                        FlaggedByUsername = flaggedByUsername, // ✅ new field
+                        Status = data.TryGetValue("status", out object status) ? status.ToString() : "N/A",
+                        Reason = data.TryGetValue("reason", out object reason) ? reason.ToString() : "Not specified",
+                        Timestamp = timestamp,
+                        ConversationJson = conversationJson
+                    });
+                }
+            }
+
+            // 5. Pass the list to the view
+            return View(reports);
         }
 
         // GET: Teacher feedbacks overview
