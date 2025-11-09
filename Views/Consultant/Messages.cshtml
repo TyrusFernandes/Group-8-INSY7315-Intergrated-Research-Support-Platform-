@@ -120,6 +120,14 @@
             resize: none;
         }
 
+        .chat-item.selected {
+            background-color: #bfdbfe;
+        }
+
+        .chat-item:active {
+            background-color: #93c5fd;
+        }
+
         button {
             padding: 0.5rem 1rem;
             background-color: #2563eb;
@@ -159,11 +167,19 @@
                 }
                 else
                 {
-                    foreach (var chat in Model)
+                    @foreach (var chat in Model)
                     {
-                        <div class="chat-item" onclick="openChat('@chat.ChatRoomId', '@chat.OtherUserId', '@chat.OtherUsername')">
-                            <span style="font-weight:600;">@chat.OtherUsername</span><br />
-                            <span style="font-size:0.85rem; color:#6b7280;">@chat.LastMessage</span>
+                        <div class="chat-item"
+                             onclick="openChat('@chat.ChatRoomId', '@chat.OtherUserId', '@chat.OtherUsername')">
+                            <p><strong>@chat.OtherUsername</strong></p>
+                            <p>@chat.LastMessage</p>
+
+                            @{
+                                string formatted = chat.Timestamp > 0
+                                ? DateTimeOffset.FromUnixTimeMilliseconds(chat.Timestamp).ToLocalTime().ToString("g")
+                                : "—";
+                            }
+                            <span>@formatted</span>
                         </div>
                     }
                 }
@@ -210,11 +226,18 @@
         // Start new chat by resolving username to UID
         async function startNewChat(username) {
             try {
-                const res = await fetch(`/Chat/GetUserIdByUsername?username=${encodeURIComponent(username)}`);
+                const res = await fetch(`/Consultant/GetUserIdByUsername?username=${encodeURIComponent(username)}`);
                 if (!res.ok) {
-                    alert("User not found");
+                    // Try to parse JSON error returned by controller
+                    let json = null;
+                    try { json = await res.json(); } catch (e) { /* ignore */ }
+
+                    const msg = (json && (json.error || json.message)) ? (json.error || json.message) : 'User not found';
+                    alert(msg);
+                    console.warn('GetUserIdByUsername response:', res.status, json);
                     return;
                 }
+
                 const data = await res.json();
                 currentReceiverId = data.userId;
                 currentReceiverName = username;
@@ -224,12 +247,21 @@
                 document.getElementById('sendArea').style.display = 'block';
             } catch (err) {
                 console.error("Error finding user:", err);
-                alert("Error finding user.");
+                alert("Error finding user. See console.");
             }
         }
 
+
         // Open chat messages
-        async function openChat(chatRoomId, otherUserId, otherUsername) {
+             async function openChat(chatRoomId, otherUserId, otherUsername, event) {
+            // 🔹 Highlight selected chat in sidebar
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('selected');
+            }
+
             currentChatRoomId = chatRoomId;
             currentReceiverId = otherUserId;
             currentReceiverName = otherUsername;
@@ -239,9 +271,17 @@
             container.innerHTML = `<h2>Chat with ${otherUsername}</h2><hr/>`;
 
             try {
-                const res = await fetch(`/Chat/ChatRoom?chatRoomId=${chatRoomId}`);
-                const messages = await res.json();
+                const res = await fetch(`/Consultant/ChatRoom?chatRoomId=${chatRoomId}`);
+                if (!res.ok) {
+                    console.error("Failed to load chat messages:", res.status);
+                    container.innerHTML += `<p style="color:red;">Failed to load messages.</p>`;
+                    return;
+                }
 
+                const messages = await res.json();
+                if (!Array.isArray(messages)) return;
+
+                // Display messages
                 container.innerHTML += messages.map(m => `
                     <div class="msg-row" style="justify-content:${m.senderId === currentReceiverId ? "flex-start" : "flex-end"};">
                         <div class="msg-bubble ${m.senderId === currentReceiverId ? "msg-received" : "msg-sent"}">
@@ -252,13 +292,46 @@
                 `).join('');
 
                 container.scrollTop = container.scrollHeight;
+
+                // ✅ Start auto-refresh every 3 seconds
+                if (window.chatRefreshInterval) clearInterval(window.chatRefreshInterval);
+                window.chatRefreshInterval = setInterval(() => refreshMessages(chatRoomId), 3000);
             } catch (err) {
                 console.error("Error loading messages:", err);
             }
         }
 
-        // Send a message
-        async function sendMessage() {
+        //refresh messages
+         async function refreshMessages(chatRoomId) {
+            if (!chatRoomId || chatRoomId !== currentChatRoomId) return;
+            const container = document.getElementById('messagesContainer');
+
+            try {
+                const res = await fetch(`/Consultant/ChatRoom?chatRoomId=${chatRoomId}`);
+                if (!res.ok) return;
+
+                const messages = await res.json();
+                container.innerHTML = `<h2>Chat with ${currentReceiverName}</h2><hr/>`;
+
+                messages.forEach(m => {
+                    const messageHtml = `
+                        <div class="msg-row" style="justify-content:${m.senderId === currentReceiverId ? "flex-start" : "flex-end"};">
+                            <div class="msg-bubble ${m.senderId === currentReceiverId ? "msg-received" : "msg-sent"}">
+                                <div>${m.text}</div>
+                                <div style="font-size:0.8rem;opacity:0.8;">${new Date(m.timestamp).toLocaleString()}</div>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += messageHtml;
+                });
+
+                container.scrollTop = container.scrollHeight;
+            } catch (err) {
+                console.error("Error refreshing messages:", err);
+            }
+        }
+
+               async function sendMessage() {
             const text = document.getElementById('messageText').value.trim();
             if (!text || !currentReceiverId) return;
 
@@ -268,7 +341,7 @@
             };
 
             try {
-                const res = await fetch('/Chat/SendMessage', {
+                const res = await fetch('/Consultant/SendMessage', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -278,7 +351,9 @@
                     document.getElementById('messageText').value = '';
                     const result = await res.json();
                     currentChatRoomId = result.chatRoomId;
-                    openChat(currentChatRoomId, currentReceiverId, currentReceiverName);
+
+                    // Refresh messages instantly
+                    await refreshMessages(currentChatRoomId);
                 } else {
                     alert('Failed to send message.');
                 }

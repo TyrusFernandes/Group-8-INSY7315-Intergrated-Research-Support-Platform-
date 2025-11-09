@@ -230,36 +230,57 @@ namespace AcadenceWebApp.Controllers
             return View(vm);
         }
 
-        [HttpGet]
         public async Task<IActionResult> MessagesAsync()
         {
-            string currentUserId = User.Identity?.Name;
+            string currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(currentUserId))
-            {
                 return Unauthorized("User not logged in");
-            }
 
-            // Load recent chats for sidebar
-            var recentChatsRef = _firestoreDb.Collection("users").Document(currentUserId).Collection("recentChats");
-            var snapshot = await recentChatsRef.OrderByDescending("timestamp").GetSnapshotAsync();
+            var recentChatsRef = _firestoreDb
+                .Collection("users")
+                .Document(currentUserId)
+                .Collection("recentChats")
+                .OrderByDescending("timestamp");
 
+            var snapshot = await recentChatsRef.GetSnapshotAsync();
             var recentChats = new List<RecentChatViewModel>();
+
             foreach (var doc in snapshot.Documents)
             {
                 var data = doc.ToDictionary();
+
+                long ts = 0L;
+                if (data.TryGetValue("timestamp", out object tsObj) && tsObj != null)
+                {
+                    switch (tsObj)
+                    {
+                        case long l: ts = l; break;
+                        case int i: ts = i; break;
+                        case double d: ts = Convert.ToInt64(d); break;
+                        case string s when long.TryParse(s, out long parsed): ts = parsed; break;
+                        case Google.Cloud.Firestore.Timestamp fts:
+                            ts = new DateTimeOffset(fts.ToDateTime()).ToUnixTimeMilliseconds();
+                            break;
+                        default:
+                            // leave ts = 0
+                            break;
+                    }
+                }
+
                 recentChats.Add(new RecentChatViewModel
                 {
-                    ChatRoomId = data.ContainsKey("chatId") ? data["chatId"].ToString() : "",
-                    OtherUserId = data.ContainsKey("otherUserId") ? data["otherUserId"].ToString() : "",
-                    OtherUsername = data.ContainsKey("otherUsername") ? data["otherUsername"].ToString() : "",
-                    LastMessage = data.ContainsKey("lastMessage") ? data["lastMessage"].ToString() : "",
-                    Timestamp = data.ContainsKey("timestamp") ? ((Timestamp)data["timestamp"]).ToDateTime() : DateTime.UtcNow
+                    ChatRoomId = data.ContainsKey("chatId") ? data["chatId"]?.ToString() ?? "" : "",
+                    OtherUserId = data.ContainsKey("otherUserId") ? data["otherUserId"]?.ToString() ?? "" : "",
+                    OtherUsername = data.ContainsKey("otherUsername") ? data["otherUsername"]?.ToString() ?? "Unknown User" : "Unknown User",
+                    LastMessage = data.ContainsKey("lastMessage") ? data["lastMessage"]?.ToString() ?? "No messages yet" : "No messages yet",
+                    Timestamp = ts
                 });
             }
 
-            return View(recentChats.OrderByDescending(c => c.Timestamp).ToList());
+            var sorted = recentChats.OrderByDescending(c => c.Timestamp).ToList();
+            return View(sorted);
         }
-        
+
         // Resolve a username to UID
         [HttpGet]
         public async Task<IActionResult> GetUserIdByUsername(string username)
@@ -267,44 +288,93 @@ namespace AcadenceWebApp.Controllers
             if (string.IsNullOrWhiteSpace(username))
                 return BadRequest(new { error = "Username required" });
 
-            Debug.WriteLine($"Searching for username: {username}");
+            // Normalize & log what the controller received
+            username = username.Trim();
+            System.Diagnostics.Debug.WriteLine($"GetUserIdByUsername called. Searching for username: '{username}'");
+
             try
             {
-                // Query Firestore users collection by "username" field
                 var usersRef = _firestoreDb.Collection("users");
-                var query = usersRef.WhereEqualTo("username", username);
-                var snapshot = await query.GetSnapshotAsync();
 
-                if (snapshot.Count == 0)
-                    return NotFound(new { error = "User not found" });
+                // 1) Exact match (fast, indexed)
+                var exactQuery = usersRef.WhereEqualTo("username", username);
+                var exactSnapshot = await exactQuery.GetSnapshotAsync();
+                if (exactSnapshot.Count > 0)
+                {
+                    var userDoc = exactSnapshot.Documents.First();
+                    return Ok(new { userId = userDoc.Id });
+                }
 
-                // Should only be one match
-                var userDoc = snapshot.Documents.First();
-                var userId = userDoc.Id; // Firestore document ID is the user's UID
+                // 2) Fallback: case-insensitive search (read a reasonable limit then match in-memory)
+                //    This avoids complicated indexing changes and will find "Tyrus1" vs "tyrus1".
+                //    Limit to e.g. 1000 docs — adjust if you have a huge users collection.
+                var allSnapshot = await usersRef.Limit(1000).GetSnapshotAsync();
+                var caseInsensitiveMatch = allSnapshot.Documents
+                    .FirstOrDefault(d =>
+                    {
+                        if (!d.ContainsField("username")) return false;
+                        var v = d.GetValue<string>("username");
+                        return !string.IsNullOrEmpty(v) && string.Equals(v, username, StringComparison.OrdinalIgnoreCase);
+                    });
 
-                return Ok(new { userId });
+                if (caseInsensitiveMatch != null)
+                    return Ok(new { userId = caseInsensitiveMatch.Id });
+
+                // 3) Fallback: maybe the user typed an email — try matching 'email' field (case-insensitive)
+                var emailMatch = allSnapshot.Documents
+                    .FirstOrDefault(d =>
+                    {
+                        if (!d.ContainsField("email")) return false;
+                        var e = d.GetValue<string>("email");
+                        return !string.IsNullOrEmpty(e) && string.Equals(e, username, StringComparison.OrdinalIgnoreCase);
+                    });
+
+                if (emailMatch != null)
+                    return Ok(new { userId = emailMatch.Id });
+
+                // 4) Not found
+                return NotFound(new { error = "User not found", searched = username });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                System.Diagnostics.Debug.WriteLine($"GetUserIdByUsername error: {ex}");
+                return StatusCode(500, new { error = "Internal server error", detail = ex.Message });
             }
         }
 
         // Fetch chat messages for a chat room
-        [HttpGet]
         public async Task<IActionResult> ChatRoom(string chatRoomId)
         {
-            var messagesRef = _firestoreDb.Collection("chats").Document(chatRoomId).Collection("messages");
-            var snapshot = await messagesRef.OrderBy("timestamp").GetSnapshotAsync();
-
-            var messages = snapshot.Documents.Select(d => new
+            try
             {
-                senderId = d.GetValue<string>("senderId"),
-                text = d.GetValue<string>("text"),
-                timestamp = ((Timestamp)d.GetValue<Timestamp>("timestamp")).ToDateTime()
-            }).ToList();
+                var messagesRef = _firestoreDb.Collection("chats")
+                    .Document(chatRoomId)
+                    .Collection("messages")
+                    .OrderBy("timestamp");
 
-            return Json(messages);
+                var snapshot = await messagesRef.GetSnapshotAsync();
+                var messages = new List<object>();
+
+                foreach (var doc in snapshot.Documents)
+                {
+                    var data = doc.ToDictionary();
+
+                    messages.Add(new
+                    {
+                        senderId = data.ContainsKey("senderId") ? data["senderId"]?.ToString() : "",
+                        text = data.ContainsKey("text") ? data["text"]?.ToString() : "",
+                        timestamp = data.ContainsKey("timestamp")
+                            ? Convert.ToInt64(data["timestamp"])
+                            : 0L
+                    });
+                }
+
+                return Json(messages);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         // Send a message
@@ -325,14 +395,19 @@ namespace AcadenceWebApp.Controllers
 
             var messagesRef = _firestoreDb.Collection("chats").Document(chatRoomId).Collection("messages");
 
-            var newMessage = new Dictionary<string, object>
-        {
-            { "senderId", currentUserId },
-            { "text", request.Text },
-            { "timestamp", Timestamp.GetCurrentTimestamp() }
-        };
+            // Create new document and include its own ID in the data
+            var newMessageRef = messagesRef.Document();
+            var messageId = newMessageRef.Id;
 
-            await messagesRef.AddAsync(newMessage);
+            var newMessage = new Dictionary<string, object>
+    {
+        { "id", messageId }, // ✅ message stores its own ID
+        { "senderId", currentUserId },
+        { "text", request.Text },
+        { "timestamp", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() }
+    };
+
+            await newMessageRef.SetAsync(newMessage);
 
             // Update recent chats for both users
             var senderDoc = _firestoreDb.Collection("users").Document(currentUserId)
@@ -340,36 +415,39 @@ namespace AcadenceWebApp.Controllers
             var receiverDoc = _firestoreDb.Collection("users").Document(request.ReceiverId)
                 .Collection("recentChats").Document(currentUserId);
 
-            // Get usernames
             var senderSnapshot = await _firestoreDb.Collection("users").Document(currentUserId).GetSnapshotAsync();
             var receiverSnapshot = await _firestoreDb.Collection("users").Document(request.ReceiverId).GetSnapshotAsync();
 
-            string senderUsername = senderSnapshot.GetValue<string>("username") ?? "You";
-            string receiverUsername = receiverSnapshot.GetValue<string>("username") ?? "Unknown";
+            string senderUsername = senderSnapshot.ContainsField("username")
+                ? senderSnapshot.GetValue<string>("username") : "You";
 
-            var timestamp = Timestamp.GetCurrentTimestamp();
+            string receiverUsername = receiverSnapshot.ContainsField("username")
+                ? receiverSnapshot.GetValue<string>("username") : "Unknown";
+
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
             var senderRecent = new Dictionary<string, object>
-        {
-            { "chatId", chatRoomId },
-            { "otherUserId", request.ReceiverId },
-            { "otherUsername", receiverUsername },
-            { "lastMessage", request.Text },
-            { "timestamp", timestamp }
-        };
+    {
+        { "chatId", chatRoomId },
+        { "otherUserId", request.ReceiverId },
+        { "otherUsername", receiverUsername },
+        { "lastMessage", request.Text },
+        { "timestamp", timestamp }
+    };
 
             var receiverRecent = new Dictionary<string, object>
-        {
-            { "chatId", chatRoomId },
-            { "otherUserId", currentUserId },
-            { "otherUsername", senderUsername },
-            { "lastMessage", request.Text },
-            { "timestamp", timestamp }
-        };
+    {
+        { "chatId", chatRoomId },
+        { "otherUserId", currentUserId },
+        { "otherUsername", senderUsername },
+        { "lastMessage", request.Text },
+        { "timestamp", timestamp }
+    };
 
             await senderDoc.SetAsync(senderRecent, SetOptions.MergeAll);
             await receiverDoc.SetAsync(receiverRecent, SetOptions.MergeAll);
 
-            return Json(new { chatRoomId });
+            return Json(new { chatRoomId, messageId });
         }
 
 
