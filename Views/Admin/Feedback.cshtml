@@ -1,0 +1,67 @@
+﻿@model List<AcadenceWebApp.Models.FeedbackItemDto>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Student Feedback";
+}
+
+<style>
+    .main-content { margin-left: 60px; padding: 20px 40px; }
+    .content-header { background:white; padding:20px; border-radius:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.04); }
+    .panel { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+    .task-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
+    .task-table th, .task-table td { padding:14px 18px; border-bottom:1px solid #f0f0f0; text-align:left; vertical-align:middle; }
+    .task-table thead th { text-transform: uppercase; font-size:12px; color:#718096; font-weight:600; letter-spacing:.6px; }
+    .rating-stars { color:#f6ad55; font-weight:700; }
+    .comment-cell { max-width: 420px; white-space:normal; word-break:break-word; color:#4a5568; }
+    .empty-state { text-align:center; padding:40px; color:#718096; }
+    .media (max-width:1024px) { .main-content { margin-left: 0; padding:12px; } }
+</style>
+
+<div class="main-content">
+    <div class="content-header">
+        <h2>Student Feedback</h2>
+        <div><small class="text-muted">All feedback submitted by students — most recent first.</small></div>
+    </div>
+
+    <div class="panel">
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage as string))
+        {
+            <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+        }
+
+        @if (Model != null && Model.Any())
+        {
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th style="width:18%;">Student</th>
+                        <th style="width:18%;">Consultant</th>
+                        <th style="width:12%;">Rating</th>
+                        <th>Comment</th>
+                        <th style="width:16%;">Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var f in Model)
+                    {
+                        <tr>
+                            <td>@f.StudentName</td>
+                            <td>@f.ConsultantName</td>
+                            <td><span class="rating-stars">@String.Concat(Enumerable.Repeat("★", Math.Max(0, Math.Min(5, f.Rating))))@String.Concat(Enumerable.Repeat("☆", 5 - Math.Max(0, Math.Min(5, f.Rating))))</span></td>
+                            <td class="comment-cell">@Html.Raw(System.Net.WebUtility.HtmlEncode(f.Comment).Replace("\n","<br/>"))</td>
+                            <td>@f.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <h3>No Feedback Yet</h3>
+                <p>No student feedback has been submitted yet.</p>
+            </div>
+        }
+    </div>
+</div>

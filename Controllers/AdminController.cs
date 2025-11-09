@@ -49,6 +49,9 @@ namespace AcadenceWebApp.Controllers
 
         public IActionResult Notifications() => View();
 
+        
+        public IActionResult FeedbackLink() => View();
+        public IActionResult NotificationsLink() => View();
         // GET: show upload page and existing resources from Firestore (collection "resources")
         [HttpGet]
         public async Task<IActionResult> UploadResource()
@@ -209,6 +212,98 @@ namespace AcadenceWebApp.Controllers
         public IActionResult EscalationManagement()
         {
             return View(); // Views/Admin/EscalationManagement.cshtml
+        }
+
+        // GET: Teacher feedbacks overview
+        [HttpGet]
+        public async Task<IActionResult> Feedback()
+        {
+            var list = new List<FeedbackItemDto>();
+
+            try
+            {
+                var coll = _firestore.Collection("feedbacks");
+                var snap = await coll.OrderByDescending("timestamp").GetSnapshotAsync();
+
+                // collect UIDs to resolve display names
+                var uids = new HashSet<string>();
+                foreach (var d in snap.Documents)
+                {
+                    if (!d.Exists) continue;
+                    if (d.TryGetValue("studentUid", out string sUid) && !string.IsNullOrEmpty(sUid)) uids.Add(sUid);
+                    if (d.TryGetValue("consultantUid", out string cUid) && !string.IsNullOrEmpty(cUid)) uids.Add(cUid);
+                }
+
+                // resolve names from users collection
+                var nameMap = new Dictionary<string, string>();
+                foreach (var uid in uids)
+                {
+                    try
+                    {
+                        var uDoc = await _firestore.Collection("users").Document(uid).GetSnapshotAsync();
+                        if (uDoc.Exists)
+                        {
+                            uDoc.TryGetValue("displayName", out string displayName);
+                            uDoc.TryGetValue("username", out string username);
+                            uDoc.TryGetValue("email", out string email);
+                            nameMap[uid] = !string.IsNullOrEmpty(displayName) ? displayName
+                                           : !string.IsNullOrEmpty(username) ? username
+                                           : (!string.IsNullOrEmpty(email) ? email : uid);
+                        }
+                        else
+                        {
+                            nameMap[uid] = uid;
+                        }
+                    }
+                    catch
+                    {
+                        nameMap[uid] = uid;
+                    }
+                }
+
+                // map feedback documents to DTOs
+                foreach (var d in snap.Documents)
+                {
+                    if (!d.Exists) continue;
+                    try
+                    {
+                        d.TryGetValue("comment", out string comment);
+                        d.TryGetValue("consultantUid", out string consultantUid);
+                        d.TryGetValue("studentUid", out string studentUid);
+                        d.TryGetValue("rating", out int rating);
+
+                        DateTime ts = DateTime.UtcNow;
+                        if (d.TryGetValue("timestamp", out Google.Cloud.Firestore.Timestamp rawTs))
+                        {
+                            ts = rawTs.ToDateTime();
+                        }
+
+                        var item = new FeedbackItemDto
+                        {
+                            Id = d.Id,
+                            Comment = comment ?? "",
+                            ConsultantUid = consultantUid ?? "",
+                            ConsultantName = nameMap.ContainsKey(consultantUid ?? "") ? nameMap[consultantUid ?? ""] : (consultantUid ?? ""),
+                            StudentUid = studentUid ?? "",
+                            StudentName = nameMap.ContainsKey(studentUid ?? "") ? nameMap[studentUid ?? ""] : (studentUid ?? ""),
+                            Rating = rating,
+                            Timestamp = ts
+                        };
+
+                        list.Add(item);
+                    }
+                    catch
+                    {
+                        // ignore per-doc parse errors
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Unable to load feedbacks: " + ex.Message;
+            }
+
+            return View(list);
         }
     }
 }
