@@ -139,7 +139,8 @@ namespace AcadenceWebApp.Controllers
                             DueDate = fr.DueDate.ToDateTime(),
                             CreatedAt = fr.CreatedAt.ToDateTime(),
                             Price = fr.Price,
-                            AdminApproved = fr.AdminApproved
+                            AdminApproved = fr.AdminApproved,
+                            ConsultantApproved = doc.TryGetValue("consultantApproved", out bool cApproved) ? cApproved : false,
                         };
 
                         tasks.Add(model);
@@ -540,6 +541,32 @@ namespace AcadenceWebApp.Controllers
             catch
             {
                 return Json(new List<object>());
+            }
+        }
+
+        // POST: /Consultant/UpdateConsultantApproval
+        [HttpPost]
+        public async Task<IActionResult> UpdateConsultantApproval([FromBody] ConsultantApprovalDto dto)
+        {
+            if (dto == null || string.IsNullOrEmpty(dto.TaskId))
+            {
+                return Json(new ApiResponse { Success = false, Message = "Invalid payload" });
+            }
+
+            try
+            {
+                var docRef = _firestoreDb.Collection("requests").Document(dto.TaskId);
+                var updates = new Dictionary<string, object>
+                {
+                    ["consultantApproved"] = dto.ConsultantApproved
+                };
+
+                await docRef.UpdateAsync(updates);
+                return Json(new ApiResponse { Success = true, Message = "Updated" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse { Success = false, Message = "Error updating approval: " + ex.Message });
             }
         }
     }

@@ -33,18 +33,151 @@ namespace AcadenceWebApp.Controllers
         }
 
         // ================== Admin pages ==================
-        public IActionResult Dashboard() => View();
-
-        // Student Satisfaction Overview (returns a model to the view)
-        public IActionResult StudentSatisfaction()
+        
+        // Replace the existing Dashboard() action with this implementation
+        [HttpGet]
+        public async Task<IActionResult> Dashboard()
         {
-            var vm = new StudentSatisfactionViewModel
+            var vm = new DashboardViewModel();
+
+            try
             {
-                Satisfied = 72,
-                Neutral = 18,
-                Unsatisfied = 10
-            };
-            return View(vm); // Views/Admin/StudentSatisfaction.cshtml
+                // resources
+                try
+                {
+                    var resourcesColl = _firestore.Collection("resources");
+                    var resSnap = await resourcesColl.OrderByDescending("uploadedAt").GetSnapshotAsync();
+                    vm.ResourcesCount = resSnap.Count;
+                    var recentResources = new List<ResourceItemDto>();
+                    foreach (var doc in resSnap.Documents.Take(6))
+                    {
+                        try
+                        {
+                            doc.TryGetValue("title", out string title);
+                            doc.TryGetValue("originalName", out string originalName);
+                            doc.TryGetValue("url", out string url);
+
+                            DateTime uploadedAt = DateTime.UtcNow;
+                            if (doc.TryGetValue("uploadedAt", out Google.Cloud.Firestore.Timestamp rawTs))
+                                uploadedAt = rawTs.ToDateTime();
+
+                            recentResources.Add(new ResourceItemDto
+                            {
+                                Id = doc.Id,
+                                Title = title ?? "",
+                                OriginalName = originalName ?? "",
+                                Url = url ?? "",
+                                UploadedAt = uploadedAt
+                            });
+                        }
+                        catch { }
+                    }
+                    vm.RecentResources = recentResources;
+                }
+                catch { vm.ResourcesCount = 0; }
+
+                // support tickets
+                try
+                {
+                    var ticketsColl = _firestore.Collection("supportTickets");
+                    var ticketsSnap = await ticketsColl.GetSnapshotAsync();
+                    vm.SupportTicketsCount = ticketsSnap.Count;
+                }
+                catch { vm.SupportTicketsCount = 0; }
+
+                // assignment requests count (for Assign page)
+                try
+                {
+                    var reqSnap = await _firestore.Collection("requests").GetSnapshotAsync();
+                    vm.AssignRequestsCount = reqSnap.Count;
+                }
+                catch { vm.AssignRequestsCount = 0; }
+
+                // feedbacks & metrics
+                try
+                {
+                    var fbColl = _firestore.Collection("feedbacks");
+                    var fbSnap = await fbColl.OrderByDescending("timestamp").GetSnapshotAsync();
+
+                    var items = new List<FeedbackItemDto>();
+                    var uids = new HashSet<string>();
+
+                    foreach (var doc in fbSnap.Documents)
+                    {
+                        if (!doc.Exists) continue;
+
+                        doc.TryGetValue("comment", out string comment);
+                        doc.TryGetValue("consultantUid", out string consultantUid);
+                        doc.TryGetValue("studentUid", out string studentUid);
+                        doc.TryGetValue("rating", out int rating);
+
+                        DateTime ts = DateTime.UtcNow;
+                        if (doc.TryGetValue("timestamp", out Google.Cloud.Firestore.Timestamp rawTs))
+                            ts = rawTs.ToDateTime();
+
+                        items.Add(new FeedbackItemDto
+                        {
+                            Id = doc.Id,
+                            Comment = comment ?? "",
+                            ConsultantUid = consultantUid ?? "",
+                            StudentUid = studentUid ?? "",
+                            Rating = rating,
+                            Timestamp = ts
+                        });
+
+                        if (!string.IsNullOrEmpty(consultantUid)) uids.Add(consultantUid);
+                        if (!string.IsNullOrEmpty(studentUid)) uids.Add(studentUid);
+                    }
+
+                    // Resolve names (best-effort)
+                    var nameMap = new Dictionary<string, string>();
+                    foreach (var uid in uids)
+                    {
+                        try
+                        {
+                            var uDoc = await _firestore.Collection("users").Document(uid).GetSnapshotAsync();
+                            if (uDoc.Exists)
+                            {
+                                uDoc.TryGetValue("displayName", out string displayName);
+                                uDoc.TryGetValue("username", out string username);
+                                uDoc.TryGetValue("email", out string email);
+                                nameMap[uid] = !string.IsNullOrEmpty(displayName) ? displayName
+                                               : (!string.IsNullOrEmpty(username) ? username : (!string.IsNullOrEmpty(email) ? email : uid));
+                            }
+                            else
+                            {
+                                nameMap[uid] = uid;
+                            }
+                        }
+                        catch
+                        {
+                            nameMap[uid] = uid;
+                        }
+                    }
+
+                    foreach (var it in items)
+                    {
+                        it.StudentName = nameMap.ContainsKey(it.StudentUid) ? nameMap[it.StudentUid] : it.StudentUid;
+                        it.ConsultantName = nameMap.ContainsKey(it.ConsultantUid) ? nameMap[it.ConsultantUid] : it.ConsultantUid;
+                    }
+
+                    vm.TotalFeedbackCount = items.Count;
+                    vm.AverageRating = items.Count > 0 ? items.Average(x => (double)x.Rating) : 0;
+                    vm.RecentFeedbacks = items.OrderByDescending(x => x.Timestamp).Take(6).ToList();
+
+                    // breakdown for pie chart (same logic as StudentSatisfaction)
+                    vm.Satisfied = items.Count(x => x.Rating >= 4);
+                    vm.Neutral = items.Count(x => x.Rating == 3);
+                    vm.Unsatisfied = items.Count(x => x.Rating <= 2);
+                }
+                catch { vm.TotalFeedbackCount = 0; vm.AverageRating = 0; vm.RecentFeedbacks = new List<FeedbackItemDto>(); vm.Satisfied = vm.Neutral = vm.Unsatisfied = 0; }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Unable to load dashboard data: " + ex.Message;
+            }
+
+            return View(vm);
         }
 
         public IActionResult ConsultantWorkload() => View();
@@ -211,87 +344,7 @@ namespace AcadenceWebApp.Controllers
             return RedirectToAction(nameof(UploadResource));
         }
 
-        public async Task<IActionResult> EscalationManagement()
-        {
-            
-            var collectionRef = _firestore.Collection("flaggedChats");
-
-            // 2. Fetch all reports ordered by latest timestamp
-            QuerySnapshot snapshot = await collectionRef
-                .OrderByDescending("timestamp")
-                .GetSnapshotAsync();
-
-            var reports = new List<FlaggedReportViewModel>();
-
-            // 3. Map Firestore documents to the FlaggedReportViewModel
-            foreach (DocumentSnapshot doc in snapshot.Documents)
-            {
-                if (doc.Exists)
-                {
-                    Dictionary<string, object> data = doc.ToDictionary();
-
-                    DateTime timestamp = data.TryGetValue("timestamp", out object ts) && ts is Timestamp firestoreTs
-                        ? firestoreTs.ToDateTime()
-                        : DateTime.MinValue;
-
-                    string conversationJson = "[]";
-                    if (data.TryGetValue("conversationSnapshot", out object conversationObj))
-                    {
-                        try
-                        {
-                            conversationJson = JsonConvert.SerializeObject(conversationObj);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error serializing conversation snapshot for doc {doc.Id}: {ex.Message}");
-                        }
-                    }
-
-                    string flaggedByUserId = data.TryGetValue("flaggedByUserId", out object flaggedBy)
-                        ? flaggedBy.ToString()
-                        : "N/A";
-
-                    // Fetch the username of the flagger from the users collection
-                    string flaggedByUsername = "Unknown User";
-                    if (!string.IsNullOrEmpty(flaggedByUserId) && flaggedByUserId != "N/A")
-                    {
-                        try
-                        {
-                            DocumentSnapshot userDoc = await _firestore
-                                .Collection("users")
-                                .Document(flaggedByUserId)
-                                .GetSnapshotAsync();
-
-                            if (userDoc.Exists && userDoc.ContainsField("username"))
-                            {
-                                flaggedByUsername = userDoc.GetValue<string>("username");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error fetching username for user {flaggedByUserId}: {ex.Message}");
-                        }
-                    }
-
-                    // 4. Create the ViewModel instance
-                    reports.Add(new FlaggedReportViewModel
-                    {
-                        Id = doc.Id,
-                        ChatId = data.TryGetValue("chatId", out object chatId) ? chatId.ToString() : "N/A",
-                        FlaggedByUserId = flaggedByUserId,
-                        FlaggedByUsername = flaggedByUsername, // ✅ new field
-                        Status = data.TryGetValue("status", out object status) ? status.ToString() : "N/A",
-                        Reason = data.TryGetValue("reason", out object reason) ? reason.ToString() : "Not specified",
-                        Timestamp = timestamp,
-                        ConversationJson = conversationJson
-                    });
-                }
-            }
-
-            // 5. Pass the list to the view
-            return View(reports);
-        }
-
+        
         // GET: Teacher feedbacks overview
         [HttpGet]
         public async Task<IActionResult> Feedback()
@@ -382,6 +435,177 @@ namespace AcadenceWebApp.Controllers
             }
 
             return View(list);
+        }
+
+        // GET: /Admin/EscalationManagement
+        [HttpGet]
+        public async Task<IActionResult> EscalationManagement()
+        {
+            var tickets = new List<SupportTicketDto>();
+            try
+            {
+                var coll = _firestore.Collection("supportTickets");
+                var snap = await coll.OrderByDescending("timestamp").GetSnapshotAsync();
+
+                foreach (var doc in snap.Documents)
+                {
+                    if (!doc.Exists) continue;
+                    try
+                    {
+                        doc.TryGetValue("initialMessage", out string initialMessage);
+                        doc.TryGetValue("studentId", out string studentId);
+                        doc.TryGetValue("studentName", out string studentName);
+                        doc.TryGetValue("status", out string status);
+
+                        DateTime ts = DateTime.UtcNow;
+                        if (doc.TryGetValue("timestamp", out Timestamp rawTs))
+                        {
+                            ts = rawTs.ToDateTime();
+                        }
+
+                        tickets.Add(new SupportTicketDto
+                        {
+                            Id = doc.Id,
+                            InitialMessage = initialMessage ?? "",
+                            StudentId = studentId ?? "",
+                            StudentName = studentName ?? "",
+                            Status = string.IsNullOrEmpty(status) ? "pending" : status,
+                            Timestamp = ts
+                        });
+                    }
+                    catch
+                    {
+                        // ignore per-doc parse errors
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Unable to load support tickets: " + ex.Message;
+            }
+
+            return View(tickets.OrderByDescending(t => t.Timestamp).ToList());
+        }
+
+        // POST: /Admin/UpdateTicketStatus
+        [HttpPost]
+        public async Task<IActionResult> UpdateTicketStatus([FromBody] TicketStatusUpdateDto dto)
+        {
+            if (dto == null || string.IsNullOrEmpty(dto.TicketId) || string.IsNullOrEmpty(dto.Status))
+            {
+                return Json(new ApiResponse { Success = false, Message = "Invalid payload" });
+            }
+
+            try
+            {
+                var docRef = _firestore.Collection("supportTickets").Document(dto.TicketId);
+                var updates = new Dictionary<string, object>
+                {
+                    ["status"] = dto.Status,
+                    ["updatedAt"] = Timestamp.FromDateTime(DateTime.UtcNow)
+                };
+
+                await docRef.UpdateAsync(updates);
+                return Json(new ApiResponse { Success = true, Message = "Updated" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse { Success = false, Message = "Error updating ticket status: " + ex.Message });
+            }
+        }
+
+        // update the StudentSatisfaction action to load real feedback data
+        [HttpGet]
+        public async Task<IActionResult> StudentSatisfaction()
+        {
+            var vm = new StudentSatisfactionViewModel();
+
+            try
+            {
+                var coll = _firestore.Collection("feedbacks");
+                var snap = await coll.OrderByDescending("timestamp").GetSnapshotAsync();
+
+                var items = new List<FeedbackItemDto>();
+                var uids = new HashSet<string>();
+
+                foreach (var doc in snap.Documents)
+                {
+                    if (!doc.Exists) continue;
+
+                    doc.TryGetValue("comment", out string comment);
+                    doc.TryGetValue("consultantUid", out string consultantUid);
+                    doc.TryGetValue("studentUid", out string studentUid);
+                    doc.TryGetValue("rating", out int rating);
+
+                    Google.Cloud.Firestore.Timestamp rawTs = default;
+                    DateTime ts = DateTime.UtcNow;
+                    if (doc.TryGetValue("timestamp", out rawTs) && rawTs != null)
+                    {
+                        ts = rawTs.ToDateTime();
+                    }
+
+                    var item = new FeedbackItemDto
+                    {
+                        Id = doc.Id,
+                        Comment = comment ?? "",
+                        ConsultantUid = consultantUid ?? "",
+                        StudentUid = studentUid ?? "",
+                        Rating = rating,
+                        Timestamp = ts
+                    };
+
+                    items.Add(item);
+
+                    if (!string.IsNullOrEmpty(consultantUid)) uids.Add(consultantUid);
+                    if (!string.IsNullOrEmpty(studentUid)) uids.Add(studentUid);
+                }
+
+                // resolve user display names
+                var nameMap = new Dictionary<string, string>();
+                foreach (var uid in uids)
+                {
+                    try
+                    {
+                        var uDoc = await _firestore.Collection("users").Document(uid).GetSnapshotAsync();
+                        if (uDoc.Exists)
+                        {
+                            uDoc.TryGetValue("displayName", out string displayName);
+                            uDoc.TryGetValue("username", out string username);
+                            uDoc.TryGetValue("email", out string email);
+                            nameMap[uid] = !string.IsNullOrEmpty(displayName) ? displayName
+                                           : (!string.IsNullOrEmpty(username) ? username : (!string.IsNullOrEmpty(email) ? email : uid));
+                        }
+                        else
+                        {
+                            nameMap[uid] = uid;
+                        }
+                    }
+                    catch
+                    {
+                        nameMap[uid] = uid;
+                    }
+                }
+
+                // set resolved names
+                foreach (var it in items)
+                {
+                    it.StudentName = nameMap.ContainsKey(it.StudentUid) ? nameMap[it.StudentUid] : it.StudentUid;
+                    it.ConsultantName = nameMap.ContainsKey(it.ConsultantUid) ? nameMap[it.ConsultantUid] : it.ConsultantUid;
+                }
+
+                vm.TotalFeedbackCount = items.Count;
+                vm.AverageRating = items.Count > 0 ? items.Average(x => (double)x.Rating) : 0;
+                vm.Satisfied = items.Count(x => x.Rating >= 4);
+                vm.Neutral = items.Count(x => x.Rating == 3);
+                vm.Unsatisfied = items.Count(x => x.Rating <= 2);
+                vm.RecentFeedbacks = items.OrderByDescending(x => x.Timestamp).Take(12).ToList();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Unable to load student satisfaction: " + ex.Message;
+            }
+
+            return View(vm);
         }
     }
 }

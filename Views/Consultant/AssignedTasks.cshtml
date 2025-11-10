@@ -497,6 +497,7 @@
                             <th>Description</th>
                             <th>Priority</th>
                             <th>Status</th>
+                            <th class="text-center">Consultant Approve</th>
                             <th>Deadline</th>
                         </tr>
                     </thead>
@@ -521,6 +522,11 @@
                                           style="cursor: pointer;"
                                           title="Click to change status"></span>
                                 </td>
+
+                                <td class="text-center">
+                                    <input type="checkbox" class="consultant-approve-checkbox" data-task-id="@task.Id" @(task.ConsultantApproved ? "checked" : "") />
+                                </td>
+
                                 <td class="deadline">@task.DeadlineFormatted</td>
                             </tr>
                         }
@@ -693,6 +699,31 @@
             if (e.target === this) {
                 closeStatusModal();
             }
+        });
+
+        // wire consultant approve checkbox change events
+        document.querySelectorAll('.consultant-approve-checkbox').forEach(cb => {
+            cb.addEventListener('change', async function () {
+                const taskId = this.dataset.taskId;
+                const consultantApproved = this.checked === true;
+
+                try {
+                    const res = await fetch('/Consultant/UpdateConsultantApproval', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ taskId, consultantApproved })
+                    });
+                    const data = await res.json();
+                    if (!data.success) {
+                        alert('Update failed: ' + (data.message || 'unknown'));
+                    } else {
+                        showNotification('Approval updated', false);
+                    }
+                } catch (err) {
+                    console.error('Error updating consultant approval', err);
+                    alert('Error updating approval');
+                }
+            });
         });
     </script>
 
