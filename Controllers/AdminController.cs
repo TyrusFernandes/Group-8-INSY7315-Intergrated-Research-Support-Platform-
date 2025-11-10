@@ -180,7 +180,76 @@ namespace AcadenceWebApp.Controllers
             return View(vm);
         }
 
-        public IActionResult ConsultantWorkload() => View();
+        // Admin: Consultant Workload
+        // Replaced implementation with the provided ConsultantWorkloadController logic
+        [HttpGet]
+        public async Task<IActionResult> ConsultantWorkload(string searchTerm, string statusFilter,
+            DateTime? deadlineFrom, DateTime? deadlineTo, string sortBy = "Name")
+        {
+            var viewModel = new ConsultantWorkloadViewModel
+            {   
+                SearchTerm = searchTerm,
+                StatusFilter = statusFilter,
+                DeadlineFrom = deadlineFrom,
+                DeadlineTo = deadlineTo,
+                SortBy = sortBy
+            };
+
+            try
+            {
+                // Fetch consultants from Firestore (uses helper below)
+                var consultants = await GetConsultantsWorkload();
+
+                // Apply filters
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    consultants = consultants.Where(c =>
+                        (!string.IsNullOrEmpty(c.ConsultantName) && c.ConsultantName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(c.Email) && c.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(statusFilter))
+                {
+                    consultants = consultants.Where(c =>
+                        c.Projects.Any(p => string.Equals(p.Status, statusFilter, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+                }
+
+                if (deadlineFrom.HasValue)
+                {
+                    consultants = consultants.Where(c =>
+                        c.NextDeadline.HasValue && c.NextDeadline.Value.Date >= deadlineFrom.Value.Date
+                    ).ToList();
+                }
+
+                if (deadlineTo.HasValue)
+                {
+                    consultants = consultants.Where(c =>
+                        c.NextDeadline.HasValue && c.NextDeadline.Value.Date <= deadlineTo.Value.Date
+                    ).ToList();
+                }
+
+                // Apply sorting
+                consultants = sortBy switch
+                {
+                    "Workload" => consultants.OrderByDescending(c => c.WorkloadPercentage).ToList(),
+                    "Projects" => consultants.OrderByDescending(c => c.ActiveProjects).ToList(),
+                    "Deadline" => consultants.OrderBy(c => c.NextDeadline ?? DateTime.MaxValue).ToList(),
+                    _ => consultants.OrderBy(c => c.ConsultantName).ToList()
+                };
+
+                viewModel.Consultants = consultants;
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Error loading consultant workload data.";
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+
+            // Explicit admin view path kept
+            return View("~/Views/Admin/ConsultantWorkload.cshtml", viewModel);
+        }
 
         public IActionResult ConsultantAssignment() => View();
 
@@ -606,6 +675,66 @@ namespace AcadenceWebApp.Controllers
             }
 
             return View(vm);
+        }
+
+        // --- Helper: fetch consultants + projects and compute metrics (simpler version requested) ---
+        private async Task<List<ConsultantWorkload>> GetConsultantsWorkload()
+        {
+            var consultants = new List<ConsultantWorkload>();
+
+            // Fetch from "consultants" collection
+            var consultantsRef = _firestore.Collection("consultants");
+            var snapshot = await consultantsRef.GetSnapshotAsync();
+
+            foreach (var document in snapshot.Documents)
+            {
+                var consultant = new ConsultantWorkload
+                {
+                    ConsultantId = document.Id,
+                    ConsultantName = document.ContainsField("name") ? document.GetValue<string>("name") : "",
+                    Email = document.ContainsField("email") ? document.GetValue<string>("email") : ""
+                };
+
+                // Fetch projects for this consultant
+                var projectsRef = _firestore.Collection("projects")
+                    .WhereEqualTo("consultantId", consultant.ConsultantId);
+                var projectsSnapshot = await projectsRef.GetSnapshotAsync();
+
+                foreach (var projectDoc in projectsSnapshot.Documents)
+                {
+                    var project = new ProjectDetail
+                    {
+                        ProjectId = projectDoc.Id,
+                        ProjectName = projectDoc.ContainsField("name") ? projectDoc.GetValue<string>("name") : "",
+                        Status = projectDoc.ContainsField("status") ? projectDoc.GetValue<string>("status") : "",
+                        Deadline = projectDoc.ContainsField("deadline")
+                            ? projectDoc.GetValue<DateTime?>("deadline")
+                            : null,
+                        TasksAssigned = projectDoc.ContainsField("tasksAssigned") ? projectDoc.GetValue<int>("tasksAssigned") : 0,
+                        TasksCompleted = projectDoc.ContainsField("tasksCompleted") ? projectDoc.GetValue<int>("tasksCompleted") : 0
+                    };
+
+                    consultant.Projects.Add(project);
+                }
+
+                // Calculate workload metrics
+                consultant.ActiveProjects = consultant.Projects.Count(p => string.Equals(p.Status, "Active", StringComparison.OrdinalIgnoreCase));
+                consultant.TotalTasks = consultant.Projects.Sum(p => p.TasksAssigned);
+                consultant.CompletedTasks = consultant.Projects.Sum(p => p.TasksCompleted);
+                consultant.PendingTasks = consultant.TotalTasks - consultant.CompletedTasks;
+                consultant.NextDeadline = consultant.Projects
+                    .Where(p => p.Deadline.HasValue && p.Deadline > DateTime.Now)
+                    .OrderBy(p => p.Deadline)
+                    .FirstOrDefault()?.Deadline;
+
+                consultant.WorkloadPercentage = consultant.TotalTasks > 0
+                    ? Math.Round((double)consultant.PendingTasks / consultant.TotalTasks * 100, 1)
+                    : 0;
+
+                consultants.Add(consultant);
+            }
+
+            return consultants;
         }
     }
 }
