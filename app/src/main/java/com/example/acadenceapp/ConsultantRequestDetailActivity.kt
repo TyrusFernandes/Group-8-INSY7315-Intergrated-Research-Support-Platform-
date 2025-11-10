@@ -107,17 +107,51 @@ class ConsultantRequestDetailActivity : AppCompatActivity() {
                 visibilityText.text = doc.getString("visibility")
                 reviewDetailsText.text = doc.getString("reviewDetails")
                 docId = doc.getString("docId")
-                val statusOptions = resources.getStringArray(R.array.status_options)
-                val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, statusOptions)
-                spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                statusSpinner.adapter = spinnerAdapter
-
                 val currentStatus = doc.getString("status") ?: "Pending"
-                val spinnerPosition = statusOptions.indexOfFirst { it.equals(currentStatus, ignoreCase = true) }
-                if (spinnerPosition != -1) {
-                    statusSpinner.setSelection(spinnerPosition)
+                val dueDate = doc.getTimestamp("dueDate")?.toDate()
+
+                // Check if overdue
+                val now = Timestamp.now().toDate()
+                val isOverdue = dueDate != null && dueDate.before(now) && currentStatus != "Submitted"
+                val finalStatus = if (isOverdue) "Overdue" else currentStatus
+
+                // Optional: update Firestore if overdue
+                if (isOverdue && currentStatus != "Overdue") {
+                    firestore.collection("requests").document(requestId!!)
+                        .update("status", "Overdue")
                 }
 
+
+                // Setup spinner with allowed statuses for consultant
+                val userId = FirebaseAuth.getInstance().currentUser?.uid
+                FirebaseFirestore.getInstance().collection("users").document(userId ?: "")
+                    .get()
+                    .addOnSuccessListener { userDoc ->
+                        val role = userDoc.getString("role") ?: "student"
+
+                        if (role == "consultant") {
+                            // Consultant can edit: show limited allowed statuses
+                            val allowed = listOf("Pending", "In Progress", "Awaiting Feedback", "Submitted")
+                            val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, allowed)
+                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                            statusSpinner.adapter = adapter
+
+                            val pos = allowed.indexOfFirst { it.equals(finalStatus, ignoreCase = true) }
+                            if (pos != -1) statusSpinner.setSelection(pos)
+
+                            statusSpinner.isEnabled = true
+                            statusSpinner.isClickable = true
+
+                        } else {
+                            // Student: disable spinner
+                            val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, listOf(finalStatus))
+                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                            statusSpinner.adapter = adapter
+
+                            statusSpinner.isEnabled = false
+                            statusSpinner.isClickable = false
+                        }
+                    }
 
                 // Load document URL
                 if (docId != null) {
@@ -129,6 +163,7 @@ class ConsultantRequestDetailActivity : AppCompatActivity() {
                 }
             }
     }
+
 
     private fun updateStatus(newStatus: String) {
         firestore.collection("requests").document(requestId!!)

@@ -261,7 +261,8 @@ class DashboardActivity : AppCompatActivity() {
         val userId = currentUserId ?: return
 
         firestore.collection("requests")
-            .whereNotEqualTo("status", "Done")  // Filter out completed ones
+            .whereEqualTo("adminApproved", true)
+            .whereEqualTo("consultantApproved", true)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val ongoingRequests = querySnapshot.documents.filter { doc ->

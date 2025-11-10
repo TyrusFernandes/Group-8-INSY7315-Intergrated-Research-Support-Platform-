@@ -65,5 +65,26 @@
             android:layout_marginTop="8dp"
             android:textStyle="bold"
             android:textSize="14sp" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/reqProgressBar"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:layout_marginTop="8dp"
+            android:progressDrawable="@drawable/progress_bar_color"
+            android:max="100" />
+        <TextView
+            android:id="@+id/reqProgressText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="50%"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"
+            android:textColor="#555555" />
+
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
