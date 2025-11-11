@@ -1,35 +1,99 @@
-﻿@model AcadenceWebApp.Models.EscalationConsoleViewModel
-@using AcadenceWebApp.Models
+﻿@model List<AcadenceWebApp.Models.SupportTicketDto>
+
 @{
-    ViewData["Title"] = "Escalation Management";
+    ViewData["Title"] = "Escalation Console";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container py-4" style="max-width: 640px;">
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h4 class="card-title mb-3" style="font-weight:700; color:#2b2d42;">
-                <span class="me-2">🚩</span> Escalation Management Console
-            </h4>
+<style>
+    .main-content { margin-left: 60px; padding: 20px 40px; }
+    .content-header { background:white; padding:20px; border-radius:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.04); }
+    .panel { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+    .task-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
+    .task-table th, .task-table td { padding:14px 18px; border-bottom:1px solid #f0f0f0; text-align:left; vertical-align:middle; }
+    .task-table thead th { text-transform: uppercase; font-size:12px; color:#718096; font-weight:600; }
+    .status-select { min-width:160px; }
+    .empty-state { text-align:center; padding:40px; color:#718096; }
+</style>
 
-            @if (Model.Items?.Any() == true)
-            {
-                <ul class="list-group list-group-flush">
-                    @foreach (var e in Model.Items)
+<div class="main-content">
+    <div class="content-header">
+        <h2>Escalation Console</h2>
+        <div><small class="text-muted">Manage support tickets — change status to track progress.</small></div>
+    </div>
+
+    <div class="panel">
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage as string))
+        {
+            <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+        }
+
+        @if (Model != null && Model.Any())
+        {
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th style="width:18%;">Student</th>
+                        <th style="width:42%;">Message</th>
+                        <th style="width:18%;">Status</th>
+                        <th style="width:22%;">Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model)
                     {
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center gap-2">
-                                <span>⚠️</span>
-                                <span><strong>@e.StudentName</strong> - @e.Issue</span>
-                            </div>
-                            <a class="btn btn-sm btn-outline-primary" asp-action="EscalationDetails" asp-route-id="@e.Id">View</a>
-                        </li>
+                        <tr data-ticket-id="@t.Id">
+                            <td>@(string.IsNullOrEmpty(t.StudentName) ? t.StudentId : t.StudentName)</td>
+                            <td style="white-space:normal; word-break:break-word;">@t.InitialMessage</td>
+                            <td>
+                                <select class="form-select status-select" data-ticket-id="@t.Id">
+                                    <option value="pending" selected="@(t.Status == "pending" ? "selected" : null)">Pending</option>
+                                    <option value="in-progress" selected="@(t.Status == "in-progress" ? "selected" : null)">In Progress</option>
+                                    <option value="resolved" selected="@(t.Status == "resolved" ? "selected" : null)">Resolved</option>
+                                </select>
+                            </td>
+                            <td>@t.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
                     }
-                </ul>
-            }
-            else
-            {
-                <div class="text-muted">No escalations yet.</div>
-            }
-        </div>
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <h3>No Support Tickets</h3>
+                <p>There are currently no support tickets.</p>
+            </div>
+        }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.status-select').forEach(sel => {
+            sel.addEventListener('change', async function () {
+                const ticketId = this.dataset.ticketId;
+                const status = this.value;
+
+                try {
+                    const res = await fetch('/Admin/UpdateTicketStatus', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ticketId, status })
+                    });
+                    const data = await res.json();
+                    if (!data.success) {
+                        alert('Update failed: ' + (data.message || 'unknown'));
+                    } else {
+                        // brief visual feedback
+                        this.style.boxShadow = '0 0 0 3px rgba(72, 187, 120, 0.15)';
+                        setTimeout(() => this.style.boxShadow = '', 1000);
+                    }
+                } catch (err) {
+                    console.error('Error updating ticket status', err);
+                    alert('Error updating ticket status');
+                }
+            });
+        });
+    </script>
+}

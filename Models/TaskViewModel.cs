@@ -58,6 +58,9 @@ namespace AcadenceWebApp.Models
         [Display(Name = "Admin Approved")]
         public bool AdminApproved { get; set; }
 
+        [Display(Name = "Consultant Approved")]
+        public bool ConsultantApproved { get; set; }
+
         // Computed property for priority based on urgency
         public string Priority => Urgency switch
         {

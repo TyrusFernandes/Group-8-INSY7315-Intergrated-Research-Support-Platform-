@@ -1,142 +1,131 @@
-﻿@{
+﻿@model AcadenceWebApp.Models.DashboardViewModel
+
+@{
     ViewData["Title"] = "Admin Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var chartData = System.Text.Json.JsonSerializer.Serialize(new {
+        satisfied = Model?.Satisfied ?? 0,
+        neutral = Model?.Neutral ?? 0,
+        unsatisfied = Model?.Unsatisfied ?? 0,
+        average = Model?.AverageRating ?? 0,
+        total = Model?.TotalFeedbackCount ?? 0
+    });
 }
 
-<div class="container-fluid">
-    <h2 class="fw-bold text-center mb-4">Admin Dashboard</h2>
+<style>
+    .main-content { margin-left: 60px; padding: 20px 40px; }
+    .panel { background:white; border-radius:12px; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+    .metric-card { padding:18px; border-radius:10px; color:#fff; min-height:110px; display:flex; flex-direction:column; justify-content:center; }
+    .metric-title { font-weight:600; font-size:16px; }
+    .metric-value { font-size:36px; font-weight:700; margin-top:6px; }
+    .card-link { display:block; text-decoration:none; color:inherit; }
+    .card-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:18px; margin-bottom:20px; }
+    .media (max-width: 900px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+    .task-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
+    .task-table th, .task-table td { padding:12px 14px; border-bottom:1px solid #f0f0f0; text-align:left; vertical-align:middle; }
+    .task-table thead th { text-transform: uppercase; font-size:12px; color:#718096; font-weight:600; letter-spacing:.6px; }
+</style>
+
+<div class="main-content">
+    <div class="mb-3">
+        <h2>Admin Dashboard</h2>
+        <div class="text-muted">Overview of resources, feedback and support activity.</div>
+    </div>
+
+    <!-- Metric cards (entire card is clickable) -->
+    <div class="card-grid">
+        <a class="card-link" href="@Url.Action("UploadResource","Admin")" aria-label="Manage resources">
+            <div class="metric-card" style="background:#0d6efd;">
+                <div class="metric-title">Resources</div>
+                <div class="metric-value">@Model.ResourcesCount</div>
+            </div>
+        </a>
+
+        <a class="card-link" href="@Url.Action("StudentSatisfaction","Admin")" aria-label="View feedbacks">
+            <div class="metric-card" style="background:#f8f9fa; color:#111;">
+                <div class="metric-title">Feedbacks</div>
+                <div class="metric-value">@Model.TotalFeedbackCount</div>
+                <div class="small text-muted" style="margin-top:6px">Avg: @Model.AverageRating.ToString("0.0")</div>
+            </div>
+        </a>
+
+        <a class="card-link" href="@Url.Action("EscalationManagement","Admin")" aria-label="Manage support tickets">
+            <div class="metric-card" style="background:#ffc107; color:#111;">
+                <div class="metric-title">Support Tickets</div>
+                <div class="metric-value">@Model.SupportTicketsCount</div>
+            </div>
+        </a>
+
+        <!-- Updated: point to AssignmentsController.Assign and show request count -->
+        <a class="card-link" href="@Url.Action("Assign","Assignments")" aria-label="Assign requests">
+            <div class="metric-card" style="background:#198754;">
+                <div class="metric-title">Assignment Requests</div>
+                <div class="metric-value">@Model.AssignRequestsCount</div>
+            </div>
+        </a>
+    </div>
 
     <div class="row g-4">
-        <!-- Student Satisfaction Overview test -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold">📊 Student Satisfaction Overview</h5>
-                    <canvas id="satisfactionChart"></canvas>
-                </div>
-            </div>
-        </div>
+        <div class="col-md-7">
+            <div class="panel">
+                <h5 class="mb-3">Recent Feedback</h5>
 
-        <!-- Consultant Workload -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold">📈 Consultant Workload</h5>
-                    <canvas id="workloadChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Consultant Assignment Panel -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold">👤 Consultant Assignment Panel</h5>
-                    <form>
-                        <div class="mb-3">
-                            <label class="form-label">Select Service Request:</label>
-                            <select class="form-select">
-                                <option>Student C - Coaching</option>
-                                <option>Student D - Editing</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Assign Consultant:</label>
-                            <select class="form-select">
-                                <option>Ms. Luthuli</option>
-                                <option>Prof. Zwide</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-warning w-100">Assign</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Broadcast Message -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold">📢 Broadcast Message</h5>
-                    <textarea class="form-control mb-3" rows="3" placeholder="Enter announcement..."></textarea>
-                    <button class="btn btn-warning w-100">Send Broadcast</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Upload Academic Resource -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold">📎 Upload Academic Resource</h5>
-
-                    <input type="file" id="resourceFile" class="form-control mb-2">
-                    <input type="text" id="resourceTitle" class="form-control mb-3" placeholder="Resource Title">
-
-                    <button class="btn btn-warning w-100" onclick="saveResource()">Upload</button>
-
-                    <hr />
-                    <div id="uploadedResources">
-                        <p class="text-muted">No resources uploaded yet.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <script>
-            const uploads = [];
-
-            function saveResource() {
-                const fileInput = document.getElementById("resourceFile");
-                const titleInput = document.getElementById("resourceTitle");
-                const list = document.getElementById("uploadedResources");
-
-                const file = fileInput.files[0];
-                const title = titleInput.value || "Untitled Resource";
-
-                if (!file) {
-                    alert("Please choose a file.");
-                    return;
+                @if (Model.RecentFeedbacks != null && Model.RecentFeedbacks.Any())
+                {
+                    <table class="task-table">
+                        <thead>
+                            <tr>
+                                <th style="width:18%;">When</th>
+                                <th style="width:24%;">From</th>
+                                <th style="width:24%;">Consultant</th>
+                                <th style="width:10%;">Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in Model.RecentFeedbacks)
+                            {
+                                <tr>
+                                    <td>@f.Timestamp.ToLocalTime().ToString("g")</td>
+                                    <td>@(string.IsNullOrEmpty(f.StudentName) ? f.StudentUid : f.StudentName)</td>
+                                    <td>@(string.IsNullOrEmpty(f.ConsultantName) ? f.ConsultantUid : f.ConsultantName)</td>
+                                    <td>@f.Rating</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 }
+                else
+                {
+                    <div class="text-muted">No feedback yet.</div>
+                }
+            </div>
 
-                const timestamp = new Date().toLocaleString();
+            <div class="panel mt-3">
+                <h5 class="mb-3">Recent Resources</h5>
+                <ul class="list-group list-group-flush">
+                    @foreach (var r in Model.RecentResources)
+                    {
+                        <li class="list-group-item">
+                            <a href="@r.Url" target="_blank">@r.Title</a>
+                            <div class="small text-muted">@r.OriginalName — @r.UploadedAt.ToLocalTime().ToString("g")</div>
+                        </li>
+                    }
+                    @if (!Model.RecentResources.Any())
+                    {
+                        <li class="list-group-item text-muted">No resources uploaded yet</li>
+                    }
+                </ul>
+            </div>
+        </div>
 
-                uploads.push({
-                    title: title,
-                    fileName: file.name,
-                    date: timestamp
-                });
-
-                // Clear input fields
-                fileInput.value = "";
-                titleInput.value = "";
-
-                // Update list
-                list.innerHTML = "";
-                uploads.forEach((item, index) => {
-                    const div = document.createElement("div");
-                    div.className = "p-2 bg-light mb-2 rounded";
-                    div.innerHTML = `
-                        <strong>${item.title}</strong><br>
-                        <small>${item.fileName}</small><br>
-                        <small class="text-muted">Submitted: ${item.date}</small>
-                    `;
-                    list.appendChild(div);
-                });
-            }
-        </script>
-
-
-        <!-- Escalation Management Console -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold">🚩 Escalation Management Console</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">⚠️ Student A - Clarification delay <button class="btn btn-sm btn-outline-primary ms-2">View</button></li>
-                        <li>⚠️ Student D - Missed Deadline <button class="btn btn-sm btn-outline-primary ms-2">View</button></li>
-                    </ul>
+        <div class="col-md-5">
+            <div class="panel">
+                <h5 class="mb-3">Satisfaction Breakdown</h5>
+                <div style="max-width:360px; margin:0 auto;">
+                    <canvas id="dashboardChart" height="220"></canvas>
                 </div>
+                <div class="mt-3 text-center small text-muted">Avg rating: @Model.AverageRating.ToString("0.0") — Total feedbacks: @Model.TotalFeedbackCount</div>
             </div>
         </div>
     </div>
@@ -145,31 +134,34 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const ctx1 = document.getElementById('satisfactionChart');
-        new Chart(ctx1, {
-            type: 'pie',
-            data: {
-                labels: ['Satisfied', 'Neutral', 'Unsatisfied'],
-                datasets: [{
-                    data: [70, 20, 10],
-                    backgroundColor: ['#5e72eb', '#ffa726', '#ef5350']
-                }]
-            },
-            options: { responsive: true }
-        });
-
-        const ctx2 = document.getElementById('workloadChart');
-        new Chart(ctx2, {
-            type: 'bar',
-            data: {
-                labels: ['Dr. Smith', 'Ms. Luthuli', 'Prof. Zwide'],
-                datasets: [{
-                    label: 'Active Projects',
-                    data: [4, 7, 3],
-                    backgroundColor: '#5e72eb'
-                }]
-            },
-            options: { responsive: true }
-        });
+        (function(){
+            const stats = @Html.Raw(chartData);
+            const ctx = document.getElementById('dashboardChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Satisfied', 'Neutral', 'Unsatisfied'],
+                    datasets: [{
+                        data: [stats.satisfied, stats.neutral, stats.unsatisfied],
+                        backgroundColor: ['#5B6EE1', '#F5A623', '#E74C3C']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const label = ctx.label || '';
+                                    const val = ctx.raw || 0;
+                                    return label + ': ' + val + ' (' + (stats.total ? Math.round(val / stats.total * 100) : 0) + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })();
     </script>
 }
