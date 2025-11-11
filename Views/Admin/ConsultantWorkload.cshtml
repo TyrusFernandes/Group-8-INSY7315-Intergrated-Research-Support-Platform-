@@ -7,12 +7,13 @@
 
 <h1>Consultant Workload</h1>
 
-<form method="get" asp-controller="ConsultantWorkload" asp-action="Index" class="mb-3">
+<!-- Point form to Admin controller so admin link & actions stay consistent -->
+<form method="get" asp-controller="Admin" asp-action="ConsultantWorkload" class="mb-3">
     <div style="display:flex; gap:8px; max-width:720px;">
         <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search consultant name or email..."
                style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;" />
         <button type="submit" style="padding:8px 14px; background:#0047ff; color:white; border:none; border-radius:4px;">Search</button>
-        <a href="@Url.Action("Index", "ConsultantWorkload")" style="padding:8px 14px; background:#6c757d; color:white; border-radius:4px; text-decoration:none;">Clear</a>
+        <a href="@Url.Action("ConsultantWorkload", "Admin")" style="padding:8px 14px; background:#6c757d; color:white; border-radius:4px; text-decoration:none;">Clear</a>
     </div>
 </form>
 
@@ -32,12 +33,12 @@ else
                         <small>@c.Email</small>
                     </div>
                     <div>
-                        <small>@(c.StudentRequests.Count) requests</small>
+                        <small>@(c.StudentRequests?.Count ?? 0) requests</small>
                     </div>
                 </div>
 
                 <div style="margin-top:10px;">
-                    @if (!c.StudentRequests.Any())
+                    @if (c.StudentRequests == null || !c.StudentRequests.Any())
                     {
                         <div style="color:#666;">No assigned requests.</div>
                     }

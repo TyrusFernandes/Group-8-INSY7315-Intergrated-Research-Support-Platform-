@@ -33,7 +33,7 @@ namespace AcadenceWebApp.Controllers
         }
 
         // ================== Admin pages ==================
-        
+
         // Replace the existing Dashboard() action with this implementation
         [HttpGet]
         public async Task<IActionResult> Dashboard()
@@ -229,7 +229,7 @@ namespace AcadenceWebApp.Controllers
 
         public IActionResult Notifications() => View();
 
-        
+
         public IActionResult FeedbackLink() => View();
         public IActionResult NotificationsLink() => View();
         // GET: show upload page and existing resources from Firestore (collection "resources")
@@ -387,7 +387,7 @@ namespace AcadenceWebApp.Controllers
             return RedirectToAction(nameof(UploadResource));
         }
 
-        
+
         // GET: Teacher feedbacks overview
         [HttpGet]
         public async Task<IActionResult> Feedback()
@@ -651,26 +651,47 @@ namespace AcadenceWebApp.Controllers
             return View(vm);
         }
 
-        // --- Helper (new): fetch consultants and their assigned 'requests' as StudentRequest items ---
+        // Replace the existing GetConsultantsWorkload_Simplified() method body with this implementation
         private async Task<List<ConsultantWorkload>> GetConsultantsWorkload_Simplified()
         {
             var list = new List<ConsultantWorkload>();
 
+            // Try the explicit "consultants" collection first (if you have it)
             var consultantsRef = _firestore.Collection("consultants");
             var consSnap = await consultantsRef.GetSnapshotAsync();
 
-            foreach (var doc in consSnap.Documents)
+            List<DocumentSnapshot> consultantDocs = new List<DocumentSnapshot>();
+            if (consSnap != null && consSnap.Count > 0)
+            {
+                consultantDocs.AddRange(consSnap.Documents);
+            }
+            else
+            {
+                // Fallback: many projects store consultants as users with role == "consultant"
+                var usersQuery = _firestore.Collection("users").WhereEqualTo("role", "consultant").Limit(1000);
+                var usersSnap = await usersQuery.GetSnapshotAsync();
+                if (usersSnap != null && usersSnap.Count > 0)
+                {
+                    consultantDocs.AddRange(usersSnap.Documents);
+                }
+            }
+
+            foreach (var doc in consultantDocs)
             {
                 try
                 {
+                    // Map either consultants doc schema or users doc schema
                     var consultant = new ConsultantWorkload
                     {
                         ConsultantId = doc.Id,
-                        ConsultantName = doc.ContainsField("name") ? doc.GetValue<string>("name") : (doc.ContainsField("displayName") ? doc.GetValue<string>("displayName") : ""),
+                        ConsultantName = doc.ContainsField("name") ? doc.GetValue<string>("name")
+                                         : doc.ContainsField("displayName") ? doc.GetValue<string>("displayName")
+                                         : doc.ContainsField("username") ? doc.GetValue<string>("username")
+                                         : "",
                         Email = doc.ContainsField("email") ? doc.GetValue<string>("email") : ""
                     };
 
-                    // Ensure StudentRequests list exists (model updated to include it)
+                    // Ensure StudentRequests list exists
                     if (consultant.StudentRequests == null)
                         consultant.StudentRequests = new List<StudentRequest>();
 
@@ -682,7 +703,6 @@ namespace AcadenceWebApp.Controllers
                     {
                         try
                         {
-                            // Try common fields used in requests documents
                             string studentRef = null;
                             if (rDoc.TryGetValue("requestedByUid", out string rb)) studentRef = rb;
                             else if (rDoc.TryGetValue("requestedBy", out string rb2)) studentRef = rb2;
@@ -717,7 +737,6 @@ namespace AcadenceWebApp.Controllers
                                         }
                                         else
                                         {
-                                            // fallback: query by email if studentRef looks like an email
                                             var q = _firestore.Collection("users").WhereEqualTo("email", studentRef).Limit(1);
                                             var qSnap = await q.GetSnapshotAsync();
                                             if (qSnap.Count > 0)
@@ -763,7 +782,7 @@ namespace AcadenceWebApp.Controllers
                         }
                     }
 
-                    // Ensure Projects list exists so existing views referencing Projects won't NRE
+                    // Ensure Projects list exists
                     if (consultant.Projects == null)
                         consultant.Projects = new List<ProjectDetail>();
 
