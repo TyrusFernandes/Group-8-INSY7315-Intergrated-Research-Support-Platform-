@@ -1,0 +1,499 @@
+﻿@model AcadenceWebApp.Models.SettingsViewModel
+
+@{
+    ViewData["Title"] = "Settings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["HideLayoutElements"] = true;
+}
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+<div class="container-fluid" style="background-color: #f2f2f2; min-height: 100vh; padding: 40px 20px;">
+    <div class="settings-container" style="max-width: 900px; margin: 0 auto;">
+        <div class="settings-header">
+            <h1>Settings</h1>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="settings-content">
+            <!-- Profile Section -->
+            <div class="settings-profile">
+                <img src="@Model.ProfileImageUrl" alt="Profile" class="profile-avatar" />
+                <div class="profile-info">
+                    <h2>@Model.UserName</h2>
+                    <p class="profile-email">@Model.Email</p>
+                </div>
+                <a asp-controller="Profile" asp-action="Index" class="btn-edit-profile">Edit Profile</a>
+            </div>
+
+            <!-- Preferences Section -->
+            <div class="settings-section">
+                <h3 class="section-title">Preferences</h3>
+                <div class="settings-card">
+                    <div class="setting-item" id="languageItem" style="position:relative;">
+                        <div class="setting-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <  path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                        </div>
+                        <div class="setting-info">
+                            <span class="setting-label">Notifications and Sounds</span>
+                        </div>
+                        <a href="#" class="setting-arrow">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </a>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                        </div>
+                        <div class="setting-info">
+                            <span class="setting-label">Language</span>
+                            <span class="setting-value">@Model.SelectedLanguage</span>
+                        </div>
+                        <a href="#" class="setting-arrow">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </a>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                        </div>
+                        <div class="setting-info">
+                            <span class="setting-label">Theme</span>
+                            <span class="setting-value">@Model.SelectedTheme</span>
+                        </div>
+                        <a href="#" class="setting-arrow">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Section -->
+            <div class="settings-section">
+                <h3 class="section-title">Account</h3>
+                <div class="settings-card">
+                    <a asp-action="ChangePassword" class="setting-item">
+                        <div class="setting-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
+                        <div class="setting-info">
+                            <span class="setting-label">Password</span>
+                        </div>
+                        <div class="setting-arrow">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </a>
+
+                    <div class="setting-item">
+                        <div class="setting-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5z"></path>
+                                <path d="M12 14a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9z"></path>
+                            </svg>
+                        </div>
+                        <div class="setting-info">
+                            <span class="setting-label">Login with Biometrics</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="biometricToggle" @(Model.BiometricLoginEnabled ? "checked" : "") />
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <a href="#" class="setting-item">
+                        <div class="setting-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </div>
+                        <div class="setting-info">
+                            <span class="setting-label">Support</span>
+                        </div>
+                        <div class="setting-arrow">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </a>
+
+                    <a asp-action="Privacy" asp-controller="Home" class="setting-item">
+                        <div class="setting-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="setting-info">
+                            <span class="setting-label">Terms and Privacy Policy</span>
+                        </div>
+                        <div class="setting-arrow">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </a>
+
+                    <form asp-action="Logout" asp-controller="Settings" method="post" class="logout-form">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="setting-item logout-item">
+                            <div class="setting-icon logout-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                            </div>
+                            <div class="setting-info">
+                                <span class="setting-label logout-label">Logout</span>
+                            </div>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f2f2f2 !important;
+    }
+
+    /* Settings Page Styles */
+    .settings-container {
+        background-color: #f2f2f2;
+    }
+
+    .settings-header {
+        margin-bottom: 30px;
+    }
+
+        .settings-header h1 {
+            font-size: 32px;
+            font-weight: 600;
+            color: #444;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+    .settings-content {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Profile Section */
+    .settings-profile {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #f5f5f7;
+    }
+
+    .profile-info {
+        flex: 1;
+    }
+
+        .profile-info h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #444;
+            margin: 0 0 4px 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+    .profile-email {
+        font-size: 14px;
+        color: #6c757d;
+        margin: 0;
+    }
+
+    .btn-edit-profile {
+        padding: 10px 24px;
+        background-color: #0047ff;
+        color: white;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+        .btn-edit-profile:hover {
+            background-color: #0036cc;
+            transform: scale(1.03);
+        }
+
+    /* Settings Sections */
+    .settings-section {
+        margin-bottom: 8px;
+    }
+
+    .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0 12px 16px;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .settings-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Setting Items */
+    .setting-item {
+        display: flex;
+        align-items: center;
+        padding: 18px 24px;
+        border-bottom: 1px solid #f5f5f7;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-decoration: none;
+        color: inherit;
+    }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-item:hover {
+            background-color: #fafafa;
+        }
+
+    .setting-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f5f5f7;
+        border-radius: 10px;
+        margin-right: 16px;
+        flex-shrink: 0;
+    }
+
+        .setting-icon svg {
+            color: #444;
+        }
+
+    .setting-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .setting-label {
+        font-size: 16px;
+        color: #444;
+        font-weight: 500;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .setting-value {
+        font-size: 14px;
+        color: #6c757d;
+        margin-top: 2px;
+    }
+
+    .setting-arrow {
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 51px;
+        height: 31px;
+        flex-shrink: 0;
+    }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e5e5ea;
+        transition: 0.3s;
+        border-radius: 34px;
+    }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 27px;
+            width: 27px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: #0047ff;
+    }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+    /* Logout Section */
+    .logout-form {
+        margin: 0;
+        padding: 0;
+    }
+
+    .logout-item {
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+    }
+
+    .logout-icon {
+        background-color: #fff0f0;
+    }
+
+        .logout-icon svg {
+            color: #ff3b30;
+        }
+
+    .logout-label {
+        color: #ff3b30;
+    }
+
+    /* Alert Styles */
+    .alert {
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+    }
+
+    .alert-success {
+        background-color: #d1f5e6;
+        color: #00784a;
+        border: 1px solid #00c78f;
+    }
+
+    /* Responsive Design */
+    .media (max-width: 768px) {
+        .settings-header h1
+
+    {
+        font-size: 28px;
+    }
+
+    .settings-profile {
+        padding: 24px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+    }
+
+    .btn-edit-profile {
+        width: 100%;
+        text-align: center;
+        display: block;
+    }
+
+    .section-title {
+        margin-left: 8px;
+    }
+
+    .setting-item {
+        padding: 16px 20px;
+    }
+
+    .setting-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.getElementById('biometricToggle').addEventListener('change', function() {
+            fetch('@Url.Action("ToggleBiometric", "Settings")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ enabled: this.checked })
+            });
+        });
+    </script>
+}
