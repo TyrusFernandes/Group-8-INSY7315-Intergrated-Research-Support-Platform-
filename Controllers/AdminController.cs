@@ -28,7 +28,7 @@ namespace AcadenceWebApp.Controllers
             _firestore = FirestoreDb.Create(_projectId);
             _storage = StorageClient.Create();
 
-            // Use the exact bucket name shown in your console (from screenshots)
+            // Use the exact bucket name shown in your console
             _bucketName = "acadence-40662.firebasestorage.app";
         }
 
@@ -180,14 +180,14 @@ namespace AcadenceWebApp.Controllers
             return View(vm);
         }
 
-        // Admin: Consultant Workload
-        // Replaced implementation with the provided ConsultantWorkloadController logic
+        // Admin: Consultant Workload — simplified: search by name/email and show assigned student requests
         [HttpGet]
         public async Task<IActionResult> ConsultantWorkload(string searchTerm, string statusFilter,
             DateTime? deadlineFrom, DateTime? deadlineTo, string sortBy = "Name")
         {
+            // keep the same viewmodel shape so the admin view can still use existing properties if needed
             var viewModel = new ConsultantWorkloadViewModel
-            {   
+            {
                 SearchTerm = searchTerm,
                 StatusFilter = statusFilter,
                 DeadlineFrom = deadlineFrom,
@@ -197,57 +197,31 @@ namespace AcadenceWebApp.Controllers
 
             try
             {
-                // Fetch consultants from Firestore (uses helper below)
-                var consultants = await GetConsultantsWorkload();
+                // Fetch consultants + their assigned requests (student workload)
+                var consultants = await GetConsultantsWorkload_Simplified();
 
-                // Apply filters
-                if (!string.IsNullOrEmpty(searchTerm))
+                // simple search (name or email)
+                if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
+                    var st = searchTerm.Trim();
                     consultants = consultants.Where(c =>
-                        (!string.IsNullOrEmpty(c.ConsultantName) && c.ConsultantName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-                        (!string.IsNullOrEmpty(c.Email) && c.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                        (!string.IsNullOrEmpty(c.ConsultantName) && c.ConsultantName.Contains(st, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(c.Email) && c.Email.Contains(st, StringComparison.OrdinalIgnoreCase))
                     ).ToList();
                 }
 
-                if (!string.IsNullOrEmpty(statusFilter))
-                {
-                    consultants = consultants.Where(c =>
-                        c.Projects.Any(p => string.Equals(p.Status, statusFilter, StringComparison.OrdinalIgnoreCase))
-                    ).ToList();
-                }
-
-                if (deadlineFrom.HasValue)
-                {
-                    consultants = consultants.Where(c =>
-                        c.NextDeadline.HasValue && c.NextDeadline.Value.Date >= deadlineFrom.Value.Date
-                    ).ToList();
-                }
-
-                if (deadlineTo.HasValue)
-                {
-                    consultants = consultants.Where(c =>
-                        c.NextDeadline.HasValue && c.NextDeadline.Value.Date <= deadlineTo.Value.Date
-                    ).ToList();
-                }
-
-                // Apply sorting
-                consultants = sortBy switch
-                {
-                    "Workload" => consultants.OrderByDescending(c => c.WorkloadPercentage).ToList(),
-                    "Projects" => consultants.OrderByDescending(c => c.ActiveProjects).ToList(),
-                    "Deadline" => consultants.OrderBy(c => c.NextDeadline ?? DateTime.MaxValue).ToList(),
-                    _ => consultants.OrderBy(c => c.ConsultantName).ToList()
-                };
-
+                // optional: you can remove status/deadline/sort handling since UI is simplified,
+                // but keep basic stubs so parameters won't break calls
                 viewModel.Consultants = consultants;
             }
             catch (Exception ex)
             {
-                ViewBag.Error = "Error loading consultant workload data.";
-                Console.WriteLine($"Error: {ex.Message}");
+                ViewBag.Error = "Error loading consultant workload data: " + ex.Message;
+                Debug.WriteLine(ex);
             }
 
-            // Explicit admin view path kept
+            // render the admin view (existing view path). If you replaced the view with the simpler one,
+            // this still points to the same file.
             return View("~/Views/Admin/ConsultantWorkload.cshtml", viewModel);
         }
 
@@ -677,64 +651,131 @@ namespace AcadenceWebApp.Controllers
             return View(vm);
         }
 
-        // --- Helper: fetch consultants + projects and compute metrics (simpler version requested) ---
-        private async Task<List<ConsultantWorkload>> GetConsultantsWorkload()
+        // --- Helper (new): fetch consultants and their assigned 'requests' as StudentRequest items ---
+        private async Task<List<ConsultantWorkload>> GetConsultantsWorkload_Simplified()
         {
-            var consultants = new List<ConsultantWorkload>();
+            var list = new List<ConsultantWorkload>();
 
-            // Fetch from "consultants" collection
             var consultantsRef = _firestore.Collection("consultants");
-            var snapshot = await consultantsRef.GetSnapshotAsync();
+            var consSnap = await consultantsRef.GetSnapshotAsync();
 
-            foreach (var document in snapshot.Documents)
+            foreach (var doc in consSnap.Documents)
             {
-                var consultant = new ConsultantWorkload
+                try
                 {
-                    ConsultantId = document.Id,
-                    ConsultantName = document.ContainsField("name") ? document.GetValue<string>("name") : "",
-                    Email = document.ContainsField("email") ? document.GetValue<string>("email") : ""
-                };
-
-                // Fetch projects for this consultant
-                var projectsRef = _firestore.Collection("projects")
-                    .WhereEqualTo("consultantId", consultant.ConsultantId);
-                var projectsSnapshot = await projectsRef.GetSnapshotAsync();
-
-                foreach (var projectDoc in projectsSnapshot.Documents)
-                {
-                    var project = new ProjectDetail
+                    var consultant = new ConsultantWorkload
                     {
-                        ProjectId = projectDoc.Id,
-                        ProjectName = projectDoc.ContainsField("name") ? projectDoc.GetValue<string>("name") : "",
-                        Status = projectDoc.ContainsField("status") ? projectDoc.GetValue<string>("status") : "",
-                        Deadline = projectDoc.ContainsField("deadline")
-                            ? projectDoc.GetValue<DateTime?>("deadline")
-                            : null,
-                        TasksAssigned = projectDoc.ContainsField("tasksAssigned") ? projectDoc.GetValue<int>("tasksAssigned") : 0,
-                        TasksCompleted = projectDoc.ContainsField("tasksCompleted") ? projectDoc.GetValue<int>("tasksCompleted") : 0
+                        ConsultantId = doc.Id,
+                        ConsultantName = doc.ContainsField("name") ? doc.GetValue<string>("name") : (doc.ContainsField("displayName") ? doc.GetValue<string>("displayName") : ""),
+                        Email = doc.ContainsField("email") ? doc.GetValue<string>("email") : ""
                     };
 
-                    consultant.Projects.Add(project);
+                    // Ensure StudentRequests list exists (model updated to include it)
+                    if (consultant.StudentRequests == null)
+                        consultant.StudentRequests = new List<StudentRequest>();
+
+                    // Query requests assigned to this consultant
+                    var reqQuery = _firestore.Collection("requests").WhereEqualTo("assignedToUid", consultant.ConsultantId);
+                    var reqSnap = await reqQuery.GetSnapshotAsync();
+
+                    foreach (var rDoc in reqSnap.Documents)
+                    {
+                        try
+                        {
+                            // Try common fields used in requests documents
+                            string studentRef = null;
+                            if (rDoc.TryGetValue("requestedByUid", out string rb)) studentRef = rb;
+                            else if (rDoc.TryGetValue("requestedBy", out string rb2)) studentRef = rb2;
+                            else if (rDoc.TryGetValue("requestedByEmail", out string rb3)) studentRef = rb3;
+
+                            string title = rDoc.ContainsField("docTitle") ? rDoc.GetValue<string>("docTitle")
+                                         : rDoc.ContainsField("title") ? rDoc.GetValue<string>("title") : "";
+
+                            string status = rDoc.ContainsField("status") ? rDoc.GetValue<string>("status") : "";
+
+                            DateTime? reqDate = null;
+                            if (rDoc.TryGetValue("createdAt", out Google.Cloud.Firestore.Timestamp ts1))
+                                reqDate = ts1.ToDateTime();
+                            else if (rDoc.TryGetValue("requestDate", out Google.Cloud.Firestore.Timestamp ts2))
+                                reqDate = ts2.ToDateTime();
+
+                            // Resolve student display name best-effort
+                            string studentName = studentRef ?? "(unknown)";
+                            if (!string.IsNullOrEmpty(studentRef))
+                            {
+                                try
+                                {
+                                    if (!studentRef.Contains("@"))
+                                    {
+                                        var uDoc = await _firestore.Collection("users").Document(studentRef).GetSnapshotAsync();
+                                        if (uDoc.Exists)
+                                        {
+                                            uDoc.TryGetValue("displayName", out string dname);
+                                            uDoc.TryGetValue("username", out string uname);
+                                            uDoc.TryGetValue("email", out string email);
+                                            studentName = !string.IsNullOrEmpty(dname) ? dname : (!string.IsNullOrEmpty(uname) ? uname : (!string.IsNullOrEmpty(email) ? email : studentRef));
+                                        }
+                                        else
+                                        {
+                                            // fallback: query by email if studentRef looks like an email
+                                            var q = _firestore.Collection("users").WhereEqualTo("email", studentRef).Limit(1);
+                                            var qSnap = await q.GetSnapshotAsync();
+                                            if (qSnap.Count > 0)
+                                            {
+                                                var fu = qSnap.Documents[0];
+                                                fu.TryGetValue("displayName", out string d2);
+                                                fu.TryGetValue("username", out string u2);
+                                                studentName = !string.IsNullOrEmpty(d2) ? d2 : (!string.IsNullOrEmpty(u2) ? u2 : studentRef);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        var q = _firestore.Collection("users").WhereEqualTo("email", studentRef).Limit(1);
+                                        var qSnap = await q.GetSnapshotAsync();
+                                        if (qSnap.Count > 0)
+                                        {
+                                            var fu = qSnap.Documents[0];
+                                            fu.TryGetValue("displayName", out string d3);
+                                            fu.TryGetValue("username", out string u3);
+                                            studentName = !string.IsNullOrEmpty(d3) ? d3 : (!string.IsNullOrEmpty(u3) ? u3 : studentRef);
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    studentName = studentRef;
+                                }
+                            }
+
+                            consultant.StudentRequests.Add(new StudentRequest
+                            {
+                                RequestId = rDoc.Id,
+                                StudentName = studentName,
+                                RequestTitle = string.IsNullOrEmpty(title) ? "(no title)" : title,
+                                Status = status ?? "",
+                                RequestDate = reqDate
+                            });
+                        }
+                        catch
+                        {
+                            // ignore per-request parse errors
+                        }
+                    }
+
+                    // Ensure Projects list exists so existing views referencing Projects won't NRE
+                    if (consultant.Projects == null)
+                        consultant.Projects = new List<ProjectDetail>();
+
+                    list.Add(consultant);
                 }
-
-                // Calculate workload metrics
-                consultant.ActiveProjects = consultant.Projects.Count(p => string.Equals(p.Status, "Active", StringComparison.OrdinalIgnoreCase));
-                consultant.TotalTasks = consultant.Projects.Sum(p => p.TasksAssigned);
-                consultant.CompletedTasks = consultant.Projects.Sum(p => p.TasksCompleted);
-                consultant.PendingTasks = consultant.TotalTasks - consultant.CompletedTasks;
-                consultant.NextDeadline = consultant.Projects
-                    .Where(p => p.Deadline.HasValue && p.Deadline > DateTime.Now)
-                    .OrderBy(p => p.Deadline)
-                    .FirstOrDefault()?.Deadline;
-
-                consultant.WorkloadPercentage = consultant.TotalTasks > 0
-                    ? Math.Round((double)consultant.PendingTasks / consultant.TotalTasks * 100, 1)
-                    : 0;
-
-                consultants.Add(consultant);
+                catch
+                {
+                    // ignore per-consultant parse errors
+                }
             }
 
-            return consultants;
+            return list;
         }
     }
 }
