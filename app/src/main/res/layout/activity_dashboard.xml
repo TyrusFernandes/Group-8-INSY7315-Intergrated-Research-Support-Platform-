@@ -254,8 +254,19 @@
                         android:textColor="@android:color/white"
                         android:layout_marginStart="8dp"/>
                 </LinearLayout>
+                    <Button
+                        android:id="@+id/btnAiAssistant"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="AI Research Assistant"
+                        android:textAllCaps="false"
+                        android:backgroundTint="@color/blue"
+                        android:textColor="@android:color/white"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginHorizontal="16dp" />
 
-                <TextView
+
+                    <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/most_liked_projects"

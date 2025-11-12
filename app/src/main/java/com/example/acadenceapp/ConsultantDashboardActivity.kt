@@ -53,6 +53,13 @@ class ConsultantDashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        val btnAiAssistant = findViewById<Button>(R.id.btnAiAssistant)
+        btnAiAssistant.setOnClickListener {
+            val intent = Intent(this, AiAssistantActivity::class.java)
+            startActivity(intent)
+        }
+
+
         val btnArticle = findViewById<Button>(R.id.btnArticle)
         btnArticle.setOnClickListener {
             val intent = Intent(this, ForYouActivity::class.java)

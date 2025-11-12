@@ -201,7 +201,7 @@ class ConsultantRequestDetailActivity : AppCompatActivity() {
     private fun submitComment() {
         val uid = auth.currentUser?.uid ?: return
         val name = auth.currentUser?.displayName ?: auth.currentUser?.email ?: "Consultant"
-        val text = commentInput.text.toString().trim()
+        var text = commentInput.text.toString().trim()
 
         if (text.isEmpty()) {
             Toast.makeText(this, "Comment cannot be empty", Toast.LENGTH_SHORT).show()
@@ -224,5 +224,38 @@ class ConsultantRequestDetailActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Toast.makeText(this, "Failed to submit comment", Toast.LENGTH_SHORT).show()
             }
+        firestore.collection("requests")
+            .document(requestId!!)
+            .collection("ai_feedback")
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null && !snapshot.isEmpty) {
+                    val feedback = snapshot.documents.first().getString("summary")
+                    findViewById<TextView>(R.id.aiFeedbackText).apply {
+                        visibility = View.VISIBLE
+                        text = "🤖 AI Feedback:\n\n$feedback"
+                    }
+                }
+            }
     }
+    private fun loadAiFeedback(requestId: String) {
+        val db = FirebaseFirestore.getInstance()
+        val aiFeedbackContainer = findViewById<TextView>(R.id.aiFeedbackText) // Add this TextView in XML
+
+        db.collection("requests")
+            .document(requestId)
+            .collection("ai_feedback")
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .limit(1)
+            .addSnapshotListener { snap, _ ->
+                if (snap != null && !snap.isEmpty) {
+                    val feedback = snap.documents.first().getString("summary") ?: "No feedback yet."
+                    aiFeedbackContainer.text = feedback
+                } else {
+                    aiFeedbackContainer.text = "No AI feedback yet."
+                }
+            }
+    }
+
 }
+

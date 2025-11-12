@@ -27,6 +27,8 @@
         <activity
             android:name=".ConsultantRequestDetailActivity"
             android:exported="false" />
+        <activity android:name=".AiAssistantActivity" />
+
         <activity android:name=".DocumentDetailActivity" />
         <activity android:name=".FeedbackActivity" />
         <activity android:name=".SupportTicketsActivity" />

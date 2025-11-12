@@ -16,6 +16,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.lifecycle.lifecycleScope
+import com.example.acadenceapp.utils.AiFeedbackHelper
+import kotlinx.coroutines.launch
+
 
 class RequestActivity : AppCompatActivity() {
 
@@ -284,11 +288,21 @@ class RequestActivity : AppCompatActivity() {
 
         db.collection("requests")
             .add(payload)
-            .addOnSuccessListener {
+            .addOnSuccessListener { docRef ->
                 showPb(false)
                 Toast.makeText(this, "Request submitted", Toast.LENGTH_SHORT).show()
                 reviewDetails.setText("")
+
+                // 🚀 Trigger AI Feedback for Proofreading requests
+                val reviewType = reviewTypeSpinner.selectedItem?.toString() ?: ""
+                val notes = reviewDetails.text.toString()
+                if (reviewType.equals("Proofreading", ignoreCase = true) && notes.isNotEmpty()) {
+                    lifecycleScope.launch {
+                        AiFeedbackHelper.generateAiFeedback(docRef.id, notes, isDocument = false)
+                    }
+                }
             }
+
             .addOnFailureListener { e ->
                 showPb(false)
                 Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()

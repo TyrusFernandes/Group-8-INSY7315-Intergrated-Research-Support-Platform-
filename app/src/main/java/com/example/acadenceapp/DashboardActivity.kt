@@ -61,6 +61,13 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        val btnAiAssistant = findViewById<Button>(R.id.btnAiAssistant)
+        btnAiAssistant.setOnClickListener {
+            val intent = Intent(this, AiAssistantActivity::class.java)
+            startActivity(intent)
+        }
+
+
         val btnFeedback = findViewById<Button>(R.id.btnArticle)
         btnFeedback.text = "Give Us Feedback"
         btnFeedback.setOnClickListener {
