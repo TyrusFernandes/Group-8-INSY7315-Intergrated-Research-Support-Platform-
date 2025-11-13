@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
 import android.widget.Switch
@@ -63,6 +64,32 @@ class SettingsActivity : AppCompatActivity() {
         } else {
             profileName.text = "Guest"
             profileEmail.text = "Not signed in"
+        }
+
+        val languages = listOf("English", "Afrikaans")
+        val spinnerAdapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            languages
+        )
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerLanguage.adapter = spinnerAdapter
+
+        spinnerLanguage.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val selectedLanguage = languages[position]
+                val currentLang = LocaleHelper.getSavedLanguage(this@SettingsActivity)
+
+                if (selectedLanguage != currentLang) {
+                    LocaleHelper.setLocale(this@SettingsActivity, selectedLanguage)
+
+                    editor.putString("language_selected", selectedLanguage)
+                    editor.apply()
+
+                    recreate()
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
 

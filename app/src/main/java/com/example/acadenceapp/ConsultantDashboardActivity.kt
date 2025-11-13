@@ -59,6 +59,11 @@ class ConsultantDashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        val btnResourceLibrary = findViewById<Button>(R.id.btnResourceLibrary)
+        btnResourceLibrary.setOnClickListener {
+            val intent = Intent(this, ResourceLibraryActivity::class.java)
+            startActivity(intent)
+        }
 
         val btnArticle = findViewById<Button>(R.id.btnArticle)
         btnArticle.setOnClickListener {

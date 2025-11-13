@@ -68,6 +68,11 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        val btnResourceLibrary = findViewById<Button>(R.id.btnResourceLibrary)
+        btnResourceLibrary.setOnClickListener {
+            val intent = Intent(this, ResourceLibraryActivity::class.java)
+            startActivity(intent)
+        }
 
         val btnFeedback = findViewById<Button>(R.id.btnArticle)
         btnFeedback.text = "Give Us Feedback"
