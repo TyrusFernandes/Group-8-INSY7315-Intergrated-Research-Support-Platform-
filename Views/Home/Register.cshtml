@@ -4,17 +4,209 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" href="~/css/register.css" />
+<style>
+    body {
+        background-color: #e8e8e8; 
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .reg-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background-color: #e8e8e8; 
+    }
+
+    .reg-container {
+        display: flex;
+        width: 100%;
+        max-width: 1200px;
+        gap: 60px;
+        align-items: center;
+    }
+
+    /* LEFT SIDE - FORM */
+    .reg-left {
+        flex: 1;
+        max-width: 500px;
+    }
+
+    .social-buttons {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .btn-social {
+        flex: 1;
+        padding: 12px 20px;
+        border: 2px solid #666;
+        border-radius: 8px;
+        background-color: transparent;
+        color: #333;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .btn-social:hover {
+            background-color: #f5f5f5;
+            border-color: #333;
+        }
+
+    .or-divider {
+        display: flex;
+        align-items: center;
+        margin: 30px 0;
+        color: #666;
+    }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: #999;
+        }
+
+        .or-divider span {
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+    .reg-heading {
+        font-size: 20px;
+        color: #999;
+        font-weight: 400;
+        margin-bottom: 30px;
+    }
+
+    .input-wrap {
+        margin-bottom: 20px;
+    }
+
+    .input-control {
+        width: 100%;
+        padding: 15px 20px;
+        border: 2px solid #666;
+        border-radius: 8px;
+        font-size: 14px;
+        background-color: #e8e8e8; 
+        color: #333;
+        box-sizing: border-box;
+        transition: border-color 0.3s ease;
+    }
+
+        .input-control::placeholder {
+            color: #666;
+        }
+
+        .input-control:focus {
+            outline: none;
+            border-color: #0047FF;
+        }
+
+    .field-error {
+        display: block;
+        color: #d32f2f;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .btn-primary-large {
+        width: 100%;
+        padding: 15px;
+        background-color: #0047FF; 
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-primary-large:hover {
+            background-color: #0039CC;
+        }
+
+    .have-account {
+        text-align: center;
+        margin-top: 20px;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .login-link {
+        color: #0047FF;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .login-link:hover {
+            text-decoration: underline;
+        }
+
+    /* RIGHT SIDE - BRANDING */
+    .reg-right {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .logo-holder {
+        margin-bottom: 20px;
+    }
+
+    .brand-logo {
+        width: 300px;
+        height: auto;
+    }
+
+    .brand-tag {
+        font-size: 18px;
+        color: #999;
+        font-weight: 400;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    @@media (max-width: 1000px) {
+        .reg-container
+
+    {
+        flex-direction: column;
+        gap: 40px;
+    }
+
+    .reg-left {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    }
+</style>
 
 <div class="reg-page">
-    <div class="reg-card">
+    <div class="reg-container">
 
-        <!-- LEFT SIDE -->
+        <!-- LEFT SIDE - FORM -->
         <div class="reg-left">
-            <div class="social-row">
-                <button id="firebase-google-btn" class="btn-social google">
-                    <img src="~/images/google-icon.png" alt="Google" class="social-icon" />
+            <div class="social-buttons">
+                <button id="firebase-google-btn" class="btn-social">
                     Sign up with Google
+                </button>
+                <button class="btn-social">
+                    Sign up with Github
                 </button>
             </div>
 
@@ -26,28 +218,26 @@
                 @Html.AntiForgeryToken()
 
                 <div class="input-wrap">
-                    <input asp-for="Email" class="input-control" placeholder="Email" />
+                    <input asp-for="Email" class="input-control" placeholder="email" />
                     <span asp-validation-for="Email" class="field-error"></span>
                 </div>
 
                 <div class="input-wrap">
-                    <input asp-for="Username" class="input-control" placeholder="Username" />
+                    <input asp-for="Username" class="input-control" placeholder="username" />
                     <span asp-validation-for="Username" class="field-error"></span>
                 </div>
 
                 <div class="input-wrap">
-                    <input asp-for="Password" type="password" class="input-control" placeholder="Password" />
+                    <input asp-for="Password" type="password" class="input-control" placeholder="password" />
                     <span asp-validation-for="Password" class="field-error"></span>
                 </div>
 
                 <div class="input-wrap">
-                    <input asp-for="ConfirmPassword" type="password" class="input-control" placeholder="Confirm Password" />
+                    <input asp-for="ConfirmPassword" type="password" class="input-control" placeholder="confirm password" />
                     <span asp-validation-for="ConfirmPassword" class="field-error"></span>
                 </div>
 
-                <div class="cta-wrap">
-                    <button type="submit" class="btn-primary-large">Sign Up</button>
-                </div>
+                <button type="submit" class="btn-primary-large">Sign Up</button>
             </form>
 
             <div class="have-account">
@@ -56,34 +246,32 @@
             </div>
         </div>
 
-        <!-- RIGHT SIDE -->
+        <!-- RIGHT SIDE - BRANDING -->
         <div class="reg-right">
             <div class="logo-holder">
                 <img src="~/images/acadence-logo.png" alt="Acadence Logo" class="brand-logo" />
             </div>
 
-            <h1 class="brand-title">ACADENCE</h1>
             <p class="brand-tag">Where Excellence Meets Guidance</p>
         </div>
 
     </div>
 </div>
 
-<!-- ✅ Firebase Libraries -->
+<!-- Firebase Libraries -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-<!-- ✅ Firebase Config and Initialization -->
+<!-- Firebase Config and Initialization -->
 <script>
-
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();           // ✅ define this BEFORE you use it
-    const db = firebase.firestore();        // ✅ define this too
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 </script>
 
-<!-- ✅ Registration Script -->
+<!-- Registration Script -->
 <script>
     const registerForm = document.querySelector("form");
 
@@ -114,8 +302,7 @@
         alert("Registration failed: " + error.message);
       }
     });
-</script>
-<script>
+
     document.getElementById("firebase-google-btn").addEventListener("click", async function () {
       const provider = new firebase.auth.GoogleAuthProvider();
 

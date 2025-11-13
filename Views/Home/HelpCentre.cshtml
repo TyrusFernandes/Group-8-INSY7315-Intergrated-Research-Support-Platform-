@@ -1,0 +1,133 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acadence | FAQ</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #004aad;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        section {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #004aad;
+            border-bottom: 2px solid #004aad;
+            padding-bottom: 10px;
+        }
+
+        details {
+            margin: 15px 0;
+            background: #f1f4f9;
+            border-radius: 8px;
+            padding: 10px 15px;
+        }
+
+        summary {
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+            summary:hover {
+                color: #004aad;
+            }
+
+        p {
+            margin: 10px 0 0 0;
+            line-height: 1.6;
+        }
+
+        footer {
+            background: #004aad;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: 50px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Acadence – Frequently Asked Questions</h1>
+    </header>
+
+    <section>
+        <h2>General Questions</h2>
+
+        <details open>
+            <summary>What is Acadence?</summary>
+            <p>Acadence is a secure, user-friendly academic research support platform that connects students, consultants, and administrators in one system for efficient document management, communication, and research support.</p>
+        </details>
+
+        <details>
+            <summary>Who can use Acadence?</summary>
+            <p>Acadence is designed for postgraduate students, research consultants, and administrators involved in academic research management.</p>
+        </details>
+
+        <details>
+            <summary>How do I register or log in?</summary>
+            <p>Users can sign up or log in securely using email and password, or Google Sign-In through Firebase Authentication.</p>
+        </details>
+
+        <details>
+            <summary>What file types can I upload?</summary>
+            <p>Acadence supports <strong>PDF</strong> and <strong>DOCX</strong> files. All uploaded files are securely stored and encrypted.</p>
+        </details>
+
+        <details>
+            <summary>Is my data safe?</summary>
+            <p>Yes. Acadence complies with South Africa’s Protection of Personal Information Act (POPIA). Data is encrypted both in transit and at rest.</p>
+        </details>
+
+        <details>
+            <summary>Can I use Acadence offline?</summary>
+            <p>Yes. The mobile version supports offline mode via RoomDB. Your data automatically syncs when reconnected to the internet.</p>
+        </details>
+
+        <details>
+            <summary>What is the “For You” page?</summary>
+            <p>The For You Page (FYP) allows students to share, read, and engage with academic articles posted by other users.</p>
+        </details>
+
+        <details>
+            <summary>How do I contact support?</summary>
+            <p>You can contact us at <a href="mailto:support@acadence.app">support@acadence.app</a> or use the in-app Help & Feedback option.</p>
+        </details>
+    </section>
+
+    <footer>
+        &copy; 2025 Acadence. All rights reserved.
+    </footer>
+
+</body>
+</html>

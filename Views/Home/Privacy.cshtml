@@ -1,6 +1,123 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acadence | Privacy Policy</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: #004aad;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        section {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #004aad;
+            margin-top: 25px;
+        }
+
+        a {
+            color: #004aad;
+            text-decoration: none;
+        }
+
+            a:hover {
+                text-decoration: underline;
+            }
+
+        footer {
+            background: #004aad;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: 50px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Acadence Privacy Policy</h1>
+    </header>
+
+    <section>
+        <p>
+            <strong>Effective Date:</strong> January 2025<br>
+            <strong>Last Updated:</strong> January 2025
+        </p>
+
+        <h2>1. Introduction</h2>
+        <p>Acadence (“we”, “our”, “us”) is committed to protecting your personal information and respecting your privacy. This policy explains how we handle user data in compliance with the Protection of Personal Information Act (POPIA).</p>
+
+        <h2>2. Information We Collect</h2>
+        <ul>
+            <li>Personal details (name, email, role, and login credentials)</li>
+            <li>Uploaded academic documents and feedback</li>
+            <li>Usage and communication data (chat messages, analytics)</li>
+            <li>Device and performance data for improving service quality</li>
+        </ul>
+
+        <h2>3. How We Use Your Information</h2>
+        <p>We use your data to operate the Acadence platform, improve features, ensure security, and provide academic support services.</p>
+
+        <h2>4. Data Protection and Security</h2>
+        <p>Your data is encrypted in transit and at rest. Access is restricted based on user roles. We use Firebase Authentication, HTTPS, and token validation to protect your account.</p>
+
+        <h2>5. Data Sharing</h2>
+        <p>Acadence does not sell or share user data with third parties for marketing. Information may only be shared with verified service providers (e.g., Firebase, Google) to enable platform functionality.</p>
+
+        <h2>6. Data Retention</h2>
+        <p>Data is retained for as long as your account is active or as required by law. You may request data deletion anytime.</p>
+
+        <h2>7. Your Rights</h2>
+        <p>Users have the right to access, correct, or delete personal information and withdraw consent for processing by emailing <a href="mailto:privacy@acadence.app">privacy@acadence.app</a>.</p>
+
+        <h2>8. Cookies and Tracking</h2>
+        <p>Acadence uses cookies to maintain sessions and improve performance. You can disable cookies in your browser at any time.</p>
+
+        <h2>9. Third-Party Services</h2>
+        <p>Acadence integrates Firebase, Google Sign-In, and AI APIs. These services operate under their own privacy policies, accessible on their official websites.</p>
+
+        <h2>10. Policy Updates</h2>
+        <p>This policy may be updated periodically. Continued use of the platform after updates signifies acceptance of the revised policy.</p>
+
+        <h2>11. Contact Us</h2>
+        <p>If you have any questions or concerns, contact us at <a href="mailto:privacy@acadence.app">privacy@acadence.app</a>.</p>
+    </section>
+
+    <footer>
+        &copy; 2025 Acadence. All rights reserved.
+    </footer>
+
+</body>
+</html>
+
