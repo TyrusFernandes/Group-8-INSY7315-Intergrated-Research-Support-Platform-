@@ -22,7 +22,7 @@ class FeedbackActivity : AppCompatActivity() {
         setContentView(R.layout.activity_feedback)
 
         consultantSpinner = findViewById(R.id.consultantSpinner)
-        ratingBar = findViewById(R.id.ratingBar)
+        ratingBar = findViewById(R.id.consultantSpinner)
         commentsBox = findViewById(R.id.commentsBox)
         submitBtn = findViewById(R.id.submitBtn)
         firestore = FirebaseFirestore.getInstance()

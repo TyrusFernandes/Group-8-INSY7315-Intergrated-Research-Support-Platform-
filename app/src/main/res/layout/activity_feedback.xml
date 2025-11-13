@@ -1,57 +1,239 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:background="#F5F5F5">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:text="Select Your Consultant"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="16sp" />
-
-        <Spinner
-            android:id="@+id/consultantSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+    <!-- Top Bar -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:background="#0066FF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
-            android:text="Give a Rating"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:textSize="16sp" />
-
-        <RatingBar
-            android:id="@+id/ratingBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:numStars="5"
-            android:stepSize="1.0"
-            android:layout_marginBottom="16dp" />
+            android:text="Feedback"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <EditText
-            android:id="@+id/commentsBox"
-            android:hint="Write your feedback..."
-            android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:background="@drawable/rounded_white_bg"
-            android:gravity="top"
-            android:padding="12dp"
-            android:inputType="textMultiLine" />
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <Button
-            android:id="@+id/submitBtn"
-            android:text="Submit Feedback"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:backgroundTint="@color/purple"
-            android:textColor="@android:color/white" />
+            android:orientation="vertical"
+            android:padding="20dp">
 
-    </LinearLayout>
-</ScrollView>
+            <!-- Card Container -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                android:backgroundTint="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <!-- Title -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="How Do You Like\nThe Features ?"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="#000000"
+                        android:lineHeight="28dp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <!-- Description -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Please tell us what you thought about your Consultant?"
+                        android:textSize="14sp"
+                        android:textColor="#757575"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Consultant Dropdown Label -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Choose a Consultant"
+                        android:textSize="14sp"
+                        android:textColor="#000000"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <!-- Consultant Spinner -->
+                    <Spinner
+                        android:id="@+id/consultantSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp" />
+
+                    <!-- Star Rating Section -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginBottom="8dp">
+
+                        <ImageView
+                            android:id="@+id/star1"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_star"
+                            android:padding="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:contentDescription="1 star"
+                            app:tint="#D0D0D0"/>
+
+                        <ImageView
+                            android:id="@+id/star2"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_star"
+                            android:padding="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:contentDescription="2 stars"
+                            app:tint="#D0D0D0"
+                            android:layout_marginStart="4dp"/>
+
+                        <ImageView
+                            android:id="@+id/star3"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_star"
+                            android:padding="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:contentDescription="3 stars"
+                            app:tint="#D0D0D0"
+                            android:layout_marginStart="4dp"/>
+
+                        <ImageView
+                            android:id="@+id/star4"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_star"
+                            android:padding="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:contentDescription="4 stars"
+                            app:tint="#D0D0D0"
+                            android:layout_marginStart="4dp"/>
+
+                        <ImageView
+                            android:id="@+id/star5"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_star"
+                            android:padding="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:contentDescription="5 stars"
+                            app:tint="#D0D0D0"
+                            android:layout_marginStart="4dp"/>
+                    </LinearLayout>
+
+                    <!-- Star Rating Description -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Select the amount of stars that best explain your experience"
+                        android:textSize="12sp"
+                        android:textColor="#757575"
+                        android:gravity="center"
+                        android:layout_marginBottom="24dp"/>
+
+                    <!-- Feedback Title -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tell Us How We Can Assist"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#000000"
+                        android:layout_marginBottom="8dp"/>
+
+                    <!-- Feedback Description -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Please share your thoughts directly by typing feedback given here. If you need help resolving an issue our administration team will be happy to assist you."
+                        android:textSize="12sp"
+                        android:textColor="#757575"
+                        android:lineHeight="18dp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <!-- Feedback Input Box -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        android:backgroundTint="#F8F9FA"
+                        android:layout_marginBottom="20dp">
+
+                        <EditText
+                            android:id="@+id/commentsBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="120dp"
+                            android:hint="Write your feedback..."
+                            android:textColorHint="#B0B0B0"
+                            android:textColor="#000000"
+                            android:textSize="14sp"
+                            android:background="@android:color/transparent"
+                            android:gravity="top|start"
+                            android:padding="16dp"
+                            android:inputType="textMultiLine|textCapSentences"
+                            android:scrollbars="vertical"/>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Submit Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/submitBtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:text="Send Feedback"
+                        android:textSize="16sp"
+                        android:textAllCaps="false"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="#0066FF"
+                        app:cornerRadius="26dp"
+                        app:elevation="0dp"/>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
