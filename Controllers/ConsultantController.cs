@@ -1,15 +1,16 @@
 ﻿using AcadenceWebApp.Models;
+using AcadenceWebApp.Models;
 using FirebaseAdmin.Auth;
 using Google.Cloud.Firestore;
 using Google.Cloud.Firestore;
-using AcadenceWebApp.Models;
-using Google.Cloud.Firestore;
+using Google.Cloud.Firestore.V1;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Claims;
-using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -25,10 +26,188 @@ namespace AcadenceWebApp.Controllers
             _firestoreDb = FirestoreDb.Create(_projectId);
         }
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
-            return View();
+            // Get consultant UID from session
+            var currentUserId = HttpContext.Session.GetString("UserUid");
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return RedirectToAction("Login", "Home");
+            }
+
+            ViewBag.CurrentUserId = currentUserId;
+
+            var vm = new DashboardViewModel();
+
+            // === 1) LOAD REQUESTS FOR THIS CONSULTANT ===
+            var requestsRef = _firestoreDb.Collection("requests");
+            var requestSnap = await requestsRef
+                .WhereEqualTo("assignedToUid", currentUserId)
+                .GetSnapshotAsync();
+
+            var requestList = new List<RequestInternal>();
+
+            foreach (var doc in requestSnap.Documents)
+            {
+                var data = doc.ToDictionary();
+
+                DateTime? ToDate(string key)
+                {
+                    return (data.TryGetValue(key, out var v) && v is Timestamp ts)
+                        ? ts.ToDateTime()
+                        : null;
+                }
+
+                decimal price = 0;
+                if (data.TryGetValue("price", out var p))
+                {
+                    if (p is double d) price = (decimal)d;
+                    if (p is long l) price = l;
+                }
+
+                requestList.Add(new RequestInternal
+                {
+                    Id = doc.Id,
+                    RequestedByUid = data.ContainsKey("requestedByUid") ? data["requestedByUid"]?.ToString() ?? "" : "",
+                    DocTitle = data.ContainsKey("docTitle") ? data["docTitle"]?.ToString() ?? "" : "",
+                    ReviewType = data.ContainsKey("reviewType") ? data["reviewType"]?.ToString() ?? "" : "",
+                    Status = data.ContainsKey("status") ? data["status"]?.ToString() ?? "" : "",
+                    DueDate = ToDate("dueDate"),
+                    Price = price
+                });
+            }
+
+            // === 2) LOOKUP STUDENT NAMES ===
+            var studentIds = requestList
+                .Select(r => r.RequestedByUid)
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Distinct()
+                .ToList();
+
+            var studentNames = await LoadStudentNamesAsync(studentIds);
+            string GetName(string uid) => studentNames.ContainsKey(uid) ? studentNames[uid] : "Student";
+
+            // === 3) TOP STATS ===
+            vm.TotalStudentCases = requestList.Count(r => r.Status.Equals("Done", StringComparison.OrdinalIgnoreCase));
+            vm.ActiveStudentCases = requestList.Count(r => !r.Status.Equals("Done", StringComparison.OrdinalIgnoreCase));
+            vm.TasksOverdue = requestList.Count(r => r.Status.Equals("Overdue", StringComparison.OrdinalIgnoreCase));
+
+            // YOUR RULE: Pending quotes = sum of price where status != Done
+            vm.PendingQuotes = requestList
+                .Where(r => !r.Status.Equals("Done", StringComparison.OrdinalIgnoreCase))
+                .Sum(r => r.Price);
+
+            // === 4) UPCOMING DEADLINES ===
+            var now = DateTime.UtcNow;
+
+            vm.UpcomingDeadlines = requestList
+                .Where(r => r.DueDate.HasValue &&
+                            r.DueDate.Value.ToUniversalTime() >= now &&
+                            !r.Status.Equals("Done", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(r => r.DueDate.Value)
+                .Take(4)
+                .Select(r => new DeadlineItem
+                {
+                    TaskId = r.Id,
+                    StudentName = GetName(r.RequestedByUid),
+                    TaskTitle = r.DocTitle,
+                    ReviewType = r.ReviewType,
+                    DueDate = r.DueDate.Value
+                })
+                .ToList();
+
+            // === 5) ACTIVE TASKS ===
+            vm.ActiveTasks = requestList
+                .Where(r => !r.Status.Equals("Done", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(r => r.DueDate ?? DateTime.MaxValue)
+                .Take(3)
+                .Select(r => new ActiveTaskItem
+                {
+                    TaskId = r.Id,
+                    StudentName = GetName(r.RequestedByUid),
+                    TaskTitle = r.DocTitle,
+                    ReviewType = r.ReviewType,
+                    DueDate = r.DueDate ?? DateTime.UtcNow
+                })
+                .ToList();
+
+            // === 6) NOTIFICATIONS ===
+            var notifQuery = _firestoreDb.Collection("notifications")
+                .WhereArrayContains("recipientIds", currentUserId)
+                .OrderByDescending("timestamp")
+                .Limit(6);
+
+            var notifSnap = await notifQuery.GetSnapshotAsync();
+
+            foreach (var doc in notifSnap.Documents)
+            {
+                var data = doc.ToDictionary();
+                var ts = (data.TryGetValue("timestamp", out var t) && t is Timestamp tsObj)
+                    ? tsObj.ToDateTime().ToLocalTime()
+                    : DateTime.Now;
+
+                vm.Notifications.Add(new NotificationItem
+                {
+                    NotificationId = doc.Id,
+                    ThreadId = "",
+                    Type = data.ContainsKey("priority") ? data["priority"]?.ToString() ?? "Message" : "Message",
+                    Text = data.ContainsKey("message") ? data["message"]?.ToString() ?? "" : "",
+                    CreatedAt = ts
+                });
+            }
+
+            return View(vm);
         }
+
+            /// <summary>
+            /// Internal representation of a request for calculations.
+            /// </summary>
+private class RequestInternal
+        {
+            public string Id { get; set; }
+            public string RequestedByUid { get; set; }
+            public string DocTitle { get; set; }
+            public string ReviewType { get; set; }
+            public string Status { get; set; }
+            public DateTime? DueDate { get; set; }
+            public decimal Price { get; set; }
+        }
+        /// <summary>
+        /// Loads fullName from users collection for each UID.
+        /// </summary>
+        private async Task<Dictionary<string, string>> LoadStudentNamesAsync(IEnumerable<string> userIds)
+        {
+            var result = new Dictionary<string, string>();
+
+            foreach (var uid in userIds)
+            {
+                if (string.IsNullOrWhiteSpace(uid))
+                    continue;
+
+                var docRef = _firestoreDb.Collection("users").Document(uid);
+                var snap = await docRef.GetSnapshotAsync();
+
+                if (snap.Exists)
+                {
+                    var data = snap.ToDictionary();
+
+                    if (data.TryGetValue("fullName", out var fn))
+                        result[uid] = fn?.ToString() ?? "Student";
+                    else
+                        result[uid] = "Student";
+                }
+                else
+                {
+                    result[uid] = "Student";
+                }
+            }
+
+            return result;
+        }
+
+
+
+
 
         // GET: /Consultant/AssignedTasks
         [HttpGet]

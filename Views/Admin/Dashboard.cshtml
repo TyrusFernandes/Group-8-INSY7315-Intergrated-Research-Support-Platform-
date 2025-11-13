@@ -4,7 +4,8 @@
     ViewData["Title"] = "Admin Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    var chartData = System.Text.Json.JsonSerializer.Serialize(new {
+    var chartData = System.Text.Json.JsonSerializer.Serialize(new
+    {
         satisfied = Model?.Satisfied ?? 0,
         neutral = Model?.Neutral ?? 0,
         unsatisfied = Model?.Unsatisfied ?? 0,
@@ -14,72 +15,209 @@
 }
 
 <style>
-    .main-content { margin-left: 60px; padding: 20px 40px; }
-    .panel { background:white; border-radius:12px; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
-    .metric-card { padding:18px; border-radius:10px; color:#fff; min-height:110px; display:flex; flex-direction:column; justify-content:center; }
-    .metric-title { font-weight:600; font-size:16px; }
-    .metric-value { font-size:36px; font-weight:700; margin-top:6px; }
-    .card-link { display:block; text-decoration:none; color:inherit; }
-    .card-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:18px; margin-bottom:20px; }
-    .media (max-width: 900px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
-    .task-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
-    .task-table th, .task-table td { padding:12px 14px; border-bottom:1px solid #f0f0f0; text-align:left; vertical-align:middle; }
-    .task-table thead th { text-transform: uppercase; font-size:12px; color:#718096; font-weight:600; letter-spacing:.6px; }
+    /* ===== Admin Dashboard – Figma-style theme (Option B) ===== */
+
+    .admin-wrapper {
+        padding: 32px 40px;
+        background-color: #f3f4f7;
+        min-height: 100vh;
+    }
+
+    .admin-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .admin-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 24px;
+    }
+
+    /* Stat cards grid */
+    .admin-stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0,1fr));
+        gap: 18px;
+        margin-bottom: 32px;
+    }
+
+    .admin-stat-card {
+        border-radius: 18px;
+        padding: 20px;
+        background: #ffffff;
+        box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+        cursor: pointer;
+        transition: transform .15s ease, box-shadow .15s ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+        .admin-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(15,23,42,0.12);
+        }
+
+    .stat-gradient-blue {
+        background: linear-gradient(135deg, #1d4ed8, #60a5fa);
+        color: white;
+    }
+
+    .stat-gradient-green {
+        background: linear-gradient(135deg, #059669, #34d399);
+        color: white;
+    }
+
+    .stat-gradient-yellow {
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: #111;
+    }
+
+    .stat-gradient-slate {
+        background: linear-gradient(135deg, #64748b, #94a3b8);
+        color: white;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        opacity: .9;
+        font-weight: 500;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        margin-top: 6px;
+    }
+
+    .stat-extra {
+        font-size: 12px;
+        opacity: .85;
+        margin-top: 4px;
+    }
+
+    /* Main body layout */
+    .admin-main {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+
+    .admin-panel {
+        background: white;
+        padding: 20px;
+        border-radius: 18px;
+        box-shadow: 0 6px 18px rgba(15,23,42,0.05);
+    }
+
+    .panel-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 16px;
+    }
+
+    /* Feedback table */
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+        .admin-table th {
+            text-transform: uppercase;
+            font-size: 12px;
+            color: #6b7280;
+            letter-spacing: .05em;
+            padding-bottom: 10px;
+        }
+
+        .admin-table td {
+            padding: 12px 6px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+        }
+
+    /* Recent resources list */
+    .resource-item {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+        .resource-item:last-child {
+            border-bottom: none;
+        }
+
+        .resource-item a {
+            font-weight: 600;
+            color: #1d4ed8;
+            text-decoration: none;
+        }
+
+            .resource-item a:hover {
+                text-decoration: underline;
+            }
+
+    .resource-meta {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 2px;
+    }
 </style>
 
-<div class="main-content">
-    <div class="mb-3">
-        <h2>Admin Dashboard</h2>
-        <div class="text-muted">Overview of resources, feedback and support activity.</div>
-    </div>
+<div class="admin-wrapper">
 
-    <!-- Metric cards (entire card is clickable) -->
-    <div class="card-grid">
-        <a class="card-link" href="@Url.Action("UploadResource","Admin")" aria-label="Manage resources">
-            <div class="metric-card" style="background:#0d6efd;">
-                <div class="metric-title">Resources</div>
-                <div class="metric-value">@Model.ResourcesCount</div>
-            </div>
+    <div class="admin-title">Admin Dashboard</div>
+    <div class="admin-subtitle">Overview of resources, feedback & system activity.</div>
+
+    <!-- ===== TOP STATS ===== -->
+    <div class="admin-stats-row">
+
+        <!-- Resources -->
+        <a href="@Url.Action("UploadResource", "Admin")" class="admin-stat-card stat-gradient-blue">
+            <div class="stat-label">Resources</div>
+            <div class="stat-value">@Model.ResourcesCount</div>
         </a>
 
-        <a class="card-link" href="@Url.Action("StudentSatisfaction","Admin")" aria-label="View feedbacks">
-            <div class="metric-card" style="background:#f8f9fa; color:#111;">
-                <div class="metric-title">Feedbacks</div>
-                <div class="metric-value">@Model.TotalFeedbackCount</div>
-                <div class="small text-muted" style="margin-top:6px">Avg: @Model.AverageRating.ToString("0.0")</div>
-            </div>
+        <!-- Feedback -->
+        <a href="@Url.Action("StudentSatisfaction", "Admin")" class="admin-stat-card stat-gradient-slate">
+            <div class="stat-label">Feedback Count</div>
+            <div class="stat-value">@Model.TotalFeedbackCount</div>
+            <div class="stat-extra">Avg: @Model.AverageRating.ToString("0.0")</div>
         </a>
 
-        <a class="card-link" href="@Url.Action("EscalationManagement","Admin")" aria-label="Manage support tickets">
-            <div class="metric-card" style="background:#ffc107; color:#111;">
-                <div class="metric-title">Support Tickets</div>
-                <div class="metric-value">@Model.SupportTicketsCount</div>
-            </div>
+        <!-- Support Tickets -->
+        <a href="@Url.Action("EscalationManagement", "Admin")" class="admin-stat-card stat-gradient-yellow">
+            <div class="stat-label">Support Tickets</div>
+            <div class="stat-value">@Model.SupportTicketsCount</div>
         </a>
 
-        <!-- Updated: point to AssignmentsController.Assign and show request count -->
-        <a class="card-link" href="@Url.Action("Assign","Assignments")" aria-label="Assign requests">
-            <div class="metric-card" style="background:#198754;">
-                <div class="metric-title">Assignment Requests</div>
-                <div class="metric-value">@Model.AssignRequestsCount</div>
-            </div>
+        <!-- Assignments -->
+        <a href="@Url.Action("Assign", "Assignments")" class="admin-stat-card stat-gradient-green">
+            <div class="stat-label">Pending Assignments</div>
+            <div class="stat-value">@Model.AssignRequestsCount</div>
         </a>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-7">
-            <div class="panel">
-                <h5 class="mb-3">Recent Feedback</h5>
+    <!-- ===== MAIN ===== -->
+    <div class="admin-main">
+
+        <!-- LEFT: Feedback + Resources -->
+        <div>
+            <div class="admin-panel">
+                <div class="panel-title">Recent Feedback</div>
 
                 @if (Model.RecentFeedbacks != null && Model.RecentFeedbacks.Any())
                 {
-                    <table class="task-table">
+                    <table class="admin-table">
                         <thead>
                             <tr>
-                                <th style="width:18%;">When</th>
-                                <th style="width:24%;">From</th>
-                                <th style="width:24%;">Consultant</th>
-                                <th style="width:10%;">Rating</th>
+                                <th>When</th>
+                                <th>From</th>
+                                <th>Consultant</th>
+                                <th>Rating</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -87,8 +225,8 @@
                             {
                                 <tr>
                                     <td>@f.Timestamp.ToLocalTime().ToString("g")</td>
-                                    <td>@(string.IsNullOrEmpty(f.StudentName) ? f.StudentUid : f.StudentName)</td>
-                                    <td>@(string.IsNullOrEmpty(f.ConsultantName) ? f.ConsultantUid : f.ConsultantName)</td>
+                                    <td>@(f.StudentName ?? f.StudentUid)</td>
+                                    <td>@(f.ConsultantName ?? f.ConsultantUid)</td>
                                     <td>@f.Rating</td>
                                 </tr>
                             }
@@ -97,37 +235,46 @@
                 }
                 else
                 {
-                    <div class="text-muted">No feedback yet.</div>
+                    <div class="text-muted" style="font-size:13px;">No feedback yet.</div>
                 }
             </div>
 
-            <div class="panel mt-3">
-                <h5 class="mb-3">Recent Resources</h5>
-                <ul class="list-group list-group-flush">
+            <div class="admin-panel" style="margin-top:20px;">
+                <div class="panel-title">Recent Resources</div>
+
+                @if (Model.RecentResources.Any())
+                {
                     @foreach (var r in Model.RecentResources)
                     {
-                        <li class="list-group-item">
+                        <div class="resource-item">
                             <a href="@r.Url" target="_blank">@r.Title</a>
-                            <div class="small text-muted">@r.OriginalName — @r.UploadedAt.ToLocalTime().ToString("g")</div>
-                        </li>
+                            <div class="resource-meta">@r.OriginalName — @r.UploadedAt.ToLocalTime().ToString("g")</div>
+                        </div>
                     }
-                    @if (!Model.RecentResources.Any())
-                    {
-                        <li class="list-group-item text-muted">No resources uploaded yet</li>
-                    }
-                </ul>
+                }
+                else
+                {
+                    <div class="text-muted" style="font-size:13px;">No resources uploaded.</div>
+                }
             </div>
         </div>
 
-        <div class="col-md-5">
-            <div class="panel">
-                <h5 class="mb-3">Satisfaction Breakdown</h5>
+        <!-- RIGHT: Satisfaction Chart -->
+        <div>
+            <div class="admin-panel">
+                <div class="panel-title">Satisfaction Breakdown</div>
+
                 <div style="max-width:360px; margin:0 auto;">
                     <canvas id="dashboardChart" height="220"></canvas>
                 </div>
-                <div class="mt-3 text-center small text-muted">Avg rating: @Model.AverageRating.ToString("0.0") — Total feedbacks: @Model.TotalFeedbackCount</div>
+
+                <div class="mt-3 text-center small text-muted">
+                    Avg rating: @Model.AverageRating.ToString("0.0")
+                    — Total feedbacks: @Model.TotalFeedbackCount
+                </div>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -143,22 +290,13 @@
                     labels: ['Satisfied', 'Neutral', 'Unsatisfied'],
                     datasets: [{
                         data: [stats.satisfied, stats.neutral, stats.unsatisfied],
-                        backgroundColor: ['#5B6EE1', '#F5A623', '#E74C3C']
+                        backgroundColor: ['#0ea5e9', '#fbbf24', '#ef4444']
                     }]
                 },
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(ctx) {
-                                    const label = ctx.label || '';
-                                    const val = ctx.raw || 0;
-                                    return label + ': ' + val + ' (' + (stats.total ? Math.round(val / stats.total * 100) : 0) + '%)';
-                                }
-                            }
-                        }
+                        legend: { position:'bottom' }
                     }
                 }
             });

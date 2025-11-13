@@ -1,4 +1,7 @@
-﻿@{
+﻿@using AcadenceWebApp.Models   
+@model DashboardViewModel        
+
+@{
     ViewData["Title"] = "Consultant Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
@@ -7,164 +10,559 @@
                         ?? Context.Session.GetString("UserUid")
                         ?? (User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "");
 }
-<!-- Notification Sidebar -->
-<div id="notificationSidebar" style="position: fixed; top: 0; right: -400px; width: 400px; height: 100vh; background: white; box-shadow: -2px 0 10px rgba(0,0,0,0.2); overflow-y: auto; transition: right 0.3s; z-index: 1050; padding: 20px;">
-    <h4>Notifications</h4>
-    <div id="notificationsList">Loading...</div>
-</div>
 
-<!-- Overlay (click outside to close sidebar) -->
-<div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.2); z-index:1040;"></div>
+<style>
+    /* ===== Consultant Dashboard – Figma style ===== */
 
-<!-- Main Page Content -->
-<div class="container py-5">
-    <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold" style="color: #5e72eb;">Welcome, Consultant!</h1>
-        <p class="lead" style="color: #333;">Here's an overview of your current activities and tools available to assist your clients.</p>
-    </div>
+    .dashboard-wrapper {
+        padding: 32px 40px;
+        background-color: #f3f4f7;
+        min-height: 100vh;
+    }
 
-    <div class="row g-4">
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <h5 class="card-title">🗂 Assigned Tasks</h5>
-                    <p class="card-text">View and manage all your current client tasks and progress updates.</p>
-                    <a href="/Consultant/AssignedTasks" class="btn btn-primary">Go to Tasks</a>
-                </div>
+    .dashboard-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .dashboard-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 24px;
+    }
+
+    /* Top stat cards */
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 28px;
+    }
+
+    .stat-card {
+        border-radius: 18px;
+        padding: 18px 20px;
+        background: #ffffff;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+        }
+
+    .stat-card-gradient-primary {
+        background: linear-gradient(135deg, #1d4ed8, #22d3ee);
+        color: #ffffff;
+    }
+
+    .stat-card-gradient-secondary {
+        background: linear-gradient(135deg, #6d28d9, #f97316);
+        color: #ffffff;
+    }
+
+    .stat-card-gradient-soft {
+        background: #ffffff;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 4px 0 6px 0;
+    }
+
+    .stat-footer-link {
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: inline-flex;
+        align-items: center;
+    }
+
+        .stat-footer-link span {
+            margin-left: 4px;
+            font-size: 13px;
+        }
+
+    .stat-footer-link-light {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .stat-footer-link-dark {
+        color: #4b5563;
+    }
+
+    /* Two main columns */
+
+    .dashboard-main {
+        display: grid;
+        grid-template-columns: 2.1fr 1.3fr;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    /* Upcoming deadlines */
+
+    .card-panel {
+        background-color: #ffffff;
+        border-radius: 18px;
+        padding: 18px 20px;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+    }
+
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .panel-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .panel-link {
+        font-size: 12px;
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .panel-link:hover {
+            text-decoration: underline;
+        }
+
+    .deadline-item {
+        background: #ffffff;
+        border-radius: 999px;
+        padding: 10px 16px;
+        margin-bottom: 10px;
+        border: 2px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+    }
+
+        .deadline-item.highlight-primary {
+            border-color: #f97316;
+            box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.3);
+        }
+
+        .deadline-item.highlight-secondary {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25);
+        }
+
+        .deadline-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+
+    .deadline-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #111827;
+    }
+
+    .deadline-meta {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .deadline-date-pill {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background-color: #fee2e2;
+        color: #b91c1c;
+        white-space: nowrap;
+    }
+
+    /* Notifications column */
+
+    .notifications-panel {
+        background: linear-gradient(135deg, #1d4ed8, #22c55e);
+        border-radius: 18px;
+        padding: 18px 20px;
+        color: #ffffff;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+    }
+
+    .notifications-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .notifications-title {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .notifications-body {
+        max-height: 320px;
+        overflow-y: auto;
+        padding-right: 6px;
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 10px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        background-color: rgba(15, 23, 42, 0.18);
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+        .notification-item:hover {
+            background-color: rgba(15, 23, 42, 0.28);
+            transform: translateY(-1px);
+        }
+
+    .notification-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background-color: rgba(15, 23, 42, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        margin-right: 10px;
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-text {
+        font-size: 13px;
+        line-height: 1.35;
+    }
+
+    .notification-meta {
+        font-size: 11px;
+        opacity: 0.85;
+        margin-top: 3px;
+    }
+
+    .notifications-footer-link {
+        font-size: 12px;
+        color: #e5e7eb;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        margin-top: 4px;
+    }
+
+        .notifications-footer-link span {
+            margin-left: 4px;
+        }
+
+    /* Active Tasks row */
+
+    .active-tasks-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+    }
+
+    .task-doc-card {
+        background-color: #ffffff;
+        border-radius: 18px;
+        padding: 14px 16px;
+        box-shadow: 0 5px 14px rgba(15, 23, 42, 0.08);
+        display: flex;
+        align-items: flex-start;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+        .task-doc-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.14);
+        }
+
+    .task-doc-icon {
+        width: 40px;
+        height: 48px;
+        border-radius: 10px;
+        border: 2px solid #2563eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #2563eb;
+        margin-right: 10px;
+        background-color: #eff6ff;
+    }
+
+    .task-doc-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 3px;
+    }
+
+    .task-doc-meta {
+        font-size: 11px;
+        color: #6b7280;
+    }
+
+    /* Utility */
+
+    .media (max-width: 1100px) {
+        .stats-row
+
+    {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-main {
+        grid-template-columns: 1fr;
+    }
+
+    .active-tasks-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    }
+
+    .media (max-width: 768px) {
+        .dashboard-wrapper
+
+    {
+        padding: 20px;
+    }
+
+    .active-tasks-row {
+        grid-template-columns: 1fr;
+    }
+
+    }
+</style>
+
+<div class="dashboard-wrapper">
+
+    <div class="dashboard-title">Dashboard</div>
+    <div class="dashboard-subtitle">Your work overview</div>
+
+    <!-- ===== TOP STATS ===== -->
+    <div class="stats-row">
+
+        <!-- Total Student Cases -->
+        <a asp-controller="Consultant" asp-action="AssignedTasks" class="stat-card stat-card-gradient-primary text-decoration-none">
+            <div class="stat-label">Total Student Cases</div>
+            <div class="stat-value">@Model.TotalStudentCases</div>
+            <div class="stat-footer-link stat-footer-link-light">
+                Task List View <span>↗</span>
             </div>
-        </div>
-        <!-- Add other cards here as needed -->
+        </a>
+
+        <!-- Active Student Cases -->
+        <a asp-controller="Consultant" asp-action="AssignedTasks" class="stat-card stat-card-gradient-soft text-decoration-none">
+            <div class="stat-label">Active Student Cases</div>
+            <div class="stat-value">@Model.ActiveStudentCases</div>
+            <div class="stat-footer-link stat-footer-link-dark">
+                Task List View <span>↗</span>
+            </div>
+        </a>
+
+        <!-- Pending Quotes -->
+        <a asp-controller="Consultant" asp-action="QuotationPanel" class="stat-card stat-card-gradient-soft text-decoration-none">
+            <div class="stat-label">Pending Quotes</div>
+            <div class="stat-value">@Model.PendingQuotes</div>
+            <div class="stat-footer-link stat-footer-link-dark">
+                Quotation Panel <span>↗</span>
+            </div>
+        </a>
+
+        <!-- Tasks Overdue -->
+        <a asp-controller="Consultant" asp-action="AssignedTasks" asp-route-status="Overdue" class="stat-card stat-card-gradient-secondary text-decoration-none">
+            <div class="stat-label">Tasks Overdue</div>
+            <div class="stat-value">@Model.TasksOverdue</div>
+            <div class="stat-footer-link stat-footer-link-light">
+                Task List View <span>↗</span>
+            </div>
+        </a>
     </div>
-</div>
 
-<!-- Top Right Bell Button -->
-<button id="notificationBtn" class="btn btn-light position-fixed" style="top: 20px; right: 30px; z-index: 1100;">
-    🔔
-    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="unreadCount">0</span>
-</button>
+    <!-- ===== MAIN BODY ===== -->
+    <div class="dashboard-main">
 
-<!-- Centered Notification Modal -->
-<div id="notificationModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center;">
-    <div id="modalContent" style="background:white; padding:30px; border-radius:8px; max-width:500px; width:90%;">
-        <h4 id="modalTitle"></h4>
-        <p id="modalMessage"></p>
-        <small id="modalTimestamp" class="text-muted"></small>
-    </div>
-</div>
+        <!-- LEFT: Upcoming Deadlines + Active Tasks -->
+        <div>
 
-<!-- Firebase Notification Logic -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-    import {
-        getFirestore, collection, getDocs, query, orderBy, updateDoc, doc, arrayUnion
-    } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+            <!-- Upcoming Deadlines -->
+            <div class="card-panel mb-3">
+                <div class="panel-header">
+                    <div class="panel-title">Upcoming Deadlines</div>
+                    <a asp-controller="Consultant" asp-action="AssignedTasks" class="panel-link">View all tasks</a>
+                </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB8fUMWYN29wYg0YOvhW5NBUzstzpHD7pY",
-      authDomain: "acadence-40662.firebaseapp.com",
-      projectId: "acadence-40662",
-      storageBucket: "acadence-40662.firebasestorage.app",
-      messagingSenderId: "907171020913",
-      appId: "1:907171020913:web:46cb92eea7b9ed0d28dbd0"
-    };
+                @if (Model.UpcomingDeadlines != null && Model.UpcomingDeadlines.Any())
+                {
+                    var index = 0;
+                    foreach (var deadline in Model.UpcomingDeadlines)
+                    {
+                        var highlightClass = index == 0
+                        ? "highlight-primary"
+                        : index == 1
+                        ? "highlight-secondary"
+                        : "";
 
-    // Inject the server-determined current user id into the client script
-    const CURRENT_USER_ID = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(currentUserId ?? ""));
+                        <a asp-controller="Consultant"
+                           asp-action="AssignedTasks"
+                           asp-route-taskId="@deadline.TaskId"
+                           class="deadline-item @highlightClass text-decoration-none">
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+                            <div>
+                                <div class="deadline-title">
+                                    @deadline.StudentName – @deadline.TaskTitle
+                                </div>
+                                <div class="deadline-meta">
+                                    Due @deadline.DueDate.ToString("dd MMM yyyy") · @deadline.ReviewType
+                                </div>
+                            </div>
 
-    const notificationBtn = document.getElementById("notificationBtn");
-    const sidebar = document.getElementById("notificationSidebar");
-    const overlay = document.getElementById("overlay");
-    const notificationsList = document.getElementById("notificationsList");
-    const unreadCount = document.getElementById("unreadCount");
+                            <div class="deadline-date-pill">
+                                @deadline.DueDate.ToString("dd MMM yyyy")
+                            </div>
+                        </a>
 
-    const modal = document.getElementById("notificationModal");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalMessage = document.getElementById("modalMessage");
-    const modalTimestamp = document.getElementById("modalTimestamp");
-
-    let unread = 0;
-
-    function toggleSidebar(show) {
-        sidebar.style.right = show ? "0px" : "-400px";
-        overlay.style.display = show ? "block" : "none";
-    }
-
-    notificationBtn && notificationBtn.addEventListener("click", () => toggleSidebar(true));
-    overlay && overlay.addEventListener("click", () => toggleSidebar(false));
-
-    modal && modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.style.display = "none";
-        }
-    });
-
-    async function markAsRead(docId, alreadyRead) {
-        if (!alreadyRead && CURRENT_USER_ID) {
-            const notifRef = doc(db, "notifications", docId);
-            // preserve array shape and append this UID only if not already present
-            await updateDoc(notifRef, {
-                readBy: arrayUnion(CURRENT_USER_ID)
-            });
-            unread = Math.max(0, unread - 1);
-            unreadCount.innerText = unread > 0 ? unread : "0";
-        }
-    }
-
-    async function loadNotifications() {
-        const snapshot = await getDocs(query(collection(db, "notifications"), orderBy("priority", "desc")));
-        unread = 0;
-        notificationsList.innerHTML = "";
-
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            const recipients = data.recipientIds || [];
-            const readBy = Array.isArray(data.readBy) ? data.readBy : [];
-
-            // show if this notification targets the current user or is broadcast ("all")
-            if ((CURRENT_USER_ID && recipients.includes(CURRENT_USER_ID)) || recipients.includes("all")) {
-                const card = document.createElement("div");
-                card.className = "card mb-2";
-                card.style.cursor = "pointer";
-                card.style.borderLeft = data.priority === "High" ? "5px solid red" : "5px solid gray";
-
-                const body = document.createElement("div");
-                body.className = "card-body";
-
-                const date = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : "Unknown Date";
-
-                body.innerHTML = `
-                    <h5>${data.title || "Untitled"}</h5>
-                    <p class="mb-1">${data.message || ""}</p>
-                    <small class="text-muted">${date}</small>
-                `;
-
-                card.appendChild(body);
-
-                // If unread, highlight it
-                const isRead = readBy.includes(CURRENT_USER_ID);
-                if (!isRead) {
-                    card.style.background = "#fef8e7";
-                    unread++;
+                        index++;
+                    }
                 }
+                else
+                {
+                    <div class="text-muted" style="font-size: 13px;">No upcoming deadlines in the next 14 days.</div>
+                }
+            </div>
 
-                // When clicked, show modal and mark as read
-                card.addEventListener("click", async () => {
-                    modalTitle.innerText = data.title || "Untitled";
-                    modalMessage.innerText = data.message || "";
-                    modalTimestamp.innerText = date;
-                    modal.style.display = "flex";
-                    await markAsRead(docSnap.id, isRead);
-                });
+            <!-- Active Tasks (documents) -->
+            <div class="card-panel">
+                <div class="panel-header">
+                    <div class="panel-title">Active Tasks</div>
+                    <a asp-controller="Consultant" asp-action="AssignedTasks" class="panel-link">Open task list</a>
+                </div>
 
-                notificationsList.appendChild(card);
-            }
-        });
+                @if (Model.ActiveTasks != null && Model.ActiveTasks.Any())
+                {
+                    <div class="active-tasks-row">
+                        @foreach (var task in Model.ActiveTasks)
+                        {
+                            <a asp-controller="Consultant"
+                               asp-action="AssignedTasks"
+                               asp-route-taskId="@task.TaskId"
+                               class="task-doc-card text-decoration-none">
 
-        unreadCount.innerText = unread;
-    }
+                                <div class="task-doc-icon">
+                                    <span class="bi bi-file-earmark-text"></span> <!-- if Bootstrap icons; else plain "📄" -->
+                                </div>
+                                <div>
+                                    <div class="task-doc-title">
+                                        @task.StudentName – @task.TaskTitle
+                                    </div>
+                                    <div class="task-doc-meta">
+                                        @task.ReviewType · Due @task.DueDate.ToString("dd MMM")
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted" style="font-size: 13px;">You have no active tasks at the moment.</div>
+                }
+            </div>
 
-    loadNotifications();
-</script>
+        </div>
+
+        <!-- RIGHT: Notifications -->
+        <div class="notifications-panel">
+
+            <div class="notifications-header">
+                <div class="notifications-title">Recent Notifications</div>
+                <a asp-controller="Consultant"
+                   asp-action="Notifications"
+                   class="notifications-footer-link">
+                    View all <span>↗</span>
+                </a>
+            </div>
+
+            <div class="notifications-body">
+                @if (Model.Notifications != null && Model.Notifications.Any())
+                {
+                    foreach (var n in Model.Notifications)
+                    {
+                        <a asp-controller="Consultant"
+                           asp-action="Messages"
+                           asp-route-threadId="@n.ThreadId"
+                           class="notification-item text-decoration-none text-white">
+
+                            <div class="notification-icon">
+                                @* You can customise icon by type: message, upload, star etc. *@
+                                @if (n.Type == "Message")
+                                {
+                                    @:<span>💬</span>
+                                }
+                                else if (n.Type == "Upload")
+                                {
+                                    @:<span>⬆</span>
+                                }
+                                else if (n.Type == "Rating")
+                                {
+                                    @:<span>★</span>
+                                }
+                                else
+                                {
+                                    @:<span>•</span>
+                                }
+                            </div>
+
+                            <div class="notification-content">
+                                <div class="notification-text">
+                                    @n.Text
+                                </div>
+                                <div class="notification-meta">
+                                    @n.CreatedAt.ToString("dd MMM, h:mm tt")
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <div style="font-size: 13px; opacity: 0.9;">
+                        No new notifications. You’re all caught up ✅
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
