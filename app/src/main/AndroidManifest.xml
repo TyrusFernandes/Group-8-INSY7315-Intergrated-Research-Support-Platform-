@@ -15,6 +15,9 @@
         android:theme="@style/Theme.AcadenceApp"
         tools:targetApi="35">
         <activity
+            android:name=".ViewReviewActivity"
+            android:exported="false" />
+        <activity
             android:name=".YourChatActivity"
             android:exported="false"
             android:theme="@style/Theme.AcadenceApp" />
@@ -28,13 +31,10 @@
             android:name=".ConsultantRequestDetailActivity"
             android:exported="false" />
         <activity android:name=".AiAssistantActivity" />
-
         <activity android:name=".DocumentDetailActivity" />
         <activity android:name=".FeedbackActivity" />
         <activity android:name=".SupportTicketsActivity" />
-
-        <activity
-            android:name=".UploadActivity" />
+        <activity android:name=".UploadActivity" />
         <activity
             android:name=".JobActivity"
             android:exported="false" />

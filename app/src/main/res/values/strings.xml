@@ -58,9 +58,6 @@
     <string name="nav_profile">Profile</string>
 
 
-
-
-
     <string name="default_web_client_id" translatable="false">"907171020913-s3ejcf6drbnb0nnqd0g6jdtnva870t0c.apps.googleusercontent.com"</string>
 
     <!-- Review Type Spinner Items -->

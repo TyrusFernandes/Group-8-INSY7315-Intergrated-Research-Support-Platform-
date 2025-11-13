@@ -56,6 +56,7 @@ class DashboardActivity : AppCompatActivity() {
         val rvNotifications: RecyclerView = findViewById(R.id.rvNotifications)
         val roleLabel: TextView = findViewById(R.id.roleLabel)
         val btnJobs = findViewById<Button>(R.id.btnUploades)
+
         btnJobs.setOnClickListener {
             val intent = Intent(this, DocumentActivity::class.java)
             startActivity(intent)
@@ -72,6 +73,12 @@ class DashboardActivity : AppCompatActivity() {
         btnFeedback.text = "Give Us Feedback"
         btnFeedback.setOnClickListener {
             val intent = Intent(this, FeedbackActivity::class.java)
+            startActivity(intent)
+        }
+
+        val btnViewReviews = findViewById<Button>(R.id.btnViewReviews)
+        btnViewReviews.setOnClickListener {
+            val intent = Intent(this, ViewReviewActivity::class.java)
             startActivity(intent)
         }
 
