@@ -1,83 +1,73 @@
 ﻿@model AcadenceWebApp.Models.ConsultantWorkloadViewModel
-@using System.Text.Json
+
 @{
     ViewData["Title"] = "Consultant Workload";
-
-    // ✅ Prevent NullReference if the view ever renders without a model
-    var list = Model?.Consultants ?? new List<AcadenceWebApp.Models.ConsultantDto>();
-    var jsonConsultants = JsonSerializer.Serialize(list);
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<h1>Consultant Workload</h1>
 
-<div class="container py-4">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <div>
-            <h2 class="mb-0">Consultant Workload</h2>
-            <small class="text-muted">Active projects by consultant (bar chart)</small>
-        </div>
+<!-- Point form to Admin controller so admin link & actions stay consistent -->
+<form method="get" asp-controller="Admin" asp-action="ConsultantWorkload" class="mb-3">
+    <div style="display:flex; gap:8px; max-width:720px;">
+        <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search consultant name or email..."
+               style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;" />
+        <button type="submit" style="padding:8px 14px; background:#0047ff; color:white; border:none; border-radius:4px;">Search</button>
+        <a href="@Url.Action("ConsultantWorkload", "Admin")" style="padding:8px 14px; background:#6c757d; color:white; border-radius:4px; text-decoration:none;">Clear</a>
     </div>
+</form>
 
-    <!-- KPI tiles -->
-    <div class="row g-3 mb-3">
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="text-muted">Consultants</div>
-                    <div class="fs-3 fw-semibold">@((Model?.TotalConsultants) ?? 0)</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="text-muted">Avg. Active Projects</div>
-                    <div class="fs-3 fw-semibold">@Math.Round((Model?.AverageActiveProjects) ?? 0.0, 1)</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="text-muted">Busiest</div>
-                    <div class="fs-6">
-                        @(Model?.Busiest is null ? "—" : $"{Model.Busiest.Name} • {Model.Busiest.ActiveProjects}")
+@if (!Model.Consultants.Any())
+{
+    <div class="alert alert-info">No consultants found.</div>
+}
+else
+{
+    <div style="display:grid; gap:16px;">
+        @foreach (var c in Model.Consultants)
+        {
+            <div style="padding:12px; border:1px solid #e3e3e3; border-radius:6px; background:white;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong>@c.ConsultantName</strong><br />
+                        <small>@c.Email</small>
+                    </div>
+                    <div>
+                        <small>@(c.StudentRequests?.Count ?? 0) requests</small>
                     </div>
                 </div>
+
+                <div style="margin-top:10px;">
+                    @if (c.StudentRequests == null || !c.StudentRequests.Any())
+                    {
+                        <div style="color:#666;">No assigned requests.</div>
+                    }
+                    else
+                    {
+                        <table class="table table-sm" style="margin-top:6px;">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Request</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in c.StudentRequests.OrderByDescending(x => x.RequestDate).Take(20))
+                                {
+                                    <tr>
+                                        <td>@r.StudentName</td>
+                                        <td>@r.RequestTitle</td>
+                                        <td>@r.Status</td>
+                                        <td>@(r.RequestDate?.ToString("yyyy-MM-dd") ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
             </div>
-        </div>
+        }
     </div>
-
-    <!-- Filters -->
-    <div class="row g-3 mb-3">
-        <div class="col-md-4">
-            <input id="searchBox" class="form-control" placeholder="Search consultant..." />
-        </div>
-        <div class="col-md-4">
-            <select id="deptFilter" class="form-select">
-                <option value="all">All departments</option>
-                <option value="Health">Health</option>
-                <option value="Education">Education</option>
-                <option value="Finance">Finance</option>
-            </select>
-        </div>
-        <div class="col-md-4 text-md-end">
-            <button id="exportCsvBtn" class="btn btn-outline-secondary">Export CSV</button>
-        </div>
-    </div>
-
-    <!-- Chart card -->
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <canvas id="workloadChart" height="120"></canvas>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // bootstrap data from server
-        const consultants = @Html.Raw(jsonConsultants);
-    </script>
-    <script src="~/js/workload.js"></script>
 }

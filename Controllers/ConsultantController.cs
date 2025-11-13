@@ -362,6 +362,36 @@ private class RequestInternal
             }
         }
 
+        // ReviewWork action to load request and document details
+        [HttpGet]
+        public async Task<IActionResult> ReviewWork(string requestId)
+        {
+            if (string.IsNullOrEmpty(requestId))
+                return BadRequest("Missing request ID");
+
+            var requestDoc = await _firestoreDb.Collection("requests").Document(requestId).GetSnapshotAsync();
+            if (!requestDoc.Exists)
+                return NotFound("Request not found");
+
+            string docId = requestDoc.GetValue<string>("docId");
+
+            var documentDoc = await _firestoreDb.Collection("documents").Document(docId).GetSnapshotAsync();
+            if (!documentDoc.Exists)
+                return NotFound("Associated document not found");
+
+            string fileUrl = documentDoc.GetValue<string>("fileUrl");
+            string title = documentDoc.ContainsField("title") ? documentDoc.GetValue<string>("title") : "Untitled Document";
+
+            var model = new ReviewWorkViewModel
+            {
+                RequestId = requestId,
+                DocTitle = title,
+                FileUrl = fileUrl
+            };
+
+            return View(model);
+        }
+
         // modified ResourceLibrary action to load resources from Firestore and return model
         [HttpGet]
         public async Task<IActionResult> ResourceLibrary()
