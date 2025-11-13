@@ -44,7 +44,7 @@ class AiAssistantActivity : AppCompatActivity() {
         uploadButton = findViewById(R.id.btnUploadDoc)
 
         val config = generationConfig {
-            maxOutputTokens = 2000  // Longer responses
+            maxOutputTokens = 1500  // Longer responses
             temperature = 0.7f
             topK = 40
             topP = 0.9f
