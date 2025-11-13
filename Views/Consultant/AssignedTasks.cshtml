@@ -528,6 +528,14 @@
                                 </td>
 
                                 <td class="deadline">@task.DeadlineFormatted</td>
+                                <td>
+                                    <form asp-controller="Consultant" asp-action="ReviewWork" method="get">
+                                        <input type="hidden" name="requestId" value="@task.Id" />
+                                        <button type="submit" class="btn btn-primary" @(task.ConsultantApproved ? "" : "disabled")>
+                                            Review Work
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -843,4 +851,6 @@
 
         loadNotifications();
     </script>
+
+    
 }
