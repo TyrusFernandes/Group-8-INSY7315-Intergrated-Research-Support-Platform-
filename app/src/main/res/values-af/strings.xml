@@ -76,4 +76,80 @@
     <string name="nav_messages">Boodskappe</string>
     <string name="nav_profile">Profiel</string>
 
+    <string name="terms_text">
+Acadence - Terme and Privaatheidsbeleid
+
+Laas opgedateer: Januarie 2025
+
+INLEIDING
+Acadence is ’n opvoedkundige bystandsplatform waar studente en konsulteerders dokumente kan oplaai, hulp kan aanvra, terugvoering kan gee, en AI-gedrewe funksies kan gebruik. Deur die toepassing te gebruik, stem jy in tot die volgende bepalings.
+
+1. GEBRUIKERREKENINGE
+- Jy moet akkurate rekeninginligting verskaf.
+- Jy is verantwoordelik vir alle aktiwiteite onder jou rekening.
+- Konsulteerders moet wettige, geloofwaardige akademiese hulp verleen en mag nie kwalifikasies verkeerd voorstel nie.
+
+2. DOKUMENT OPLAaie
+- Jy kies self of jou dokument publiek sigbaar is op die “For You”-blad via die sigbaarheidsmerkie.
+- Dokumente wat as “publiek” gemerk is, kan vir alle gebruikers in ontdekkingsafdelings verskyn.
+- Dokumente wat as “privaat” gemerk is, sal slegs aan jou en geselekteerde konsulteerders vertoon word.
+- Moenie onwettige, skadelike, plagiaat of kopieregbeskermde inhoud oplaai nie.
+
+3. GEBRUIK VAN AI-FUNKSIES
+Acadence gebruik KI om:
+• Voorstelle te genereer
+• Opsommings van dokumente te help maak
+• Aanbevole dokumente te rangskik
+• Soekresultate te verbeter
+
+Beperkings:
+- KI kan foute of onvolledige inligting gee.
+- KI-uitsette is nie professionele of akademiese advies nie.
+- Jy is verantwoordelik om KI-inhoud self na te gaan en te verifieer.
+
+4. PRIVaatheid and DATA-BEWARING
+Acadence stoor:
+• Rekeningdata (e-pos, gebruikersnaam, profiel)
+• Opgelaaide dokumente en voorblaaie
+• Terugvoering en graderings
+• Boodskappe en versoekbesonderhede
+• App-voorkeure (taal, kennisgewings)
+
+Alle data word veilig gestoor via Google Firebase (Firestore and Storage).
+
+5. SIGBAARHEID VAN DIE “FOR YOU”-BLAD
+- Publieke dokumente kan deur alle gebruikers gesien word.
+- Sleutelwoorde en etikette kan gebruik word om aanbevelings te verbeter.
+- Jou "uploadedBy"-naam kan vertoon word tensy jy jou profiel anoniem maak.
+
+6. TERUGVOERING and GRADERINGS
+- Studente kan konsulteerders beoordeel nadat hulp ontvang is.
+- Terugvoering moet respekvol wees en nie beledigend nie.
+- Graderings kan vir kwaliteitsbeheer gebruik word.
+
+7. VERBODE INHOUD
+Jy mag NIE die volgende oplaai of stuur nie:
+- Haatspraak of teistering
+- Onwettige of gevaarlike inhoud
+- Eksamenvrae, antwoorde of enige vorm van akademiese bedrog
+- Kopieregbeskermde materiaal sonder toestemming
+- Malware of skadelike lêers
+
+8. VRYWARING VAN AANSPREEKLIKHEID
+Acadence en sy ontwikkelaars is nie aanspreeklik vir:
+- KI-foute of verkeerde inligting
+- Konsulteerderadvies of akademiese uitkomste
+- Dataverlies as gevolg van netwerk- of toestelfoute
+- Gebruikersinhoud of misbruik van die platform nie
+
+9. OUDITSE VEREISTE
+Gebruikers moet minstens 16 jaar oud wees of ouerlike toestemming hê.
+
+10. VERANDERINGE AAN DIE BEPALINGS
+Ons kan hierdie terme te eniger tyd bywerk. Voortgesette gebruik van die toepassing impliseer dat jy enige veranderinge aanvaar.
+
+Vir enige navrae, kontak: support@acadence.app
+</string>
+
+
 </resources>

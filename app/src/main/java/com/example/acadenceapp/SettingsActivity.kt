@@ -50,6 +50,13 @@ class SettingsActivity : AppCompatActivity() {
         val logoutButton = findViewById<Button>(R.id.btn_logout)
         val editProfileButton = findViewById<Button>(R.id.edit_profile_button)
         val currentUser = FirebaseAuth.getInstance().currentUser
+        val termsItem = findViewById<LinearLayout>(R.id.terms_item)
+
+        termsItem.setOnClickListener {
+            val intent = Intent(this, TermsActivity::class.java)
+            startActivity(intent)
+        }
+
 
         // NEW: Find the clickable logout item container to restore functionality
         val logoutItem = findViewById<LinearLayout>(R.id.logout_item)

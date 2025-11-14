@@ -57,6 +57,82 @@
     <string name="nav_messages">Messages</string>
     <string name="nav_profile">Profile</string>
 
+    <string name="terms_text">
+Acadence - Terms and Privacy Policy
+
+Last updated: January 2025
+
+INTRODUCTION
+Acadence is an education-assistance platform where students and consultants can upload documents, request help, submit feedback, and use AI-powered features. By using the app, you agree to the following terms.
+
+1. USER ACCOUNTS
+- You must provide accurate account information.
+- You are responsible for all activity under your account.
+- Consultants must provide legitimate academic assistance and may not misrepresent qualifications.
+
+2. DOCUMENT UPLOADS
+- You choose whether your document is shown publicly on the “For You” feed via the visibility toggle at upload.
+- Documents marked as “public” may appear for all users in discovery sections.
+- Documents marked “private” will only appear to you and selected consultants.
+- Do not upload harmful, illegal, copyrighted, or plagiarized content.
+
+3. USE OF AI FEATURES
+Acadence uses AI to:
+• Generate suggestions
+• Assist with document summaries
+• Sort recommended documents
+• Improve user search results
+
+Limitations:
+- AI may produce incorrect or incomplete information.
+- AI outputs should not be treated as professional or academic advice.
+- You are responsible for verifying AI-generated content.
+
+4. PRIVACY and DATA STORAGE
+Acadence stores:
+• Account data (email, username, profile)
+• Uploaded documents and thumbnails
+• Feedback and ratings
+• Messages and request details
+• App preferences (language, notifications)
+
+All data is stored securely using Google Firebase (Firestore and Storage).
+
+5. VISIBILITY OF THE “FOR YOU” FEED
+- Public documents may appear to all users.
+- Tags and search keywords may be used to improve recommendations.
+- Your uploadedBy name may appear unless you anonymize your profile.
+
+6. FEEDBACK and RATINGS
+- Students may rate consultants after receiving help.
+- Feedback must be respectful and not abusive.
+- Ratings may be used for quality control.
+
+7. PROHIBITED CONTENT
+You may NOT upload or send:
+- Hate speech or harassment
+- Illegal, harmful, or violent content
+- Cheats, harmful academic content, or exam answers
+- Copyrighted files without permission
+- Malware or dangerous files
+
+8. LIABILITY DISCLAIMER
+Acadence and its developers are not responsible for:
+- AI mistakes or inaccuracies
+- Consultant advice or academic outcomes
+- Loss of data due to network or device issues
+- User-uploaded content or misuse of the platform
+
+9. AGE REQUIREMENT
+Users must be at least 16 years old or have parental consent.
+
+10. CHANGES TO TERMS
+We may update these terms at any time. Continued use of the app means you accept changes.
+
+If you have any questions, contact support at support@acadence.app.
+</string>
+
+
 
     <string name="default_web_client_id" translatable="false">"907171020913-s3ejcf6drbnb0nnqd0g6jdtnva870t0c.apps.googleusercontent.com"</string>
 

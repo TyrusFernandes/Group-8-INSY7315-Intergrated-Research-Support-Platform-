@@ -28,6 +28,9 @@
             android:name=".ResourceLibraryActivity"
             android:exported="false" />
         <activity
+            android:name=".TermsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ConsultantRequestsActivity"
             android:exported="false" />
         <activity
