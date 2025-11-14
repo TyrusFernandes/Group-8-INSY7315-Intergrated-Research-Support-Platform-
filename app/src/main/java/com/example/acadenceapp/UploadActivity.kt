@@ -29,6 +29,7 @@ class UploadActivity : AppCompatActivity() {
     private lateinit var filePathText: TextView
     private lateinit var thumbnailPreview: ImageView
     private lateinit var progressBar: ProgressBar
+    private lateinit var checkShowInFeed: CheckBox
 
     private var fileUri: Uri? = null
     private var thumbnailUri: Uri? = null
@@ -50,6 +51,7 @@ class UploadActivity : AppCompatActivity() {
         filePathText = findViewById(R.id.filePathText)
         thumbnailPreview = findViewById(R.id.thumbnailPreview)
         progressBar = findViewById(R.id.progressBar)
+        checkShowInFeed = findViewById(R.id.checkShowInFeed)
 
         // Pick file
         pickFileButton.setOnClickListener {
@@ -166,7 +168,8 @@ class UploadActivity : AppCompatActivity() {
             "uploadedBy" to (user?.displayName ?: user?.email ?: "Unknown"),
             "uploadedByUid" to (user?.uid ?: "anonymous"),
             "tags" to tags,
-            "createdAt" to FieldValue.serverTimestamp()
+            "createdAt" to FieldValue.serverTimestamp(),
+            "studentChecked" to checkShowInFeed.isChecked
         )
 
         db.collection("documents").add(doc)

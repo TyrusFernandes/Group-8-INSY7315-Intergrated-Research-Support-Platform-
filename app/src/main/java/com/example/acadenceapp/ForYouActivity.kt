@@ -153,6 +153,9 @@ class ForYouActivity : AppCompatActivity() {
         progress.visibility = View.VISIBLE
         var q = db.collection("documents") as Query
 
+        // ALWAYS enforce student approval
+        q = q.whereEqualTo("studentChecked", true)
+
         q = if (tag == null) {
             // “For you” = recent uploads
             q.orderBy("createdAt", Query.Direction.DESCENDING).limit(50)

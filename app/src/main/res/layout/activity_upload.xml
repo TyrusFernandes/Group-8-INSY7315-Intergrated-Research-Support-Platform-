@@ -108,6 +108,17 @@
                 android:visibility="gone"
                 />
 
+            <CheckBox
+                android:id="@+id/checkShowInFeed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                android:text="Show in For You feed"
+                android:checked="true"
+                android:textColor="#000000"
+                android:textSize="16sp"/>
+
             <Button
                 android:id="@+id/uploadButton"
                 android:layout_width="match_parent"

@@ -81,11 +81,6 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val btnViewReviews = findViewById<Button>(R.id.btnViewReviews)
-        btnViewReviews.setOnClickListener {
-            val intent = Intent(this, ViewReviewActivity::class.java)
-            startActivity(intent)
-        }
 
         // StudentDashboardActivity.kt
         val btnSupportTickets = findViewById<Button>(R.id.btnSupportTickets)

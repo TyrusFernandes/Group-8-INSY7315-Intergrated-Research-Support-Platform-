@@ -10,11 +10,19 @@ import com.google.firebase.firestore.FirebaseFirestore
 class FeedbackActivity : AppCompatActivity() {
 
     private lateinit var consultantSpinner: Spinner
-    private lateinit var ratingBar: RatingBar
     private lateinit var commentsBox: EditText
     private lateinit var submitBtn: Button
     private lateinit var firestore: FirebaseFirestore
     private var selectedConsultantUid: String? = null
+
+    private lateinit var star1: ImageView
+    private lateinit var star2: ImageView
+    private lateinit var star3: ImageView
+    private lateinit var star4: ImageView
+    private lateinit var star5: ImageView
+
+    private var rating = 0
+
     private val consultantMap = mutableMapOf<String, String>() // name to uid
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,15 +30,25 @@ class FeedbackActivity : AppCompatActivity() {
         setContentView(R.layout.activity_feedback)
 
         consultantSpinner = findViewById(R.id.consultantSpinner)
-        ratingBar = findViewById(R.id.consultantSpinner)
         commentsBox = findViewById(R.id.commentsBox)
         submitBtn = findViewById(R.id.submitBtn)
         firestore = FirebaseFirestore.getInstance()
+        star1 = findViewById(R.id.star1)
+        star2 = findViewById(R.id.star2)
+        star3 = findViewById(R.id.star3)
+        star4 = findViewById(R.id.star4)
+        star5 = findViewById(R.id.star5)
 
+        setupStarRating()
         loadConsultants()
 
         submitBtn.setOnClickListener {
-            val rating = ratingBar.rating
+            val ratingValue = rating
+            if (ratingValue == 0) {
+                Toast.makeText(this, "Please select a star rating", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val comment = commentsBox.text.toString()
             val studentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
             val consultantUid = selectedConsultantUid ?: return@setOnClickListener
@@ -53,6 +71,26 @@ class FeedbackActivity : AppCompatActivity() {
                 }
         }
     }
+
+    private fun setupStarRating() {
+        val stars = listOf(star1, star2, star3, star4, star5)
+
+        stars.forEachIndexed { index, star ->
+            star.setOnClickListener {
+                rating = index + 1
+                updateStars()
+            }
+        }
+    }
+
+    private fun updateStars() {
+        val stars = listOf(star1, star2, star3, star4, star5)
+        stars.forEachIndexed { index, star ->
+            if (index < rating) star.setColorFilter(getColor(R.color.light_yellow))
+            else star.setColorFilter(getColor(R.color.gray_light))
+        }
+    }
+
 
     private fun loadConsultants() {
         firestore.collection("users").whereEqualTo("role", "consultant").get()
