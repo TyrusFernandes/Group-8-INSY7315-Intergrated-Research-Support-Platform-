@@ -3,68 +3,90 @@ package com.example.acadenceapp
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import java.util.UUID
 
 object OfflineSyncManager {
-
-    private val db = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance().reference
-    private val auth = FirebaseAuth.getInstance()
 
     fun syncPendingDocuments(context: Context) {
         if (!NetworkUtils.isOnline(context)) return
 
-        val user = auth.currentUser ?: return
+        val db = FirebaseFirestore.getInstance()
+        val storage = FirebaseStorage.getInstance().reference
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
         db.collection("documents")
-            .whereEqualTo("uploadedByUid", user.uid)
+            .whereEqualTo("uploadedByUid", uid)
             .whereEqualTo("uploadPending", true)
             .get()
             .addOnSuccessListener { snapshot ->
-                if (snapshot.isEmpty) return@addOnSuccessListener
+                for (doc in snapshot.documents) {
+                    val localFileUri = doc.getString("localFileUri")
+                    if (localFileUri.isNullOrEmpty()) continue
 
-                Toast.makeText(
-                    context,
-                    "Syncing ${snapshot.size()} offline uploads…",
-                    Toast.LENGTH_SHORT
-                ).show()
+                    val localThumbUri = doc.getString("localThumbnailUri")
+                    val docRef = doc.reference
 
-                snapshot.documents.forEach { doc ->
-                    val localUriStr = doc.getString("localUri") ?: return@forEach
-                    val uri = Uri.parse(localUriStr)
-                    val docId = doc.id
+                    val fileRef = storage.child("documents/${UUID.randomUUID()}")
+                    val fileUri = Uri.parse(localFileUri)
 
-                    val fileRef = storage.child("documents/$docId")
-
-                    fileRef.putFile(uri)
-                        .continueWithTask { task ->
-                            if (!task.isSuccessful) {
-                                throw task.exception ?: Exception("Upload failed")
-                            }
+                    fileRef.putFile(fileUri)
+                        .continueWithTask { t ->
+                            if (!t.isSuccessful) throw t.exception ?: Exception("Upload failed")
                             fileRef.downloadUrl
                         }
-                        .addOnSuccessListener { downloadUri ->
-                            doc.reference.update(
-                                mapOf(
-                                    "fileUrl" to downloadUri.toString(),
-                                    "uploadPending" to false,
-                                    "localUri" to null
+                        .addOnSuccessListener { fileUrl ->
+                            if (!localThumbUri.isNullOrEmpty()) {
+                                val thumbRef = storage.child("thumbnails/${UUID.randomUUID()}")
+                                val thumbUri = Uri.parse(localThumbUri)
+
+                                thumbRef.putFile(thumbUri)
+                                    .continueWithTask { t ->
+                                        if (!t.isSuccessful) throw t.exception ?: Exception("Thumb upload failed")
+                                        thumbRef.downloadUrl
+                                    }
+                                    .addOnSuccessListener { thumbUrl ->
+                                        updateFirestoreAfterSync(
+                                            docRef,
+                                            fileUrl.toString(),
+                                            thumbUrl.toString()
+                                        )
+                                    }
+                            } else {
+                                updateFirestoreAfterSync(
+                                    docRef,
+                                    fileUrl.toString(),
+                                    ""
                                 )
-                            )
+                            }
                         }
                         .addOnFailureListener { e ->
-                            Log.e("OfflineSync", "Failed to sync document $docId", e)
+                            Log.e("OfflineSync", "Failed to upload pending doc ${doc.id}", e)
                         }
                 }
             }
-            .addOnFailureListener { e ->
-                Log.e("OfflineSync", "Failed to load pending docs", e)
-            }
     }
 
-    // Requests are pure Firestore writes, so Firestore already syncs them for us.
-    // You don't *need* extra logic here for requests.
+    private fun updateFirestoreAfterSync(
+        docRef: com.google.firebase.firestore.DocumentReference,
+        fileUrl: String,
+        thumbUrl: String
+    ) {
+        docRef.update(
+            mapOf(
+                "fileUrl" to fileUrl,
+                "thumbnailUrl" to thumbUrl,
+                "uploadPending" to false,
+                "localFileUri" to FieldValue.delete(),
+                "localThumbnailUri" to FieldValue.delete()
+            )
+        ).addOnSuccessListener {
+            Log.d("OfflineSync", "Synced doc ${docRef.id}")
+        }.addOnFailureListener {
+            Log.e("OfflineSync", "Failed to update doc after sync", it)
+        }
+    }
 }

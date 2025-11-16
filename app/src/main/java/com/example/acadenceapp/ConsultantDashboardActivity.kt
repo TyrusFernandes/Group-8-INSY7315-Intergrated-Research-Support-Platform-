@@ -378,10 +378,10 @@ class ConsultantDashboardActivity : AppCompatActivity() {
         }
     }
 
-
-
-
-
+    override fun onResume() {
+        super.onResume()
+        OfflineSyncManager.syncPendingDocuments(this)
+    }
 
     override fun onDestroy() {
         firestoreListener?.remove()

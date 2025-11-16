@@ -204,4 +204,9 @@ class ForYouActivity : AppCompatActivity() {
                 Toast.makeText(this, "Failed to load feed: ${it.message}", Toast.LENGTH_LONG).show()
             }
     }
+    override fun onResume() {
+        super.onResume()
+        OfflineSyncManager.syncPendingDocuments(this)
+    }
+
 }

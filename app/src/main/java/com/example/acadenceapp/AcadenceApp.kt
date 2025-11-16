@@ -9,7 +9,7 @@ class AcadenceApp : Application() {
         super.onCreate()
 
         val settings = FirebaseFirestoreSettings.Builder()
-            .setPersistenceEnabled(true)   // 🔹 keep local cache on disk
+            .setPersistenceEnabled(true)   // 🔹 keep local cache for offline use
             .build()
 
         FirebaseFirestore.getInstance().firestoreSettings = settings

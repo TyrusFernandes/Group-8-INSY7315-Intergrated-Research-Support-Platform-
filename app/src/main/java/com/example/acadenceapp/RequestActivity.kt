@@ -284,30 +284,41 @@ class RequestActivity : AppCompatActivity() {
             "createdAt"       to now,
             "price"           to calculatedPrice,
             "adminApproved"   to false,
-            )
+        )
+
+        val online = NetworkUtils.isOnline(this)
 
         db.collection("requests")
             .add(payload)
             .addOnSuccessListener { docRef ->
                 showPb(false)
-                Toast.makeText(this, "Request submitted", Toast.LENGTH_SHORT).show()
+
+                if (online) {
+                    Toast.makeText(this, "Request submitted ✅", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Request saved offline. It will sync when you’re online ✅",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                // clear only the notes field (as you had)
                 reviewDetails.setText("")
 
-                // 🚀 Trigger AI Feedback for Proofreading requests
-                val reviewType = reviewTypeSpinner.selectedItem?.toString() ?: ""
-                val notes = reviewDetails.text.toString()
+                // 🚀 AI Feedback for Proofreading (keep your logic)
                 if (reviewType.equals("Proofreading", ignoreCase = true) && notes.isNotEmpty()) {
                     lifecycleScope.launch {
                         AiFeedbackHelper.generateAiFeedback(docRef.id, notes, isDocument = false)
                     }
                 }
             }
-
             .addOnFailureListener { e ->
                 showPb(false)
                 Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
+
 
     private fun showPb(show: Boolean) {
         // Defensive: only touch if initialized

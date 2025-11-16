@@ -42,7 +42,6 @@ class UploadActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_upload)
 
-        // Bind views
         fileTitle = findViewById(R.id.fileTitle)
         tagsInput = findViewById(R.id.tagsInput)
         pickFileButton = findViewById(R.id.pickFileButton)
@@ -53,7 +52,6 @@ class UploadActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.progressBar)
         checkShowInFeed = findViewById(R.id.checkShowInFeed)
 
-        // Pick file
         pickFileButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "*/*"
@@ -69,7 +67,6 @@ class UploadActivity : AppCompatActivity() {
             startActivityForResult(intent, 100)
         }
 
-        // Pick thumbnail
         pickThumbnailButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "image/*"
@@ -78,7 +75,6 @@ class UploadActivity : AppCompatActivity() {
             startActivityForResult(intent, 101)
         }
 
-        // Upload everything
         uploadButton.setOnClickListener {
             val title = fileTitle.text.toString().trim()
             if (title.isEmpty() || fileUri == null) {
@@ -95,43 +91,17 @@ class UploadActivity : AppCompatActivity() {
                 .map { it.lowercase(Locale.getDefault()) }
                 .distinct()
 
+            val isOnline = NetworkUtils.isOnline(this)
+
             progressBar.visibility = ProgressBar.VISIBLE
-            val fileRef = storage.child("documents/${UUID.randomUUID()}")
 
-            fileRef.putFile(fileUri!!)
-                .addOnSuccessListener {
-                    fileRef.downloadUrl.addOnSuccessListener { fileDownloadUrl ->
-
-                        if (thumbnailUri != null) {
-                            val thumbRef = storage.child("thumbnails/${UUID.randomUUID()}")
-                            thumbRef.putFile(thumbnailUri!!)
-                                .addOnSuccessListener {
-                                    thumbRef.downloadUrl.addOnSuccessListener { thumbDownloadUrl ->
-                                        saveDocumentToFirestore(
-                                            title,
-                                            fileDownloadUrl.toString(),
-                                            thumbDownloadUrl.toString(),
-                                            tags
-                                        )
-                                    }
-                                }
-                                .addOnFailureListener {
-                                    Toast.makeText(this, "Thumbnail upload failed", Toast.LENGTH_SHORT).show()
-                                    saveDocumentToFirestore(title, fileDownloadUrl.toString(), null, tags)
-                                }
-                        } else {
-                            saveDocumentToFirestore(title, fileDownloadUrl.toString(), null, tags)
-                        }
-
-                    }.addOnFailureListener {
-                        progressBar.visibility = ProgressBar.GONE
-                        Toast.makeText(this, "File URL fetch failed", Toast.LENGTH_SHORT).show()
-                    }
-                }
-                .addOnFailureListener {
-                    progressBar.visibility = ProgressBar.GONE
-                    Toast.makeText(this, "File upload failed", Toast.LENGTH_SHORT).show()
-                }
+            if (isOnline) {
+                // ✅ Online → upload to Storage immediately
+                uploadOnline(title, tags)
+            } else {
+                // ✅ Offline → save placeholder Firestore doc (what you see in your screenshot)
+                saveOfflinePlaceholder(title, tags)
+            }
         }
     }
 
@@ -153,11 +123,114 @@ class UploadActivity : AppCompatActivity() {
         }
     }
 
+    // === ONLINE PATH =========================================================
+
+    private fun uploadOnline(
+        title: String,
+        tags: List<String>
+    ) {
+        val fileRef = storage.child("documents/${UUID.randomUUID()}")
+        val selectedFileUri = fileUri!!
+
+        fileRef.putFile(selectedFileUri)
+            .addOnSuccessListener {
+                fileRef.downloadUrl.addOnSuccessListener { fileDownloadUrl ->
+
+                    if (thumbnailUri != null) {
+                        val thumbRef = storage.child("thumbnails/${UUID.randomUUID()}")
+                        thumbRef.putFile(thumbnailUri!!)
+                            .addOnSuccessListener {
+                                thumbRef.downloadUrl.addOnSuccessListener { thumbDownloadUrl ->
+                                    saveDocumentToFirestore(
+                                        title,
+                                        fileDownloadUrl.toString(),
+                                        thumbDownloadUrl.toString(),
+                                        tags,
+                                        uploadPending = false,
+                                        localFileUri = null,
+                                        localThumbUri = null
+                                    )
+                                }
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(this, "Thumbnail upload failed", Toast.LENGTH_SHORT).show()
+                                saveDocumentToFirestore(
+                                    title,
+                                    fileDownloadUrl.toString(),
+                                    null,
+                                    tags,
+                                    uploadPending = false,
+                                    localFileUri = null,
+                                    localThumbUri = null
+                                )
+                            }
+                    } else {
+                        saveDocumentToFirestore(
+                            title,
+                            fileDownloadUrl.toString(),
+                            null,
+                            tags,
+                            uploadPending = false,
+                            localFileUri = null,
+                            localThumbUri = null
+                        )
+                    }
+
+                }.addOnFailureListener {
+                    progressBar.visibility = ProgressBar.GONE
+                    Toast.makeText(this, "File URL fetch failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .addOnFailureListener {
+                progressBar.visibility = ProgressBar.GONE
+                Toast.makeText(this, "File upload failed", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    // === OFFLINE PLACEHOLDER =================================================
+
+    private fun saveOfflinePlaceholder(
+        title: String,
+        tags: List<String>
+    ) {
+        val user = auth.currentUser
+        val doc = hashMapOf(
+            "title" to title,
+            "titleLower" to title.lowercase(Locale.getDefault()),
+            "fileUrl" to "",                  // will be filled by sync
+            "thumbnailUrl" to "",             // will be filled by sync
+            "localFileUri" to fileUri!!.toString(),
+            "localThumbnailUri" to (thumbnailUri?.toString() ?: ""),
+            "uploadedBy" to (user?.displayName ?: user?.email ?: "Unknown"),
+            "uploadedByUid" to (user?.uid ?: "anonymous"),
+            "tags" to tags,
+            "createdAt" to FieldValue.serverTimestamp(),
+            "studentChecked" to checkShowInFeed.isChecked,
+            "uploadPending" to true           // mark as needing sync
+        )
+
+        db.collection("documents").add(doc)
+            .addOnSuccessListener {
+                progressBar.visibility = ProgressBar.GONE
+                Toast.makeText(this, "Saved offline – will upload when online ✅", Toast.LENGTH_LONG).show()
+                clearInputs()
+            }
+            .addOnFailureListener { e ->
+                progressBar.visibility = ProgressBar.GONE
+                Toast.makeText(this, "Firestore error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+    }
+
+    // === COMMON FIRESTORE SAVE ==============================================
+
     private fun saveDocumentToFirestore(
         title: String,
         fileUrl: String,
         thumbnailUrl: String?,
-        tags: List<String>
+        tags: List<String>,
+        uploadPending: Boolean,
+        localFileUri: String?,
+        localThumbUri: String?
     ) {
         val user = auth.currentUser
         val doc = hashMapOf(
@@ -169,24 +242,32 @@ class UploadActivity : AppCompatActivity() {
             "uploadedByUid" to (user?.uid ?: "anonymous"),
             "tags" to tags,
             "createdAt" to FieldValue.serverTimestamp(),
-            "studentChecked" to checkShowInFeed.isChecked
-        )
+            "studentChecked" to checkShowInFeed.isChecked,
+            "uploadPending" to uploadPending,
+        ) as MutableMap<String, Any?>
+
+        if (localFileUri != null) doc["localFileUri"] = localFileUri
+        if (localThumbUri != null) doc["localThumbnailUri"] = localThumbUri
 
         db.collection("documents").add(doc)
             .addOnSuccessListener {
                 progressBar.visibility = ProgressBar.GONE
                 Toast.makeText(this, "Uploaded successfully ✅", Toast.LENGTH_LONG).show()
-                fileTitle.setText("")
-                tagsInput.setText("")
-                filePathText.text = "No file selected"
-                fileUri = null
-                thumbnailUri = null
-                thumbnailPreview.setImageDrawable(null)
-                thumbnailPreview.visibility = ImageView.GONE
+                clearInputs()
             }
             .addOnFailureListener { e ->
                 progressBar.visibility = ProgressBar.GONE
                 Toast.makeText(this, "Firestore error: ${e.message}", Toast.LENGTH_LONG).show()
             }
+    }
+
+    private fun clearInputs() {
+        fileTitle.setText("")
+        tagsInput.setText("")
+        filePathText.text = "No file selected"
+        fileUri = null
+        thumbnailUri = null
+        thumbnailPreview.setImageDrawable(null)
+        thumbnailPreview.visibility = ImageView.GONE
     }
 }
