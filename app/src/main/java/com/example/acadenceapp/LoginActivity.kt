@@ -49,27 +49,51 @@ class LoginActivity : AppCompatActivity() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         val uid = auth.currentUser?.uid
+                        if (uid == null) {
+                            Toast.makeText(this, "Login error: user ID not found", Toast.LENGTH_LONG).show()
+                            return@addOnCompleteListener
+                        }
+
                         FirebaseFirestore.getInstance()
                             .collection("users")
-                            .document(uid!!)
+                            .document(uid)
                             .get()
                             .addOnSuccessListener { snapshot ->
-                                val role = snapshot.getString("role")
+                                val role = snapshot.getString("role") ?: "Student"
                                 Toast.makeText(this, "Welcome, $role", Toast.LENGTH_SHORT).show()
 
-                                val intent = when (role) {
+                                // Decide which dashboard to open
+                                val dashboardIntent = when (role) {
                                     "Consultant" -> Intent(this, ConsultantDashboardActivity::class.java)
                                     "Student" -> Intent(this, DashboardActivity::class.java)
-                                    else -> Intent(this, DashboardActivity::class.java) // fallback
+                                    else -> Intent(this, DashboardActivity::class.java)
                                 }
-                                startActivity(intent)
-                                finish()
+
+                                // 🔹 NEW: check if biometric login is enabled
+                                val prefs = getSharedPreferences("settings_prefs", MODE_PRIVATE)
+                                val biometricEnabled = prefs.getBoolean("biometric_enabled", false)
+
+                                if (biometricEnabled) {
+                                    // Ask for biometrics BEFORE going to dashboard
+                                    val helper = BiometricHelper(this) {
+                                        startActivity(dashboardIntent)
+                                        finish()
+                                    }
+                                    helper.authenticateOrContinue()
+                                } else {
+                                    // Normal behavior
+                                    startActivity(dashboardIntent)
+                                    finish()
+                                }
                             }
                     } else {
-                        Toast.makeText(this, "Login failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            this,
+                            "Login failed: ${task.exception?.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
-
         }
 
         // Handle "Sign Up" link

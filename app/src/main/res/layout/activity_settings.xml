@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F5F5">
@@ -244,6 +245,7 @@
                         android:layout_marginStart="56dp" />
 
                     <!-- Theme -->
+                    <!-- Theme / Biometric row (we'll use it for biometrics) -->
                     <LinearLayout
                         android:id="@+id/theme_item"
                         android:layout_width="match_parent"
@@ -257,11 +259,29 @@
                         android:focusable="true"
                         android:background="?attr/selectableItemBackground">
 
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_lock"
+                            android:layout_marginEnd="16dp"
+                            android:contentDescription="Biometric Icon"
+                            app:tint="#000000" />
 
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Enable biometric login"
+                            android:textSize="16sp"
+                            android:textColor="#000000" />
 
-
-
+                        <Switch
+                            android:id="@+id/switch_biometric"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            tools:ignore="UseSwitchCompatOrMaterialXml" />
                     </LinearLayout>
+
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

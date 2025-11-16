@@ -25,6 +25,10 @@
             android:name=".RequestActivity"
             android:exported="false" />
         <activity
+            android:name=".AcadenceApp"
+            android:exported="false"
+            tools:ignore="Instantiatable" />
+        <activity
             android:name=".ResourceLibraryActivity"
             android:exported="false" />
         <activity

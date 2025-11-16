@@ -45,6 +45,7 @@ class SettingsActivity : AppCompatActivity() {
         // --- Find Views ---
         val profileName = findViewById<TextView>(R.id.profile_name)
         val profileEmail = findViewById<TextView>(R.id.profile_email)
+        val biometricSwitch = findViewById<Switch>(R.id.switch_biometric)
 
         val spinnerLanguage = findViewById<Spinner>(R.id.spinner_language)
         val logoutButton = findViewById<Button>(R.id.btn_logout)
@@ -109,6 +110,15 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        // --- Biometric toggle logic ---
+        val biometricEnabled = sharedPrefs.getBoolean("biometric_enabled", false)
+        biometricSwitch.isChecked = biometricEnabled
+
+        biometricSwitch.setOnCheckedChangeListener { _, isChecked ->
+            editor.putBoolean("biometric_enabled", isChecked).apply()
+            val msg = if (isChecked) "Biometric login enabled" else "Biometric login disabled"
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
 
         // --- Spinner Logic (Original, simplified as we removed the TextView) ---
         spinnerLanguage.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {

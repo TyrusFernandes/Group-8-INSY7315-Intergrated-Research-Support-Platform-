@@ -55,6 +55,8 @@ dependencies {
     // Firebase Authentication (needed for email+password, Google, GitHub, etc.)
     implementation("com.google.firebase:firebase-auth")
 
+    implementation("androidx.biometric:biometric:1.2.0-alpha05")
+
     // Firestore (optional, you already have it)
     implementation("com.google.firebase:firebase-firestore")
 
