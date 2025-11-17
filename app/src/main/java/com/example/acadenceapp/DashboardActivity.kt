@@ -62,6 +62,12 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        val btnViewReviews = findViewById<Button>(R.id.btnViewReviews)
+        btnViewReviews.setOnClickListener {
+            val intent = Intent(this, ViewReviewActivity::class.java)
+            startActivity(intent)
+        }
+
         val btnAiAssistant = findViewById<Button>(R.id.btnAiAssistant)
         btnAiAssistant.setOnClickListener {
             val intent = Intent(this, AiAssistantActivity::class.java)

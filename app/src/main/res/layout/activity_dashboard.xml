@@ -267,6 +267,16 @@
                         android:layout_marginBottom="16dp"/>
 
                     <Button
+                        android:id="@+id/btnViewReviews"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="View Reviews"
+                        android:backgroundTint="#003366"
+                        android:textColor="@android:color/white"
+                        android:textAllCaps="false"
+                        android:layout_marginBottom="16dp"/>
+
+                    <Button
                         android:id="@+id/btnAiAssistant"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

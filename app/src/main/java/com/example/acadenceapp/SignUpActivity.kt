@@ -10,10 +10,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.*
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
 class SignUpActivity : AppCompatActivity() {
-
 
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -24,14 +24,13 @@ class SignUpActivity : AppCompatActivity() {
         super.attachBaseContext(context)
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
 
         auth = FirebaseAuth.getInstance()
 
-        // Google sign-in config
+        // --- Google sign-in config ---
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -47,6 +46,7 @@ class SignUpActivity : AppCompatActivity() {
         val etConfirmPassword: EditText = findViewById(R.id.etConfirmPassword)
         val etUsername: EditText = findViewById(R.id.etUsername)
 
+        // === Normal email/password sign-up ===
         btnSignUp.setOnClickListener {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
@@ -65,25 +65,27 @@ class SignUpActivity : AppCompatActivity() {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        val user = auth.currentUser
+                        val user = auth.currentUser ?: return@addOnCompleteListener
 
                         val profileUpdates = UserProfileChangeRequest.Builder()
                             .setDisplayName(username)
                             .build()
-                        user?.updateProfile(profileUpdates)
+                        user.updateProfile(profileUpdates)
 
                         val role = getSelectedRole()
 
                         val userData = hashMapOf(
-                            "uid" to user?.uid,
-                            "email" to user?.email,
+                            "uid" to user.uid,
+                            "email" to user.email,
                             "username" to username,
-                            "role" to role
+                            "displayName" to username,
+                            "role" to role,
+                            "createdAt" to FieldValue.serverTimestamp()
                         )
 
                         FirebaseFirestore.getInstance()
                             .collection("users")
-                            .document(user!!.uid)
+                            .document(user.uid)
                             .set(userData)
 
                         Toast.makeText(this, "Sign up successful, please log in", Toast.LENGTH_SHORT).show()
@@ -95,6 +97,7 @@ class SignUpActivity : AppCompatActivity() {
                 }
         }
 
+        // === Google button ===
         btnGoogle.setOnClickListener {
             val signInIntent = googleSignInClient.signInIntent
             startActivityForResult(signInIntent, 1001)
@@ -114,6 +117,18 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
+    // === Helper: go to dashboard based on role ===
+    private fun goToDashboard(role: String) {
+        val intent = if (role == "Consultant") {
+            Intent(this, ConsultantDashboardActivity::class.java)
+        } else {
+            Intent(this, DashboardActivity::class.java)
+        }
+        startActivity(intent)
+        finish()
+    }
+
+    // === Google sign-in result ===
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -123,39 +138,84 @@ class SignUpActivity : AppCompatActivity() {
                 val account = task.getResult(ApiException::class.java)!!
                 firebaseAuthWithGoogle(account.idToken!!)
             } catch (e: ApiException) {
-                Toast.makeText(this, "Google Sign-In Success", Toast.LENGTH_SHORT).show()
+                // This was previously saying "Google Sign-In Success" by mistake
+                Toast.makeText(this, "Google Sign-In failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun firebaseAuthWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-        auth.signInWithCredential(credential).addOnCompleteListener(this) { task ->
-            if (task.isSuccessful) {
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener(this) { task ->
+                if (!task.isSuccessful) {
+                    Toast.makeText(
+                        this,
+                        "Authentication Failed: ${task.exception?.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@addOnCompleteListener
+                }
+
                 val user = auth.currentUser ?: return@addOnCompleteListener
                 val uid = user.uid
-                val username = findViewById<EditText>(R.id.etUsername).text.toString().trim()
-                val role = getSelectedRole()
-
-                val userData = hashMapOf(
-                    "uid" to uid,
-                    "email" to user.email,
-                    "username" to (username.ifEmpty { user.displayName ?: "GoogleUser" }),
-                    "role" to role
-                )
-
-                // Write to Firestore
-                FirebaseFirestore.getInstance()
+                val usersRef = FirebaseFirestore.getInstance()
                     .collection("users")
                     .document(uid)
-                    .set(userData)
 
-                Toast.makeText(this, "Signed in with Google: ${user.email}", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this, LoginActivity::class.java))
-                finish()
-            } else {
-                Toast.makeText(this, "Authentication Failed", Toast.LENGTH_SHORT).show()
+                // Check if user doc already exists
+                usersRef.get().addOnSuccessListener { snap ->
+                    if (snap.exists()) {
+                        // Existing user – keep their role (or default to Student)
+                        val role = snap.getString("role") ?: "Student"
+                        Toast.makeText(this, "Google Sign-In Success", Toast.LENGTH_SHORT).show()
+                        goToDashboard(role)
+                    } else {
+                        // New Google user – ALWAYS Student as requested
+                        val usernameInput =
+                            findViewById<EditText>(R.id.etUsername).text.toString().trim()
+                        val username = when {
+                            usernameInput.isNotEmpty() -> usernameInput
+                            !user.displayName.isNullOrEmpty() -> user.displayName!!
+                            !user.email.isNullOrEmpty() -> user.email!!.substringBefore("@")
+                            else -> "StudentUser"
+                        }
+
+                        val role = "Student" // <- force Student for Google sign-up
+
+                        val userData = hashMapOf(
+                            "uid" to uid,
+                            "email" to user.email,
+                            "username" to username,
+                            "displayName" to username,
+                            "role" to role,
+                            "createdAt" to FieldValue.serverTimestamp()
+                        )
+
+                        usersRef.set(userData)
+                            .addOnSuccessListener {
+                                Toast.makeText(
+                                    this,
+                                    "Signed in with Google: ${user.email}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                goToDashboard(role)
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(
+                                    this,
+                                    "Failed to save user: ${e.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                    }
+                }.addOnFailureListener { e ->
+                    Toast.makeText(
+                        this,
+                        "Failed to load user profile: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
-        }
     }
 }

@@ -129,16 +129,6 @@
                 android:textColor="#FFFFFF"
                 android:textSize="15sp" />
 
-            <Button
-                android:id="@+id/btnGitHubSignUp"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="55dp"
-                android:text="Sign up with Github"
-                android:background="@drawable/rounded_edittext"
-                android:textColor="#FFFFFF"
-                android:textSize="15sp"
-                android:layout_marginStart="8dp" />
         </LinearLayout>
 
         <RadioGroup
