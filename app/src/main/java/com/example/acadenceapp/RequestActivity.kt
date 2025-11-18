@@ -223,26 +223,22 @@ class RequestActivity : AppCompatActivity() {
                     it.getTimestamp("createdAt")?.toDate()?.time ?: 0L
                 }
 
-                val items = sortedDocs
-                    .filter { d ->
-                        val adminApproved = d.getBoolean("adminApproved") ?: false
-                        val consultantApproved = d.getBoolean("consultantApproved") ?: false
-                        adminApproved && consultantApproved
-                    }
-                    .map { d ->
-                        RequestModel(
-                            id = d.id,
-                            docTitle = d.getString("docTitle") ?: "",
-                            assignedToName = d.getString("assignedToName") ?: "",
-                            reviewType = d.getString("reviewType") ?: "",
-                            dueDate = d.getTimestamp("dueDate"),
-                            status = d.getString("status") ?: "Pending"
-                        )
-                    }
+                // ❌ NO MORE adminApproved / consultantApproved FILTER
+                val items = sortedDocs.map { d ->
+                    RequestModel(
+                        id = d.id,
+                        docTitle = d.getString("docTitle") ?: "",
+                        assignedToName = d.getString("assignedToName") ?: "",
+                        reviewType = d.getString("reviewType") ?: "",
+                        dueDate = d.getTimestamp("dueDate"),
+                        status = d.getString("status") ?: "Pending"
+                    )
+                }
 
                 requestsAdapter.update(items)
             }
     }
+
 
 
     private fun submitRequest() {
